@@ -146,9 +146,9 @@ export default function LandingPage() {
             <div className="flex flex-row items-center justify-center">
               <p className="text-2xl md:text-3xl text-zinc-300 mr-8 font-medium">Built Using the</p>
               <div className="px-3">
-                {" "}
-                {/* Removed vertical padding and reduced horizontal padding */}
-                <img src="/spotify_full_logo.svg" alt="Spotify" className="h-[70px] min-h-[70px] w-auto" />
+                <a href="https://www.spotify.com" target="_blank" rel="noopener noreferrer" title="Visit Spotify">
+                  <img src="/spotify_full_logo.svg" alt="Spotify" className="h-[70px] min-h-[70px] w-auto" />
+                </a>
               </div>
               <p className="text-2xl md:text-3xl text-zinc-300 ml-8 font-medium">Web API</p>
             </div>

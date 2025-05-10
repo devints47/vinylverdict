@@ -26,6 +26,7 @@ interface UserProfile {
   followers: { total: number }
   country: string
   product: string
+  id: string
 }
 
 interface ArtistInfo {
@@ -391,7 +392,9 @@ export default function DashboardPage() {
       <CardHeader className="relative">
         <div className="flex items-center gap-6">
           <div className="p-2">
-            <img src="/spotify_logo_small.svg" alt="Spotify" className="h-14 w-14" />
+            <a href="https://www.spotify.com" target="_blank" rel="noopener noreferrer" title="Visit Spotify">
+              <img src="/spotify_logo_small.svg" alt="Spotify" className="h-14 w-14" />
+            </a>
           </div>
           <div className="flex flex-col justify-center">
             <CardTitle className="text-2xl">Recently Played Tracks</CardTitle>
@@ -450,7 +453,9 @@ export default function DashboardPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
           <div className="flex items-center gap-6">
             <div className="p-2">
-              <img src="/spotify_logo_small.svg" alt="Spotify" className="h-14 w-14" />
+              <a href="https://www.spotify.com" target="_blank" rel="noopener noreferrer" title="Visit Spotify">
+                <img src="/spotify_logo_small.svg" alt="Spotify" className="h-14 w-14" />
+              </a>
             </div>
             <div className="flex flex-col justify-center">
               <CardTitle className="text-2xl">Your Top Tracks</CardTitle>
@@ -509,7 +514,9 @@ export default function DashboardPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
           <div className="flex items-center gap-6">
             <div className="p-2">
-              <img src="/spotify_logo_small.svg" alt="Spotify" className="h-14 w-14" />
+              <a href="https://www.spotify.com" target="_blank" rel="noopener noreferrer" title="Visit Spotify">
+                <img src="/spotify_logo_small.svg" alt="Spotify" className="h-14 w-14" />
+              </a>
             </div>
             <div className="flex flex-col justify-center">
               <CardTitle className="text-2xl">Your Top Artists</CardTitle>
@@ -597,18 +604,25 @@ export default function DashboardPage() {
                         />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-sm font-bold truncate">{profile.display_name}</h3>
+                        <h3 className="text-sm font-bold truncate">
+                          <a
+                            href={`https://open.spotify.com/user/${profile.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline"
+                          >
+                            {profile.display_name}
+                          </a>
+                        </h3>
                         <div className="flex flex-wrap gap-1 mt-1">
                           <span className="bg-zinc-800 px-2 py-0.5 rounded-full text-xs flex items-center">
                             <Users className="h-3 w-3 mr-1" />
-                            {profile.followers.total}
+                            {profile.followers.total} {profile.followers.total === 1 ? "follower" : "followers"}
                           </span>
                           {profile.country && (
                             <span className="bg-zinc-800 px-2 py-0.5 rounded-full text-xs">{profile.country}</span>
                           )}
-                          <span className="bg-zinc-800 px-2 py-0.5 rounded-full text-xs capitalize">
-                            {profile.product}
-                          </span>
+                          {/* Product tag (Premium/Free) removed */}
                         </div>
                       </div>
                     </div>
@@ -634,7 +648,9 @@ export default function DashboardPage() {
                   {/* Right Column - Spotify Logo */}
                   <div className="flex flex-col items-center justify-center pl-2 border-l border-zinc-800">
                     <div className="flex flex-col items-center">
-                      <img src="/spotify_logo_small.svg" alt="Spotify" className="h-[40px] w-auto mb-2" />
+                      <a href="https://www.spotify.com" target="_blank" rel="noopener noreferrer" title="Visit Spotify">
+                        <img src="/spotify_logo_small.svg" alt="Spotify" className="h-[40px] w-auto mb-2" />
+                      </a>
                       <span className="text-xs text-zinc-500/80 text-center">Connected to Spotify</span>
                     </div>
                   </div>

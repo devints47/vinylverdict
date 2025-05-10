@@ -64,8 +64,8 @@ export function TrackItem({
   const genres = track.genres || track.artists.flatMap((artist) => artist.genres || []).slice(0, 2)
 
   return (
-    <div className="flex items-center gap-2 p-3 rounded-lg hover:bg-gradient-to-r hover:from-zinc-800/70 hover:to-zinc-900/30 transition-colors">
-      {index !== undefined && <div className="w-6 text-center text-zinc-500 font-mono text-sm">{index + 1}</div>}
+    <div className="flex items-center gap-1 sm:gap-2 p-3 rounded-lg hover:bg-gradient-to-r hover:from-zinc-800/70 hover:to-zinc-900/30 transition-colors">
+      {index !== undefined && <div className="w-4 sm:w-6 text-center text-zinc-500 font-mono text-sm">{index + 1}</div>}
       <div className="flex-shrink-0 w-16 h-16">
         <a
           href={track.album.external_urls?.spotify || track.external_urls.spotify}
@@ -125,7 +125,7 @@ export function TrackItem({
       </div>
 
       {/* Center column for genres */}
-      <div className="flex-1 flex items-center justify-center">
+      <div className="hidden md:flex flex-1 items-center justify-center">
         {genres && genres.length > 0 && (
           <p className="text-zinc-600 text-xs truncate capitalize text-center max-w-[90%]">{genres.join(", ")}</p>
         )}
