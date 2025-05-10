@@ -649,7 +649,7 @@ export default function DashboardPage() {
                   <div className="col-span-2 flex flex-col items-center justify-center pl-2 border-l border-zinc-800">
                     <div className="flex flex-col items-center">
                       <a href="https://www.spotify.com" target="_blank" rel="noopener noreferrer" title="Visit Spotify">
-                        <img src="/spotify_logo_small.svg" alt="Spotify" className="h-[46px] w-auto mb-2" />
+                        <img src="/spotify_logo_small.svg" alt="Spotify" className="h-[48px] w-auto mb-2" />
                       </a>
                       <span className="text-xs text-zinc-500/80 text-center">Connected to Spotify</span>
                     </div>
