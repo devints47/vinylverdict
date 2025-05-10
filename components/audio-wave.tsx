@@ -9,6 +9,24 @@ export function AudioWave() {
     const canvas = canvasRef.current
     if (!canvas) return
 
+    // Add a media query check to hide on smaller screens
+    const mediaQuery = window.matchMedia("(max-width: 1350px)")
+    const handleMediaChange = (e: MediaQueryListEvent | MediaQueryList) => {
+      if (e.matches) {
+        // If screen is smaller than 1350px, hide the canvas
+        canvas.style.display = "none"
+      } else {
+        // Otherwise show it
+        canvas.style.display = "block"
+      }
+    }
+
+    // Initial check
+    handleMediaChange(mediaQuery)
+
+    // Add listener for changes
+    mediaQuery.addEventListener("change", handleMediaChange)
+
     const ctx = canvas.getContext("2d")
     if (!ctx) return
 
@@ -105,6 +123,8 @@ export function AudioWave() {
     // Handle resize
     const handleResize = () => {
       canvas.width = canvas.offsetWidth
+      // Also check media query on resize
+      handleMediaChange(mediaQuery)
     }
 
     window.addEventListener("resize", handleResize)
@@ -112,6 +132,7 @@ export function AudioWave() {
     return () => {
       cancelAnimationFrame(animationId)
       window.removeEventListener("resize", handleResize)
+      mediaQuery.removeEventListener("change", handleMediaChange)
     }
   }, [])
 
