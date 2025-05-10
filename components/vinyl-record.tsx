@@ -15,6 +15,7 @@ interface VinylRecordProps {
   design?: VinylDesign
   size?: number
   className?: string
+  rpm?: number // Added RPM prop with default of 33 1/3
 }
 
 // Default design if none provided
@@ -26,8 +27,24 @@ const DEFAULT_DESIGN: VinylDesign = {
   labelText: "SNOBSCORE • PREMIUM VINYL • AUDIOPHILE EDITION •",
 }
 
-export function VinylRecord({ design = DEFAULT_DESIGN, size, className = "" }: VinylRecordProps) {
+export function VinylRecord({
+  design = DEFAULT_DESIGN,
+  size,
+  className = "",
+  rpm = 33.33, // Standard LP speed
+}: VinylRecordProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const animationRef = useRef<number>(0)
+  const lastTimeRef = useRef<number>(0)
+  const scratchesRef = useRef<
+    Array<{
+      radius: number
+      startAngle: number
+      arcLength: number
+      opacity: number
+      width: number
+    }>
+  >([])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -47,6 +64,39 @@ export function VinylRecord({ design = DEFAULT_DESIGN, size, className = "" }: V
     const centerY = canvasSize / 2
     const outerRadius = canvasSize / 2 - 10
     const labelRadius = outerRadius / 3
+
+    // Generate random scratches if not already generated
+    if (scratchesRef.current.length === 0) {
+      // Generate between 5-8 scratches
+      const scratchCount = 5 + Math.floor(Math.random() * 4)
+
+      for (let i = 0; i < scratchCount; i++) {
+        // Place scratches only in the groove area (between label and outer edge)
+        const minRadius = labelRadius + 10
+        const maxRadius = outerRadius - 10
+        const radius = minRadius + Math.random() * (maxRadius - minRadius)
+
+        // Random starting angle
+        const startAngle = Math.random() * Math.PI * 2
+
+        // Random arc length (short scratches)
+        const arcLength = (0.05 + Math.random() * 0.15) * Math.PI
+
+        // Random opacity (subtle)
+        const opacity = 0.1 + Math.random() * 0.2
+
+        // Random line width (thin)
+        const width = 0.5 + Math.random() * 1
+
+        scratchesRef.current.push({
+          radius,
+          startAngle,
+          arcLength,
+          opacity,
+          width,
+        })
+      }
+    }
 
     // Create gradient colors for the label based on design
     let gradientColors: string[] = []
@@ -243,17 +293,21 @@ export function VinylRecord({ design = DEFAULT_DESIGN, size, className = "" }: V
     }
 
     // Draw vinyl reflection
-    const drawReflection = (rotation: number) => {
-      // Create a shine effect that moves with rotation
+    const drawReflection = (totalElapsedTime: number) => {
+      // Create a shine effect that moves very slowly
+      // Use a much slower cycle for the reflection - once every 20 seconds
+      const reflectionCycleMs = 20000 // 20 seconds per full reflection cycle
+      const reflectionPhase = (totalElapsedTime % reflectionCycleMs) / reflectionCycleMs
+
+      // Use sine wave to create a smooth transition
+      const offset = (Math.sin(reflectionPhase * Math.PI * 2) + 1) / 2
+
       const gradient = ctx.createLinearGradient(
         centerX - outerRadius,
         centerY - outerRadius,
         centerX + outerRadius,
         centerY + outerRadius,
       )
-
-      // Adjust the gradient position based on rotation
-      const offset = (Math.sin(rotation * 2) + 1) / 2
 
       gradient.addColorStop(Math.max(0, offset - 0.1), "rgba(255, 255, 255, 0)")
       gradient.addColorStop(offset, "rgba(255, 255, 255, 0.15)")
@@ -361,8 +415,33 @@ export function VinylRecord({ design = DEFAULT_DESIGN, size, className = "" }: V
       ctx.restore()
     }
 
+    // Draw scratches and imperfections
+    const drawScratches = () => {
+      scratchesRef.current.forEach((scratch) => {
+        ctx.beginPath()
+        ctx.arc(centerX, centerY, scratch.radius, scratch.startAngle, scratch.startAngle + scratch.arcLength)
+        ctx.strokeStyle = `rgba(255, 255, 255, ${scratch.opacity})`
+        ctx.lineWidth = scratch.width
+        ctx.stroke()
+      })
+
+      // Add a few dust particles
+      for (let i = 0; i < 3; i++) {
+        const angle = Math.random() * Math.PI * 2
+        const distance = labelRadius + Math.random() * (outerRadius - labelRadius - 5)
+        const size = 0.5 + Math.random() * 1
+        const x = centerX + Math.cos(angle) * distance
+        const y = centerY + Math.sin(angle) * distance
+
+        ctx.beginPath()
+        ctx.arc(x, y, size, 0, Math.PI * 2)
+        ctx.fillStyle = `rgba(255, 255, 255, 0.2)`
+        ctx.fill()
+      }
+    }
+
     // Draw outer black vinyl
-    const drawVinyl = (rotation = 0, gradientOffset = 0) => {
+    const drawVinyl = (rotation = 0, gradientOffset = 0, totalElapsedTime = 0) => {
       // Clear canvas
       ctx.clearRect(0, 0, canvasSize, canvasSize)
 
@@ -389,8 +468,9 @@ export function VinylRecord({ design = DEFAULT_DESIGN, size, className = "" }: V
       ctx.fill()
 
       // Draw grooves with varying opacity for more depth
-      for (let i = outerRadius - 10; i > outerRadius / 3; i -= 3) {
-        const opacity = 0.05 + Math.random() * 0.1
+      // Simplified to fewer grooves with more spacing to reduce complexity
+      for (let i = outerRadius - 10; i > outerRadius / 3; i -= 6) {
+        const opacity = 0.08
         ctx.beginPath()
         ctx.arc(centerX, centerY, i, 0, 2 * Math.PI)
         ctx.strokeStyle = `rgba(255, 255, 255, ${opacity})`
@@ -398,21 +478,8 @@ export function VinylRecord({ design = DEFAULT_DESIGN, size, className = "" }: V
         ctx.stroke()
       }
 
-      // Add some random scratches for authenticity
-      for (let i = 0; i < 5; i++) {
-        const startAngle = Math.random() * Math.PI * 2
-        const arcLength = (Math.random() * Math.PI) / 4
-        const radius = outerRadius / 3 + Math.random() * (outerRadius - outerRadius / 3 - 10)
-
-        ctx.beginPath()
-        ctx.arc(centerX, centerY, radius, startAngle, startAngle + arcLength)
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.2)"
-        ctx.lineWidth = 0.5
-        ctx.stroke()
-      }
-
-      // Draw reflection that moves with rotation
-      drawReflection(rotation)
+      // Draw scratches and imperfections
+      drawScratches()
 
       // Draw label with animated gradient
       ctx.beginPath()
@@ -462,22 +529,51 @@ export function VinylRecord({ design = DEFAULT_DESIGN, size, className = "" }: V
       // Restore context state
       ctx.restore()
 
+      // Draw the reflection (not affected by vinyl rotation)
+      drawReflection(totalElapsedTime)
+
       // Draw the stationary tonearm (not affected by vinyl rotation)
       drawTonearm()
     }
 
-    // Start rotation and gradient animation
+    // Calculate rotation speed based on RPM
+    // RPM = revolutions per minute
+    // Convert to radians per millisecond for our animation
+    const radiansPerMs = (rpm * 2 * Math.PI) / (60 * 1000)
+
+    // Start rotation and gradient animation with time-based movement
     let rotation = 0
     let gradientOffset = 0
-    const animate = () => {
-      rotation += 0.003 // Consistent rotation speed
-      gradientOffset += 0.002 // Consistent color cycling
+    let totalElapsedTime = 0
 
-      drawVinyl(rotation, gradientOffset)
-      requestAnimationFrame(animate)
+    const animate = (timestamp: number) => {
+      // Initialize lastTimeRef on first frame
+      if (!lastTimeRef.current) {
+        lastTimeRef.current = timestamp
+      }
+
+      // Calculate time elapsed since last frame in milliseconds
+      const elapsed = timestamp - lastTimeRef.current
+      lastTimeRef.current = timestamp
+
+      // Track total elapsed time for slow reflection cycle
+      totalElapsedTime += elapsed
+
+      // Update rotation based on elapsed time and RPM
+      rotation += radiansPerMs * elapsed
+
+      // Keep rotation within 0-2π range to avoid floating point issues over time
+      rotation %= 2 * Math.PI
+
+      // Update gradient offset at a slower rate
+      gradientOffset += (radiansPerMs * elapsed * 0.5) % 1
+
+      drawVinyl(rotation, gradientOffset, totalElapsedTime)
+      animationRef.current = requestAnimationFrame(animate)
     }
 
-    const animationId = requestAnimationFrame(animate)
+    // Start the animation
+    animationRef.current = requestAnimationFrame(animate)
 
     // Handle resize
     const handleResize = () => {
@@ -489,10 +585,10 @@ export function VinylRecord({ design = DEFAULT_DESIGN, size, className = "" }: V
     window.addEventListener("resize", handleResize)
 
     return () => {
-      cancelAnimationFrame(animationId)
+      cancelAnimationFrame(animationRef.current)
       window.removeEventListener("resize", handleResize)
     }
-  }, [design, size])
+  }, [design, size, rpm])
 
   return (
     <div className={`relative flex justify-center items-center ${className}`}>
