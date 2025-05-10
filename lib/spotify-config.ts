@@ -1,6 +1,6 @@
 // Spotify API configuration
 export const SPOTIFY_CLIENT_ID = process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID || ""
-export const SPOTIFY_REDIRECT_URI = process.env.NEXT_PUBLIC_REDIRECT_URI || "https://www.snobscore.com/callback"
+export const SPOTIFY_REDIRECT_URI = process.env.NEXT_PUBLIC_REDIRECT_URI || "https://snobcsore.com/callback"
 export const SPOTIFY_SCOPES = [
   "user-read-private",
   "user-read-email",
