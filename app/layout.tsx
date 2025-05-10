@@ -13,8 +13,8 @@ export const metadata: Metadata = {
   description:
     "Connect your Spotify account and let our resident Music Snob analyze your listening habits with brutal honesty and witty commentary.",
   icons: {
-    icon: "/vinyl-favicon.png",
-    apple: "/vinyl-apple-icon.png",
+    icon: "/vinyl-favicon-new.png",
+    apple: "/vinyl-favicon-new.png",
   },
     generator: 'v0.dev'
 }
@@ -28,8 +28,8 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         {/* Use the new vinyl favicon */}
-        <link rel="icon" href="/vinyl-favicon.png" type="image/png" />
-        <link rel="apple-touch-icon" href="/vinyl-apple-icon.png" />
+        <link rel="icon" href="/vinyl-favicon-new.png" type="image/png" />
+        <link rel="apple-touch-icon" href="/vinyl-favicon-new.png" />
       </head>
       <body>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
