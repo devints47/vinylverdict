@@ -1,29 +1,22 @@
 "use client"
 
-import { Suspense, lazy, useState, useEffect } from "react"
 import { Navbar } from "@/components/navbar"
 import { SpotifyLoginButton } from "@/components/spotify-login-button"
+import { VinylCollection } from "@/components/vinyl-collection"
 import { AudioWave } from "@/components/audio-wave"
 import { FeatureCard } from "@/components/feature-card"
 import { Testimonial } from "@/components/testimonial"
 import { Footer } from "@/components/footer"
+import { TechGridBackground } from "@/components/tech-grid-background"
 import { AlertCircle, BarChart3, Headphones, MessageSquare, Music, Zap, Share2 } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
-
-// Lazy load components that aren't needed immediately
-const TechGridBackground = lazy(() =>
-  import("@/components/tech-grid-background").then((mod) => ({ default: mod.TechGridBackground })),
-)
-const VinylCollectionUnified = lazy(() =>
-  import("@/components/vinyl-collection-unified").then((mod) => ({ default: mod.VinylCollectionUnified })),
-)
+import { useEffect } from "react"
 
 export default function LandingPage() {
   const { isAuthenticated, error, isLoading } = useAuth()
   const router = useRouter()
-  const [isClient, setIsClient] = useState(false)
 
   // We no longer automatically redirect authenticated users to the dashboard
   // This allows them to view the landing page while logged in
@@ -32,9 +25,6 @@ export default function LandingPage() {
     if (isAuthenticated && !isLoading) {
       console.log("User is authenticated, but staying on landing page")
     }
-
-    // Set isClient to true once component mounts
-    setIsClient(true)
   }, [isAuthenticated, isLoading])
 
   // Handle scrolling to section based on hash in URL
@@ -56,7 +46,7 @@ export default function LandingPage() {
         }
       }
     }
-  }, [isClient])
+  }, [])
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-black to-zinc-900 text-white">
@@ -64,9 +54,7 @@ export default function LandingPage() {
 
       {/* Combined Hero and Features Section with shared grid */}
       <section className="relative overflow-hidden">
-        <Suspense fallback={<div className="absolute inset-0 bg-black"></div>}>
-          {isClient && <TechGridBackground />}
-        </Suspense>
+        <TechGridBackground />
 
         {/* Hero Content */}
         <div className="pt-32 pb-20 px-4">
@@ -95,9 +83,7 @@ export default function LandingPage() {
               </div>
 
               <div className="relative">
-                <Suspense fallback={<div className="w-full h-[300px] bg-zinc-900/50 rounded-lg animate-pulse"></div>}>
-                  {isClient && <VinylCollectionUnified />}
-                </Suspense>
+                <VinylCollection />
                 <div className="mt-8">
                   <AudioWave />
                 </div>
@@ -154,18 +140,15 @@ export default function LandingPage() {
 
       {/* Built Using Spotify Web API Section - WITH GRID */}
       <section className="relative py-12 px-4 bg-black overflow-hidden">
-        <Suspense fallback={null}>{isClient && <TechGridBackground />}</Suspense>
+        <TechGridBackground />
         <div className="container mx-auto relative z-10">
           <div className="bg-black py-1 px-4 rounded-xl max-w-3xl mx-auto">
             <div className="flex flex-row items-center justify-center">
               <p className="text-2xl md:text-3xl text-zinc-300 mr-8 font-medium">Built Using the</p>
               <div className="px-3">
-                <img
-                  src="/spotify_full_logo.svg"
-                  alt="Spotify"
-                  className="h-[70px] min-h-[70px] w-auto"
-                  loading="lazy"
-                />
+                {" "}
+                {/* Removed vertical padding and reduced horizontal padding */}
+                <img src="/spotify_full_logo.svg" alt="Spotify" className="h-[70px] min-h-[70px] w-auto" />
               </div>
               <p className="text-2xl md:text-3xl text-zinc-300 ml-8 font-medium">Web API</p>
             </div>
@@ -175,7 +158,7 @@ export default function LandingPage() {
 
       {/* Testimonials Section - WITH GRID */}
       <section id="testimonials" className="relative py-20 px-4 bg-black overflow-hidden">
-        <Suspense fallback={null}>{isClient && <TechGridBackground />}</Suspense>
+        <TechGridBackground />
         <div className="container mx-auto relative z-10">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4 text-purple-gradient">What Users Are Saying</h2>
@@ -205,9 +188,47 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* How It Works Section - NO GRID - HIDDEN FOR NOW */}
+      <section id="how-it-works" className="hidden py-20 px-4">
+        <div className="container mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-purple-gradient">How It Works</h2>
+            <p className="text-xl text-zinc-400 max-w-2xl mx-auto">
+              Three simple steps to musical self-awareness (or self-loathing)
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            <div className="text-center">
+              <div className="w-16 h-16 rounded-full bg-bright-purple/20 flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl font-bold text-purple-gradient">1</span>
+              </div>
+              <h3 className="text-xl font-bold mb-2">Connect Account</h3>
+              <p className="text-zinc-400">Securely log in with your music streaming account.</p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-16 h-16 rounded-full bg-bright-purple/20 flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl font-bold text-purple-gradient">2</span>
+              </div>
+              <h3 className="text-xl font-bold mb-2">View Your Stats</h3>
+              <p className="text-zinc-400">See your recently played tracks and top artists/songs.</p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-16 h-16 rounded-full bg-bright-purple/20 flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl font-bold text-purple-gradient">3</span>
+              </div>
+              <h3 className="text-xl font-bold mb-2">Get Roasted</h3>
+              <p className="text-zinc-400">Receive a witty critique from our resident Music Snob.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section - WITH GRID */}
       <section className="relative py-20 px-4 bg-black overflow-hidden">
-        <Suspense fallback={null}>{isClient && <TechGridBackground />}</Suspense>
+        <TechGridBackground />
         <div className="container mx-auto max-w-4xl relative z-10">
           <div className="bg-gradient-to-r from-zinc-900/80 to-black/80 p-8 md:p-12 rounded-2xl border border-zinc-800 text-center backdrop-blur-sm">
             <h2 className="text-3xl md:text-4xl font-bold mb-4 text-purple-gradient">Ready to Face the Music?</h2>

@@ -74,18 +74,10 @@ export function ArtistItem({ artist, index }: ArtistItemProps) {
         {artist.followers && (
           <p className="text-zinc-500 text-xs">{formatFollowers(artist.followers.total)} followers</p>
         )}
-
-        {/* Mobile-only genres - left aligned */}
-        {isMobile && artist.genres && artist.genres.length > 0 && (
-          <p className="text-zinc-600 text-xs truncate capitalize text-left mt-1">
-            {artist.genres.slice(0, 3).join(", ")}
-            {artist.genres.length > 3 && "..."}
-          </p>
-        )}
       </div>
 
-      {/* Center column for genres - hide on mobile */}
-      <div className="hidden sm:flex flex-1 items-center justify-center">
+      {/* Center column for genres */}
+      <div className="flex-1 flex items-center justify-center">
         {artist.genres && artist.genres.length > 0 && (
           <p className="text-zinc-600 text-xs truncate capitalize text-center max-w-[90%]">
             {artist.genres.slice(0, 3).join(", ")}
@@ -94,7 +86,7 @@ export function ArtistItem({ artist, index }: ArtistItemProps) {
         )}
       </div>
 
-      <div className="bg-zinc-800 px-3 py-1 rounded-full text-xs ml-auto">Popularity: {artist.popularity}</div>
+      <div className="bg-zinc-800 px-3 py-1 rounded-full text-xs">Popularity: {artist.popularity}</div>
     </div>
   )
 }

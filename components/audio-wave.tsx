@@ -1,33 +1,11 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 
 export function AudioWave() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const [isWideEnough, setIsWideEnough] = useState(true)
-
-  // Check viewport width on mount and resize
-  useEffect(() => {
-    const checkWidth = () => {
-      setIsWideEnough(window.innerWidth >= 1350)
-    }
-
-    // Initial check
-    checkWidth()
-
-    // Add resize listener
-    window.addEventListener("resize", checkWidth)
-
-    // Cleanup
-    return () => {
-      window.removeEventListener("resize", checkWidth)
-    }
-  }, [])
 
   useEffect(() => {
-    // Don't initialize canvas if we're not showing it
-    if (!isWideEnough) return
-
     const canvas = canvasRef.current
     if (!canvas) return
 
@@ -135,12 +113,7 @@ export function AudioWave() {
       cancelAnimationFrame(animationId)
       window.removeEventListener("resize", handleResize)
     }
-  }, [isWideEnough])
-
-  // Don't render the canvas at all if viewport is too narrow
-  if (!isWideEnough) {
-    return null
-  }
+  }, [])
 
   return <canvas ref={canvasRef} className="w-full h-20" aria-hidden="true" />
 }

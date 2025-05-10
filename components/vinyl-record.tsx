@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, memo } from "react"
+import { useEffect, useRef } from "react"
 
 // Define the vinyl design type
 export interface VinylDesign {
@@ -15,8 +15,7 @@ interface VinylRecordProps {
   design?: VinylDesign
   size?: number
   className?: string
-  rpm?: number
-  quality?: "low" | "medium" | "high"
+  rpm?: number // Added RPM prop with default of 33 1/3
 }
 
 // Default design if none provided
@@ -28,12 +27,11 @@ const DEFAULT_DESIGN: VinylDesign = {
   labelText: "SNOBSCORE • PREMIUM VINYL • AUDIOPHILE EDITION •",
 }
 
-function VinylRecordComponent({
+export function VinylRecord({
   design = DEFAULT_DESIGN,
   size,
   className = "",
   rpm = 33.33, // Standard LP speed
-  quality = "medium", // Default quality
 }: VinylRecordProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const animationRef = useRef<number>(0)
@@ -52,37 +50,14 @@ function VinylRecordComponent({
     const canvas = canvasRef.current
     if (!canvas) return
 
-    const ctx = canvas.getContext("2d", { alpha: true })
+    const ctx = canvas.getContext("2d")
     if (!ctx) return
 
     // Set canvas dimensions - responsive to container size
     const containerWidth = canvas.parentElement?.clientWidth || 300
     const canvasSize = size || containerWidth
-
-    // Set actual canvas size based on quality setting
-    let scaleFactor = 1
-    switch (quality) {
-      case "low":
-        scaleFactor = 0.5
-        break
-      case "high":
-        scaleFactor = 2
-        break
-      case "medium":
-      default:
-        scaleFactor = 1
-    }
-
-    // Set the canvas dimensions with the appropriate scale factor
-    canvas.width = canvasSize * scaleFactor
-    canvas.height = canvasSize * scaleFactor
-
-    // Scale the context to match the canvas size
-    ctx.scale(scaleFactor, scaleFactor)
-
-    // Set the CSS size of the canvas
-    canvas.style.width = `${canvasSize}px`
-    canvas.style.height = `${canvasSize}px`
+    canvas.width = canvasSize
+    canvas.height = canvasSize
 
     // Draw vinyl record
     const centerX = canvasSize / 2
@@ -346,9 +321,6 @@ function VinylRecordComponent({
 
     // Draw record player arm (stationary)
     const drawTonearm = () => {
-      // Skip drawing tonearm for small vinyl sizes to improve performance
-      if (canvasSize < 100) return
-
       // Save the current context state
       ctx.save()
 
@@ -445,9 +417,6 @@ function VinylRecordComponent({
 
     // Draw scratches and imperfections
     const drawScratches = () => {
-      // Skip drawing scratches for small vinyl sizes to improve performance
-      if (canvasSize < 100) return
-
       scratchesRef.current.forEach((scratch) => {
         ctx.beginPath()
         ctx.arc(centerX, centerY, scratch.radius, scratch.startAngle, scratch.startAngle + scratch.arcLength)
@@ -470,9 +439,6 @@ function VinylRecordComponent({
         ctx.fill()
       }
     }
-
-    // Determine groove spacing based on quality
-    const grooveSpacing = quality === "low" ? 12 : quality === "high" ? 4 : 6
 
     // Draw outer black vinyl
     const drawVinyl = (rotation = 0, gradientOffset = 0, totalElapsedTime = 0) => {
@@ -503,7 +469,7 @@ function VinylRecordComponent({
 
       // Draw grooves with varying opacity for more depth
       // Simplified to fewer grooves with more spacing to reduce complexity
-      for (let i = outerRadius - 10; i > outerRadius / 3; i -= grooveSpacing) {
+      for (let i = outerRadius - 10; i > outerRadius / 3; i -= 6) {
         const opacity = 0.08
         ctx.beginPath()
         ctx.arc(centerX, centerY, i, 0, 2 * Math.PI)
@@ -579,17 +545,8 @@ function VinylRecordComponent({
     let rotation = 0
     let gradientOffset = 0
     let totalElapsedTime = 0
-    let lastFrameTime = 0
 
     const animate = (timestamp: number) => {
-      // Skip frames if needed based on quality setting
-      if (quality === "low" && lastFrameTime && timestamp - lastFrameTime < 32) {
-        animationRef.current = requestAnimationFrame(animate)
-        return
-      }
-
-      lastFrameTime = timestamp
-
       // Initialize lastTimeRef on first frame
       if (!lastTimeRef.current) {
         lastTimeRef.current = timestamp
@@ -621,22 +578,17 @@ function VinylRecordComponent({
     // Handle resize
     const handleResize = () => {
       const newWidth = canvas.parentElement?.clientWidth || 300
-      canvas.width = newWidth * scaleFactor
-      canvas.height = newWidth * scaleFactor
-      canvas.style.width = `${newWidth}px`
-      canvas.style.height = `${newWidth}px`
-      ctx.scale(scaleFactor, scaleFactor)
+      canvas.width = newWidth
+      canvas.height = newWidth
     }
 
     window.addEventListener("resize", handleResize)
 
     return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current)
-      }
+      cancelAnimationFrame(animationRef.current)
       window.removeEventListener("resize", handleResize)
     }
-  }, [design, size, rpm, quality])
+  }, [design, size, rpm])
 
   return (
     <div className={`relative flex justify-center items-center ${className}`}>
@@ -644,6 +596,3 @@ function VinylRecordComponent({
     </div>
   )
 }
-
-// Memoize the component to prevent unnecessary re-renders
-export const VinylRecord = memo(VinylRecordComponent)

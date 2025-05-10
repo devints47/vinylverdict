@@ -1,8 +1,9 @@
 import type React from "react"
 interface ListContainerProps {
   children: React.ReactNode
+  className?: string
 }
 
-export function ListContainer({ children }: ListContainerProps) {
-  return <div className="flex flex-col divide-y divide-zinc-800/50 rounded-lg overflow-hidden">{children}</div>
+export function ListContainer({ children, className = "" }: ListContainerProps) {
+  return <div className={`space-y-1 divide-y divide-zinc-800/30 ${className}`}>{children}</div>
 }
