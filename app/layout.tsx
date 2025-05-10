@@ -3,6 +3,8 @@ import type { Metadata } from "next"
 import "@/app/globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/contexts/auth-context"
+import { Analytics } from "@vercel/analytics/next"
+import { Suspense } from "react"
 
 // Update the metadata title and description
 export const metadata: Metadata = {
@@ -30,7 +32,10 @@ export default function RootLayout({
       </head>
       <body>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            <Suspense>{children}</Suspense>
+          </AuthProvider>
+          <Analytics />
         </ThemeProvider>
       </body>
     </html>

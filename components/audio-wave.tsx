@@ -115,5 +115,5 @@ export function AudioWave() {
     }
   }, [])
 
-  return <canvas ref={canvasRef} className="w-full h-20" aria-hidden="true" />
+  return <canvas ref={canvasRef} className="w-full h-20 hidden md:block" aria-hidden="true" />
 }

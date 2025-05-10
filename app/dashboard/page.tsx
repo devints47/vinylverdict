@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, Suspense } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
 import { Navbar } from "@/components/navbar"
@@ -14,11 +14,20 @@ import { ArtistItem } from "@/components/artist-item"
 import { LoadingSkeleton } from "@/components/loading-skeleton"
 import { RoastMe } from "@/components/roast-me"
 import { TechGridBackground } from "@/components/tech-grid-background"
-import { VinylCollection } from "@/components/vinyl-collection"
 import { AudioWave } from "@/components/audio-wave"
 import type { TimeRange } from "@/lib/spotify-api"
 import { formatDate, getArtists } from "@/lib/spotify-api"
 import { ListContainer } from "@/components/list-container"
+import dynamic from "next/dynamic"
+
+// Dynamically import components that aren't needed immediately
+const DynamicVinylCollection = dynamic(
+  () => import("@/components/vinyl-collection-unified").then((mod) => mod.VinylCollectionUnified),
+  {
+    ssr: false,
+    loading: () => <div className="w-full h-[300px] bg-zinc-900/50 rounded-lg animate-pulse"></div>,
+  },
+)
 
 interface UserProfile {
   display_name: string
@@ -35,13 +44,28 @@ interface ArtistInfo {
   [key: string]: any
 }
 
+// Create a loading component
+const DashboardLoading = () => (
+  <div className="min-h-screen bg-black flex flex-col relative overflow-hidden">
+    <TechGridBackground />
+    <Navbar />
+    <div className="flex-1 flex items-center justify-center relative z-10">
+      <div className="flex flex-col items-center">
+        <Loader2 className="h-12 w-12 text-bright-purple animate-spin mb-4" />
+        <h1 className="text-xl font-bold text-white mb-2">Loading your profile</h1>
+        <p className="text-zinc-400">Please wait while we fetch your data...</p>
+      </div>
+    </div>
+    <Footer />
+  </div>
+)
+
 export default function DashboardPage() {
   const { isAuthenticated, isLoading } = useAuth()
   const router = useRouter()
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [isLoadingProfile, setIsLoadingProfile] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [debugInfo, setDebugInfo] = useState<string>("")
 
   // State for Spotify data
   const [recentlyPlayed, setRecentlyPlayed] = useState<any>(null)
@@ -71,6 +95,10 @@ export default function DashboardPage() {
 
   // Cache duration - 1 hour in milliseconds
   const CACHE_DURATION = 60 * 60 * 1000
+
+  // Get current data based on selected tab and time range
+  const currentTopTracks = topTracks[timeRange]
+  const currentTopArtists = topArtists[timeRange]
 
   // Check authentication on mount
   useEffect(() => {
@@ -291,77 +319,58 @@ export default function DashboardPage() {
   }, [isAuthenticated, isLoading, fetchAllData])
 
   // Handle tab change
-  const handleTabChange = (value: string) => {
+  const handleTabChange = useCallback((value: string) => {
     setActiveTab(value)
-  }
+  }, [])
 
   // Handle time range change
-  const handleTimeRangeChange = (range: TimeRange) => {
+  const handleTimeRangeChange = useCallback((range: TimeRange) => {
     setTimeRange(range)
     // Reset visible count when changing time range
     setVisibleTracksCount(20)
     setVisibleArtistsCount(20)
-  }
+  }, [])
 
   // Handle manual refresh
-  const handleRefresh = () => {
+  const handleRefresh = useCallback(() => {
     fetchAllData(true)
-  }
+  }, [fetchAllData])
 
   // Load more handlers
-  const loadMoreRecent = () => {
+  const loadMoreRecent = useCallback(() => {
     setVisibleRecentCount((prev) => Math.min(prev + 20, recentlyPlayed?.items?.length || 0))
-  }
+  }, [recentlyPlayed?.items?.length])
 
-  const loadMoreTracks = () => {
+  const loadMoreTracks = useCallback(() => {
     setVisibleTracksCount((prev) => Math.min(prev + 20, currentTopTracks?.items?.length || 0))
-  }
+  }, [currentTopTracks?.items?.length])
 
-  const loadMoreArtists = () => {
+  const loadMoreArtists = useCallback(() => {
     setVisibleArtistsCount((prev) => Math.min(prev + 20, currentTopArtists?.items?.length || 0))
-  }
+  }, [currentTopArtists?.items?.length])
 
-  // Get genres for a track based on its artists
-  const getTrackGenres = (track: any): string[] => {
-    if (!track || !track.artists) return []
+  // Get genres for a track based on its artists - memoized for performance
+  const getTrackGenres = useCallback(
+    (track: any): string[] => {
+      if (!track || !track.artists) return []
 
-    const genres = new Set<string>()
-    track.artists.forEach((artist: any) => {
-      const artistData = artistInfo[artist.id]
-      if (artistData && artistData.genres) {
-        artistData.genres.forEach((genre: string) => genres.add(genre))
-      }
-    })
+      const genres = new Set<string>()
+      track.artists.forEach((artist: any) => {
+        const artistData = artistInfo[artist.id]
+        if (artistData && artistData.genres) {
+          artistData.genres.forEach((genre: string) => genres.add(genre))
+        }
+      })
 
-    return Array.from(genres).slice(0, 3) // Limit to 3 genres
-  }
+      return Array.from(genres).slice(0, 3) // Limit to 3 genres
+    },
+    [artistInfo],
+  )
 
   // Show loading state
   if (isLoading || isLoadingProfile) {
-    return (
-      <div className="min-h-screen bg-black flex flex-col relative overflow-hidden">
-        <TechGridBackground />
-        <Navbar />
-        <div className="flex-1 flex items-center justify-center relative z-10">
-          <div className="flex flex-col items-center">
-            <Loader2 className="h-12 w-12 text-bright-purple animate-spin mb-4" />
-            <h1 className="text-xl font-bold text-white mb-2">Loading your profile</h1>
-            <p className="text-zinc-400">Please wait while we fetch your data...</p>
-            {debugInfo && (
-              <div className="mt-4 p-2 bg-zinc-900 rounded text-xs text-zinc-500 max-w-md">
-                <p>Debug info: {debugInfo}</p>
-              </div>
-            )}
-          </div>
-        </div>
-        <Footer />
-      </div>
-    )
+    return <DashboardLoading />
   }
-
-  // Get current data based on selected tab and time range
-  const currentTopTracks = topTracks[timeRange]
-  const currentTopArtists = topArtists[timeRange]
 
   // Load More Button Component
   const LoadMoreButton = ({ onClick, isVisible }: { onClick: () => void; isVisible: boolean }) => {
@@ -398,7 +407,7 @@ export default function DashboardPage() {
             <CardDescription>Your listening history from the past few days</CardDescription>
           </div>
         </div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-xs pointer-events-none opacity-60 z-0">
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-xs pointer-events-none opacity-60 z-0 hidden md:block">
           <AudioWave />
         </div>
       </CardHeader>
@@ -466,7 +475,7 @@ export default function DashboardPage() {
           </div>
           <TimeRangeSelector selectedRange={timeRange} onChange={handleTimeRangeChange} />
         </div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-xs pointer-events-none opacity-60 z-0">
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-xs pointer-events-none opacity-60 z-0 hidden md:block">
           <AudioWave />
         </div>
       </CardHeader>
@@ -525,7 +534,7 @@ export default function DashboardPage() {
           </div>
           <TimeRangeSelector selectedRange={timeRange} onChange={handleTimeRangeChange} />
         </div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-xs pointer-events-none opacity-60 z-0">
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-xs pointer-events-none opacity-60 z-0 hidden md:block">
           <AudioWave />
         </div>
       </CardHeader>
@@ -555,16 +564,20 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-black flex flex-col relative overflow-hidden">
-      <TechGridBackground />
+      <Suspense fallback={null}>
+        <TechGridBackground />
+      </Suspense>
       <Navbar />
 
       <main className="flex-1 container mx-auto px-4 py-6 mt-20 relative z-10 mb-12">
         {/* Top Section with Grid Layout */}
         <div className="flex flex-col md:flex-row gap-6 mb-12">
-          {/* Left Column - Vinyl Collection (30%) */}
+          {/* Left Column - Vinyl Collection (25%) */}
           <div className="w-full md:w-[25%]">
             <div className="sticky top-24">
-              <VinylCollection />
+              <Suspense fallback={<div className="w-full h-[300px] bg-zinc-900/50 rounded-lg animate-pulse"></div>}>
+                <DynamicVinylCollection />
+              </Suspense>
             </div>
           </div>
 
@@ -580,7 +593,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Right Column - Profile Card (20%) */}
+          {/* Right Column - Profile Card (25%) */}
           <div className="w-full md:w-[25%] md:self-start">
             {profile && (
               <div className="w-full bg-gradient-to-r from-zinc-900 to-black rounded-xl border border-zinc-800 overflow-hidden shadow-lg">
@@ -594,6 +607,7 @@ export default function DashboardPage() {
                           src={profile.images?.[0]?.url || "/placeholder.svg?height=40&width=40&query=user"}
                           alt={profile.display_name}
                           className="w-full h-full object-cover"
+                          loading="lazy"
                         />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -634,7 +648,12 @@ export default function DashboardPage() {
                   {/* Right Column - Spotify Logo */}
                   <div className="flex flex-col items-center justify-center pl-2 border-l border-zinc-800">
                     <div className="flex flex-col items-center">
-                      <img src="/spotify_logo_small.svg" alt="Spotify" className="h-[40px] w-auto mb-2" />
+                      <img
+                        src="/spotify_logo_small.svg"
+                        alt="Spotify"
+                        className="h-[40px] w-auto mb-2"
+                        loading="lazy"
+                      />
                       <span className="text-xs text-zinc-500/80 text-center">Connected to Spotify</span>
                     </div>
                   </div>

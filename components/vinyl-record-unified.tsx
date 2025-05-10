@@ -17,6 +17,7 @@ interface VinylRecordProps {
   className?: string
   rpm?: number
   quality?: "low" | "medium" | "high"
+  showShadow?: boolean
 }
 
 // Default design if none provided
@@ -30,10 +31,11 @@ const DEFAULT_DESIGN: VinylDesign = {
 
 function VinylRecordComponent({
   design = DEFAULT_DESIGN,
-  size,
+  size = 256,
   className = "",
   rpm = 33.33, // Standard LP speed
   quality = "medium", // Default quality
+  showShadow = true,
 }: VinylRecordProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const animationRef = useRef<number>(0)
@@ -56,8 +58,7 @@ function VinylRecordComponent({
     if (!ctx) return
 
     // Set canvas dimensions - responsive to container size
-    const containerWidth = canvas.parentElement?.clientWidth || 300
-    const canvasSize = size || containerWidth
+    const canvasSize = size
 
     // Set actual canvas size based on quality setting
     let scaleFactor = 1
@@ -620,7 +621,7 @@ function VinylRecordComponent({
 
     // Handle resize
     const handleResize = () => {
-      const newWidth = canvas.parentElement?.clientWidth || 300
+      const newWidth = size
       canvas.width = newWidth * scaleFactor
       canvas.height = newWidth * scaleFactor
       canvas.style.width = `${newWidth}px`
@@ -636,11 +637,15 @@ function VinylRecordComponent({
       }
       window.removeEventListener("resize", handleResize)
     }
-  }, [design, size, rpm, quality])
+  }, [design, size, rpm, quality, showShadow])
 
   return (
     <div className={`relative flex justify-center items-center ${className}`}>
-      <canvas ref={canvasRef} className="w-full h-auto mx-auto shadow-2xl rounded-full" aria-hidden="true" />
+      <canvas
+        ref={canvasRef}
+        className={`w-full h-auto mx-auto rounded-full ${showShadow ? "shadow-2xl" : ""}`}
+        aria-hidden="true"
+      />
     </div>
   )
 }
