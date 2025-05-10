@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { exchangeCodeForTokens } from "@/lib/auth-utils"
-import { Loader2 } from "lucide-react"
+import { VinylRecord } from "@/components/vinyl-record"
 
 export default function CallbackPage() {
   const router = useRouter()
@@ -95,16 +95,6 @@ export default function CallbackPage() {
         <div className="bg-red-900/30 border border-red-800 rounded-lg p-6 max-w-md w-full text-center">
           <h1 className="text-xl font-bold text-white mb-4">Authentication Error</h1>
           <p className="text-red-300 mb-6">{error}</p>
-          {detailedLogs.length > 0 && (
-            <div className="mb-6 p-2 bg-zinc-900 rounded text-xs text-left text-zinc-400 font-mono h-40 overflow-y-auto">
-              <p className="font-bold mb-1">Detailed logs:</p>
-              {detailedLogs.map((log, index) => (
-                <div key={index} className="pb-1">
-                  {log}
-                </div>
-              ))}
-            </div>
-          )}
           <p className="text-zinc-400">Redirecting to login page in 10 seconds...</p>
         </div>
       </div>
@@ -114,20 +104,12 @@ export default function CallbackPage() {
   return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4">
       <div className="flex flex-col items-center">
-        <Loader2 className="h-12 w-12 text-bright-purple animate-spin mb-4" />
-        <h1 className="text-xl font-bold text-white mb-2">Authenticating with Spotify</h1>
-        <p className="text-zinc-400 mb-2">Please wait while we complete the process...</p>
+        <div className="w-32 h-32 mb-8">
+          <VinylRecord size={128} color="#9333ea" labelColor="#9333ea" showShadow={true} rpm={33.33} />
+        </div>
+        <h1 className="text-2xl font-bold text-white mb-4">Authenticating with Spotify</h1>
+        <p className="text-zinc-300 mb-4 text-center">Connecting you with our resident Music Snob</p>
         <p className="text-zinc-500 text-sm">{status}</p>
-        {detailedLogs.length > 0 && (
-          <div className="mt-4 p-2 bg-zinc-900 rounded text-xs text-left text-zinc-400 font-mono max-w-md max-h-40 overflow-y-auto">
-            <p className="font-bold mb-1">Logs:</p>
-            {detailedLogs.map((log, index) => (
-              <div key={index} className="pb-1">
-                {log}
-              </div>
-            ))}
-          </div>
-        )}
       </div>
     </div>
   )
