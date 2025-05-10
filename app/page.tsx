@@ -65,7 +65,7 @@ export default function LandingPage() {
                   Meet Your <span className="text-purple-gradient">Personal</span> Music Taste Critic
                 </h1>
                 <p className="text-xl text-zinc-400 mb-8 max-w-lg">
-                  Connect your Spotify account and let our resident Music Snob analyze your listening habits with brutal
+                  Connect your Spotify account and choose from one of our resident Music Snobs to analyze your listening habits with brutal
                   honesty and witty commentary.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 items-start">

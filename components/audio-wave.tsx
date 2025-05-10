@@ -9,11 +9,14 @@ export function AudioWave() {
     const canvas = canvasRef.current
     if (!canvas) return
 
-    // Add a media query check to hide on smaller screens
+    // Add a media query check to hide on smaller screens, but only on the dashboard page
     const mediaQuery = window.matchMedia("(max-width: 1350px)")
     const handleMediaChange = (e: MediaQueryListEvent | MediaQueryList) => {
-      if (e.matches) {
-        // If screen is smaller than 1350px, hide the canvas
+      // Check if we're on the dashboard page by looking at the URL
+      const isDashboardPage = window.location.pathname.includes("/dashboard")
+
+      if (e.matches && isDashboardPage) {
+        // If screen is smaller than 1350px AND we're on dashboard, hide the canvas
         canvas.style.display = "none"
       } else {
         // Otherwise show it
