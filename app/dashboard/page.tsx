@@ -380,6 +380,76 @@ export default function DashboardPage() {
     )
   }
 
+  // User Profile Card Component
+  const UserProfileCard = () => {
+    if (!profile) return null
+
+    return (
+      <div className="w-full bg-gradient-to-r from-zinc-900 to-black rounded-xl border border-zinc-800 overflow-hidden shadow-lg">
+        <div className="grid grid-cols-5 p-3">
+          {/* Left Column - User Info */}
+          <div className="col-span-3 pr-2">
+            {/* User Info - Top section */}
+            <div className="flex items-center mb-3">
+              <div className="w-10 h-10 rounded-full overflow-hidden mr-3 flex-shrink-0">
+                <img
+                  src={profile.images?.[0]?.url || "/placeholder.svg?height=40&width=40&query=user"}
+                  alt={profile.display_name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-sm font-bold truncate">
+                  <a
+                    href={`https://open.spotify.com/user/${profile.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:underline"
+                  >
+                    {profile.display_name}
+                  </a>
+                </h3>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  <span className="bg-zinc-800 px-2 py-0.5 rounded-full text-xs flex items-center">
+                    <Users className="h-3 w-3 mr-1" />
+                    {profile.followers.total} {profile.followers.total === 1 ? "follower" : "followers"}
+                  </span>
+                  {profile.country && (
+                    <span className="bg-zinc-800 px-2 py-0.5 rounded-full text-xs">{profile.country}</span>
+                  )}
+                  {/* Product tag (Premium/Free) removed */}
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Row - Refresh button and Updated text */}
+            <div className="flex items-center text-xs text-zinc-500">
+              <button
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                className="mr-2 bg-zinc-800 hover:bg-zinc-700 text-white p-1.5 rounded-full flex-shrink-0 transition-colors"
+                title="Refresh Data"
+              >
+                {isRefreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+              </button>
+              {lastFetched > 0 && <span>Updated: {new Date(lastFetched).toLocaleTimeString()}</span>}
+            </div>
+          </div>
+
+          {/* Right Column - Spotify Logo */}
+          <div className="col-span-2 flex flex-col items-center justify-center pl-2 border-l border-zinc-800">
+            <div className="flex flex-col items-center">
+              <a href="https://www.spotify.com" target="_blank" rel="noopener noreferrer" title="Visit Spotify">
+                <img src="/spotify_logo_small.svg" alt="Spotify" className="h-[48px] w-auto mb-2" />
+              </a>
+              <span className="text-xs text-zinc-500/80 text-center">Connected to Spotify</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   // Content components for each tab
   const RecentlyPlayedContent = () => (
     <Card
@@ -574,14 +644,19 @@ export default function DashboardPage() {
       <main className="flex-1 container mx-auto px-4 py-6 mt-20 relative z-10 mb-12">
         {/* Top Section with Grid Layout */}
         <div className="flex flex-col md:flex-row gap-6 mb-12">
-          {/* Left Column - Vinyl Collection (30%) */}
+          {/* Mobile-first layout: Profile Card first on mobile, then Vinyl Collection */}
+          <div className="w-full md:hidden mb-6">
+            <UserProfileCard />
+          </div>
+
+          {/* Left Column - Vinyl Collection (25% on desktop) */}
           <div className="w-full md:w-[25%]">
             <div className="sticky top-24">
               <VinylCollection />
             </div>
           </div>
 
-          {/* Middle Column - Roast Me Button (50%) */}
+          {/* Middle Column - Roast Me Button (50% on desktop) */}
           <div className="w-full md:w-[50%] flex justify-center">
             <div className="w-full max-w-3xl">
               <RoastMe
@@ -593,76 +668,9 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Right Column - Profile Card (20%) */}
-          <div className="w-full md:w-[25%] md:self-start">
-            {profile && (
-              <div className="w-full bg-gradient-to-r from-zinc-900 to-black rounded-xl border border-zinc-800 overflow-hidden shadow-lg">
-                <div className="grid grid-cols-5 p-3">
-                  {/* Left Column - User Info */}
-                  <div className="col-span-3 pr-2">
-                    {/* User Info - Top section */}
-                    <div className="flex items-center mb-3">
-                      <div className="w-10 h-10 rounded-full overflow-hidden mr-3 flex-shrink-0">
-                        <img
-                          src={profile.images?.[0]?.url || "/placeholder.svg?height=40&width=40&query=user"}
-                          alt={profile.display_name}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-sm font-bold truncate">
-                          <a
-                            href={`https://open.spotify.com/user/${profile.id}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="hover:underline"
-                          >
-                            {profile.display_name}
-                          </a>
-                        </h3>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          <span className="bg-zinc-800 px-2 py-0.5 rounded-full text-xs flex items-center">
-                            <Users className="h-3 w-3 mr-1" />
-                            {profile.followers.total} {profile.followers.total === 1 ? "follower" : "followers"}
-                          </span>
-                          {profile.country && (
-                            <span className="bg-zinc-800 px-2 py-0.5 rounded-full text-xs">{profile.country}</span>
-                          )}
-                          {/* Product tag (Premium/Free) removed */}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Bottom Row - Refresh button and Updated text */}
-                    <div className="flex items-center text-xs text-zinc-500">
-                      <button
-                        onClick={handleRefresh}
-                        disabled={isRefreshing}
-                        className="mr-2 bg-zinc-800 hover:bg-zinc-700 text-white p-1.5 rounded-full flex-shrink-0 transition-colors"
-                        title="Refresh Data"
-                      >
-                        {isRefreshing ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <RefreshCw className="h-4 w-4" />
-                        )}
-                      </button>
-                      {lastFetched > 0 && <span>Updated: {new Date(lastFetched).toLocaleTimeString()}</span>}
-                    </div>
-                  </div>
-
-                  {/* Right Column - Spotify Logo */}
-                  <div className="col-span-2 flex flex-col items-center justify-center pl-2 border-l border-zinc-800">
-                    <div className="flex flex-col items-center">
-                      <a href="https://www.spotify.com" target="_blank" rel="noopener noreferrer" title="Visit Spotify">
-                        <img src="/spotify_logo_small.svg" alt="Spotify" className="h-[48px] w-auto mb-2" />
-                      </a>
-                      <span className="text-xs text-zinc-500/80 text-center">Connected to Spotify</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+          {/* Right Column - Profile Card (25% on desktop) - Hidden on mobile as it's moved to the top */}
+          <div className="w-full md:w-[25%] md:self-start hidden md:block">
+            <UserProfileCard />
           </div>
         </div>
 
