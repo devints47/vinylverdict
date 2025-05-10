@@ -1,0 +1,89 @@
+"use client"
+
+import type React from "react"
+import { Music, User } from "lucide-react"
+import { cn } from "@/lib/utils"
+
+interface MusicTabsProps {
+  activeTab: string
+  onTabChange: (tab: string) => void
+  className?: string
+}
+
+export function MusicTabs({ activeTab, onTabChange, className }: MusicTabsProps) {
+  return (
+    <div className={cn("w-full mb-8", className)}>
+      <div
+        className="w-full flex rounded-lg overflow-hidden shadow-lg bg-zinc-900/50 border border-transparent"
+        style={{
+          borderWidth: "1px",
+          borderImageSource:
+            "linear-gradient(135deg, var(--purple-gradient-start), var(--purple-gradient-mid), var(--purple-gradient-end))",
+          borderImageSlice: "1",
+        }}
+      >
+        <TabButton
+          isActive={activeTab === "recently-played"}
+          onClick={() => onTabChange("recently-played")}
+          icon={<Music className="h-4 w-4" />}
+          label="Recently Played"
+        />
+        <TabButton
+          isActive={activeTab === "top-tracks"}
+          onClick={() => onTabChange("top-tracks")}
+          icon={<Music className="h-4 w-4" />}
+          label="Top Tracks"
+        />
+        <TabButton
+          isActive={activeTab === "top-artists"}
+          onClick={() => onTabChange("top-artists")}
+          icon={<User className="h-4 w-4" />}
+          label="Top Artists"
+        />
+      </div>
+    </div>
+  )
+}
+
+interface TabButtonProps {
+  isActive: boolean
+  onClick: () => void
+  icon: React.ReactNode
+  label: string
+}
+
+function TabButton({ isActive, onClick, icon, label }: TabButtonProps) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        "flex-1 py-3 px-4 flex items-center justify-center gap-2 transition-all duration-300 relative overflow-hidden",
+        // Base styling for all tabs - adding a subtle background to inactive tabs
+        "bg-zinc-900/80 border-b-2",
+        // Active tab styling
+        isActive
+          ? "text-white font-medium border-bright-purple"
+          : "text-zinc-400 hover:text-white hover:bg-zinc-800 border-zinc-800 hover:border-zinc-600",
+      )}
+      style={{
+        borderLeftWidth: "1px",
+        borderRightWidth: "1px",
+        borderImageSource:
+          "linear-gradient(135deg, var(--purple-gradient-start), var(--purple-gradient-mid), var(--purple-gradient-end))",
+        borderImageSlice: "1",
+      }}
+    >
+      {/* Background gradient for active tab */}
+      {isActive && <div className="absolute inset-0 bg-purple-gradient opacity-100"></div>}
+
+      {/* Shimmer effect for active tab */}
+      {isActive && <div className="absolute inset-0 holographic-shimmer"></div>}
+
+      {/* Content - always on top */}
+      <div className="relative z-10 flex items-center justify-center gap-2">
+        {icon}
+        <span className="text-sm md:text-base">{label}</span>
+      </div>
+    </button>
+  )
+}

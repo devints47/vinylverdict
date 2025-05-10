@@ -1,0 +1,447 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bright-purple: #a855f7;
+  --purple-gradient-start: #9333ea;
+  --purple-gradient-mid: #a855f7;
+  --purple-gradient-end: #c026d3;
+  --purple-accent: #d946ef;
+  --purple-highlight: #f0abfc;
+}
+
+@layer base {
+  body {
+    @apply bg-black text-white;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans",
+      "Helvetica Neue", sans-serif;
+  }
+}
+
+.text-bright-purple {
+  color: var(--bright-purple);
+}
+
+.bg-bright-purple {
+  background-color: var(--bright-purple);
+}
+
+/* Holographic Gradient Animations */
+@keyframes holographicShift {
+  0% {
+    background-position: 0% 50%;
+    filter: hue-rotate(0deg) brightness(1);
+  }
+  50% {
+    background-position: 100% 50%;
+    filter: hue-rotate(10deg) brightness(1.1);
+  }
+  100% {
+    background-position: 0% 50%;
+    filter: hue-rotate(0deg) brightness(1);
+  }
+}
+
+@keyframes holographicTextShift {
+  0% {
+    background-position: 0% 50%;
+    filter: hue-rotate(0deg) brightness(1);
+  }
+  50% {
+    background-position: 100% 50%;
+    filter: hue-rotate(10deg) brightness(1.2);
+  }
+  100% {
+    background-position: 0% 50%;
+    filter: hue-rotate(0deg) brightness(1);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -100% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.bg-purple-gradient {
+  background: linear-gradient(
+    135deg,
+    var(--purple-gradient-start),
+    var(--purple-gradient-mid),
+    var(--purple-gradient-end),
+    var(--purple-gradient-mid),
+    var(--purple-gradient-start)
+  );
+  background-size: 200% 200%;
+  animation: holographicShift 8s ease infinite;
+}
+
+.text-purple-gradient {
+  background: linear-gradient(
+    135deg,
+    var(--purple-gradient-start),
+    var(--purple-gradient-mid),
+    var(--purple-gradient-end),
+    var(--purple-gradient-mid),
+    var(--purple-gradient-start)
+  );
+  background-size: 200% 200%;
+  animation: holographicTextShift 8s ease infinite;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+}
+
+.border-purple-gradient {
+  position: relative;
+}
+
+.border-purple-gradient::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  right: -1px;
+  bottom: -1px;
+  background: linear-gradient(
+    135deg,
+    var(--purple-gradient-start),
+    var(--purple-gradient-mid),
+    var(--purple-gradient-end),
+    var(--purple-gradient-mid),
+    var(--purple-gradient-start)
+  );
+  background-size: 200% 200%;
+  animation: holographicShift 8s ease infinite;
+  z-index: -1;
+  border-radius: inherit;
+}
+
+.holographic-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.holographic-shimmer::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  right: -50%;
+  bottom: -50%;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.1) 25%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0.1) 75%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: rotate(30deg);
+  animation: shimmer 6s linear infinite;
+  pointer-events: none;
+}
+
+.bg-bright-purple\/10 {
+  background-color: rgba(168, 85, 247, 0.1);
+}
+
+.bg-bright-purple\/20 {
+  background-color: rgba(168, 85, 247, 0.2);
+}
+
+.hover\:bg-bright-purple\/90:hover {
+  background-color: rgba(168, 85, 247, 0.9);
+}
+
+.hover\:bg-purple-gradient:hover {
+  background: linear-gradient(
+    135deg,
+    var(--purple-gradient-start),
+    var(--purple-gradient-mid),
+    var(--purple-gradient-end),
+    var(--purple-gradient-mid),
+    var(--purple-gradient-start)
+  );
+  background-size: 200% 200%;
+  animation: holographicShift 8s ease infinite;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom animations */
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Enhanced Markdown Styling */
+.markdown-content {
+  @apply text-zinc-300;
+}
+
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4,
+.markdown-content h5,
+.markdown-content h6 {
+  @apply font-bold mb-4;
+  background: linear-gradient(
+    135deg,
+    var(--purple-gradient-start),
+    var(--purple-gradient-mid),
+    var(--purple-gradient-end),
+    var(--purple-gradient-mid),
+    var(--purple-gradient-start)
+  );
+  background-size: 200% 200%;
+  animation: holographicTextShift 8s ease infinite;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.markdown-content h1 {
+  @apply text-2xl md:text-3xl;
+}
+
+.markdown-content h2 {
+  @apply text-xl md:text-2xl;
+}
+
+.markdown-content h3 {
+  @apply text-lg md:text-xl;
+}
+
+.markdown-content p {
+  @apply mb-4;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+  @apply mb-4 pl-5;
+}
+
+.markdown-content ul {
+  @apply list-disc;
+}
+
+.markdown-content ol {
+  @apply list-decimal;
+}
+
+.markdown-content li {
+  @apply mb-1;
+}
+
+.markdown-content blockquote {
+  @apply pl-4 italic my-4 border-l-4;
+  border-image: linear-gradient(to bottom, var(--purple-gradient-start), var(--purple-gradient-end)) 1;
+}
+
+.markdown-content code {
+  @apply bg-zinc-800 px-1 py-0.5 rounded text-sm;
+}
+
+.markdown-content pre {
+  @apply bg-zinc-800 p-4 rounded-md overflow-x-auto my-4;
+}
+
+.markdown-content a {
+  background: linear-gradient(
+    135deg,
+    var(--purple-gradient-start),
+    var(--purple-gradient-mid),
+    var(--purple-gradient-end),
+    var(--purple-gradient-mid),
+    var(--purple-gradient-start)
+  );
+  background-size: 200% 200%;
+  animation: holographicTextShift 8s ease infinite;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  @apply underline hover:text-white transition-colors;
+}
+
+.markdown-content strong {
+  @apply text-white font-bold;
+}
+
+.markdown-content em {
+  @apply text-zinc-400;
+}
+
+.markdown-content hr {
+  @apply my-6 border-zinc-700;
+}
+
+.markdown-content table {
+  @apply w-full border-collapse mb-4;
+}
+
+.markdown-content th,
+.markdown-content td {
+  @apply border border-zinc-700 p-2;
+}
+
+.markdown-content th {
+  @apply bg-zinc-800;
+}
+
+/* Button with holographic gradient */
+.btn-gradient {
+  background: linear-gradient(
+    135deg,
+    var(--purple-gradient-start),
+    var(--purple-gradient-mid),
+    var(--purple-gradient-end),
+    var(--purple-gradient-mid),
+    var(--purple-gradient-start)
+  );
+  background-size: 200% 200%;
+  animation: holographicShift 8s ease infinite;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-gradient::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  right: -50%;
+  bottom: -50%;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.1) 25%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0.1) 75%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: rotate(30deg);
+  animation: shimmer 6s linear infinite;
+  pointer-events: none;
+}
+
+.btn-gradient:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(147, 51, 234, 0.3);
+}
+
+.btn-gradient:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 10px rgba(147, 51, 234, 0.2);
+}
+
+/* Holographic card */
+.card-holographic {
+  position: relative;
+  background: linear-gradient(135deg, rgba(147, 51, 234, 0.05), rgba(192, 38, 211, 0.05));
+  border: 1px solid transparent;
+  border-image: linear-gradient(135deg, var(--purple-gradient-start), var(--purple-gradient-end)) 1;
+  overflow: hidden;
+}
+
+.card-holographic::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(147, 51, 234, 0.1), rgba(192, 38, 211, 0.1));
+  z-index: -1;
+}
+
+.card-holographic::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  right: -50%;
+  bottom: -50%;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.05) 25%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.05) 75%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: rotate(30deg);
+  animation: shimmer 6s linear infinite;
+  pointer-events: none;
+}
+
+/* Add these styles to the end of the file to support the tab styling */
+
+/* Enhanced Tab Styling */
+[data-radix-tabs-trigger][data-state="active"] {
+  position: relative;
+  background: linear-gradient(
+    135deg,
+    var(--purple-gradient-start),
+    var(--purple-gradient-mid),
+    var(--purple-gradient-end)
+  );
+  background-size: 200% 200%;
+  animation: holographicShift 8s ease infinite;
+}
+
+/* Add shimmer effect to active tabs */
+[data-radix-tabs-trigger][data-state="active"]::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  right: -50%;
+  bottom: -50%;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.1) 25%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0.1) 75%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: rotate(30deg);
+  animation: shimmer 6s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Make sure the tab text is above the effects */
+[data-radix-tabs-trigger] > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* Add a subtle transition for tab hover states */
+[data-radix-tabs-trigger] {
+  transition: all 0.3s ease;
+}
+
+[data-radix-tabs-trigger]:hover {
+  background-color: rgba(168, 85, 247, 0.1);
+}
