@@ -124,14 +124,21 @@ export function TrackItem({
         </div>
       </div>
 
-      {/* Center column for genres */}
-      <div className="flex-1 flex items-center justify-center">
+      {/* Center column for genres - hide on mobile */}
+      <div className="hidden sm:flex flex-1 items-center justify-center">
         {genres && genres.length > 0 && (
           <p className="text-zinc-600 text-xs truncate capitalize text-center max-w-[90%]">{genres.join(", ")}</p>
         )}
       </div>
 
-      <div className="text-zinc-500 text-sm">{formatDuration(track.duration_ms)}</div>
+      {/* Mobile-only genres - left aligned */}
+      {isMobile && genres && genres.length > 0 && (
+        <div className="sm:hidden w-full">
+          <p className="text-zinc-600 text-xs truncate capitalize text-left mt-1">{genres.join(", ")}</p>
+        </div>
+      )}
+
+      <div className="text-zinc-500 text-sm text-right ml-auto">{formatDuration(track.duration_ms)}</div>
     </div>
   )
 }

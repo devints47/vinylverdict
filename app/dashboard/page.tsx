@@ -407,7 +407,7 @@ export default function DashboardPage() {
             <CardDescription>Your listening history from the past few days</CardDescription>
           </div>
         </div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-xs pointer-events-none opacity-60 z-0 hidden md:block">
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-xs pointer-events-none opacity-60 z-0">
           <AudioWave />
         </div>
       </CardHeader>
@@ -475,7 +475,7 @@ export default function DashboardPage() {
           </div>
           <TimeRangeSelector selectedRange={timeRange} onChange={handleTimeRangeChange} />
         </div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-xs pointer-events-none opacity-60 z-0 hidden md:block">
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-xs pointer-events-none opacity-60 z-0">
           <AudioWave />
         </div>
       </CardHeader>
@@ -534,7 +534,7 @@ export default function DashboardPage() {
           </div>
           <TimeRangeSelector selectedRange={timeRange} onChange={handleTimeRangeChange} />
         </div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-xs pointer-events-none opacity-60 z-0 hidden md:block">
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-xs pointer-events-none opacity-60 z-0">
           <AudioWave />
         </div>
       </CardHeader>
