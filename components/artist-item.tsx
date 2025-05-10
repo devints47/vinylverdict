@@ -45,9 +45,11 @@ export function ArtistItem({ artist, index }: ArtistItemProps) {
   }
 
   return (
-    <div className="flex items-center gap-1 sm:gap-2 p-3 rounded-lg hover:bg-gradient-to-r hover:from-zinc-800/70 hover:to-zinc-900/30 transition-colors">
+    <div
+      className={`flex items-center gap-1 sm:gap-2 ${isMobile ? "px-1 py-2" : "p-3"} rounded-lg hover:bg-gradient-to-r hover:from-zinc-800/70 hover:to-zinc-900/30 transition-colors`}
+    >
       {index !== undefined && <div className="w-4 sm:w-6 text-center text-zinc-500 font-mono text-sm">{index + 1}</div>}
-      <div className="flex-shrink-0 w-16 h-16">
+      <div className="flex-shrink-0 w-14 sm:w-16 h-14 sm:h-16">
         <a
           href={artist.external_urls.spotify}
           target="_blank"
@@ -62,7 +64,7 @@ export function ArtistItem({ artist, index }: ArtistItemProps) {
           />
         </a>
       </div>
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 ml-1 sm:ml-2">
         <a
           href={artist.external_urls.spotify}
           target="_blank"
@@ -86,7 +88,9 @@ export function ArtistItem({ artist, index }: ArtistItemProps) {
         )}
       </div>
 
-      <div className="bg-zinc-800 px-3 py-1 rounded-full text-xs">Popularity: {artist.popularity}</div>
+      <div className="bg-zinc-800 px-2 sm:px-3 py-1 rounded-full text-xs mr-1 sm:mr-0">
+        {isMobile ? `${artist.popularity}` : `Popularity: ${artist.popularity}`}
+      </div>
     </div>
   )
 }

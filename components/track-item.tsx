@@ -64,9 +64,11 @@ export function TrackItem({
   const genres = track.genres || track.artists.flatMap((artist) => artist.genres || []).slice(0, 2)
 
   return (
-    <div className="flex items-center gap-1 sm:gap-2 p-3 rounded-lg hover:bg-gradient-to-r hover:from-zinc-800/70 hover:to-zinc-900/30 transition-colors">
+    <div
+      className={`flex items-center gap-1 sm:gap-2 ${isMobile ? "px-1 py-2" : "p-3"} rounded-lg hover:bg-gradient-to-r hover:from-zinc-800/70 hover:to-zinc-900/30 transition-colors`}
+    >
       {index !== undefined && <div className="w-4 sm:w-6 text-center text-zinc-500 font-mono text-sm">{index + 1}</div>}
-      <div className="flex-shrink-0 w-16 h-16">
+      <div className="flex-shrink-0 w-14 sm:w-16 h-14 sm:h-16">
         <a
           href={track.album.external_urls?.spotify || track.external_urls.spotify}
           target="_blank"
@@ -81,7 +83,7 @@ export function TrackItem({
           />
         </a>
       </div>
-      <div className="flex-1 min-w-0 flex flex-col">
+      <div className="flex-1 min-w-0 flex flex-col ml-1 sm:ml-2">
         <div>
           <div className="flex items-center gap-1">
             <a
@@ -92,7 +94,9 @@ export function TrackItem({
             >
               {track.name}
             </a>
-            {isRecentlyPlayed && additionalInfo && <span className="text-zinc-500 text-xs">- {additionalInfo}</span>}
+            {isRecentlyPlayed && additionalInfo && !isMobile && (
+              <span className="text-zinc-500 text-xs">- {additionalInfo}</span>
+            )}
           </div>
           <p className="text-zinc-400 text-sm truncate">
             {track.artists.map((artist, i) => (
@@ -131,7 +135,7 @@ export function TrackItem({
         )}
       </div>
 
-      <div className="text-zinc-500 text-sm">{formatDuration(track.duration_ms)}</div>
+      <div className="text-zinc-500 text-sm mr-1 sm:mr-0">{formatDuration(track.duration_ms)}</div>
     </div>
   )
 }
