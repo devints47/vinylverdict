@@ -591,9 +591,9 @@ export default function DashboardPage() {
           <div className="w-full md:w-[25%] md:self-start">
             {profile && (
               <div className="w-full bg-gradient-to-r from-zinc-900 to-black rounded-xl border border-zinc-800 overflow-hidden shadow-lg">
-                <div className="grid grid-cols-2 p-3">
+                <div className="grid grid-cols-5 p-3">
                   {/* Left Column - User Info */}
-                  <div className="pr-2">
+                  <div className="col-span-3 pr-2">
                     {/* User Info - Top section */}
                     <div className="flex items-center mb-3">
                       <div className="w-10 h-10 rounded-full overflow-hidden mr-3 flex-shrink-0">
@@ -646,10 +646,10 @@ export default function DashboardPage() {
                   </div>
 
                   {/* Right Column - Spotify Logo */}
-                  <div className="flex flex-col items-center justify-center pl-2 border-l border-zinc-800">
+                  <div className="col-span-2 flex flex-col items-center justify-center pl-2 border-l border-zinc-800">
                     <div className="flex flex-col items-center">
                       <a href="https://www.spotify.com" target="_blank" rel="noopener noreferrer" title="Visit Spotify">
-                        <img src="/spotify_logo_small.svg" alt="Spotify" className="h-[40px] w-auto mb-2" />
+                        <img src="/spotify_logo_small.svg" alt="Spotify" className="h-[46px] w-auto mb-2" />
                       </a>
                       <span className="text-xs text-zinc-500/80 text-center">Connected to Spotify</span>
                     </div>

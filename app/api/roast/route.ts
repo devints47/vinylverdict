@@ -4,7 +4,7 @@ import { createRoastPrompt } from "@/lib/format-utils"
 // OpenAI API constants
 // Use the non-public environment variable
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY
-const ASSISTANT_ID = "asst_f2UviuRmSk01v5p9jJO3mI56"
+const ASSISTANT_ID = process.env.OPENAI_ASSISTANT_ID
 const API_BASE_URL = "https://api.openai.com/v1"
 
 // Create a new thread
@@ -210,6 +210,19 @@ export async function POST(request: Request) {
         },
         { status: 200 },
       ) // Return 200 with a message instead of 500
+    }
+
+    // Check if Assistant ID exists
+    if (!ASSISTANT_ID) {
+      console.error("OpenAI Assistant ID is missing")
+      return NextResponse.json(
+        {
+          roast:
+            "# Where's The Music Snob?\n\nOur resident critic seems to have gone missing. The management is currently trying to locate them, probably checking local record stores and coffee shops.",
+          error: "OpenAI Assistant ID is missing",
+        },
+        { status: 200 },
+      )
     }
 
     const { data, viewType } = await request.json()
