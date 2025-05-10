@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
-import { Loader2, RefreshCw, Users } from "lucide-react"
+import { Loader2, RefreshCw, Users, Clock } from "lucide-react"
 import { MusicTabs } from "@/components/music-tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { TimeRangeSelector } from "@/components/time-range-selector"
@@ -390,15 +390,21 @@ export default function DashboardPage() {
       }}
     >
       <CardHeader className="relative">
-        <div className="flex items-center gap-6">
-          <div className="p-2">
-            <a href="https://www.spotify.com" target="_blank" rel="noopener noreferrer" title="Visit Spotify">
-              <img src="/spotify_logo_small.svg" alt="Spotify" className="h-14 w-14" />
-            </a>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
+          <div className="flex items-center gap-6">
+            <div className="p-2">
+              <a href="https://www.spotify.com" target="_blank" rel="noopener noreferrer" title="Visit Spotify">
+                <img src="/spotify_logo_small.svg" alt="Spotify" className="h-14 w-14" />
+              </a>
+            </div>
+            <div className="flex flex-col justify-center">
+              <CardTitle className="text-2xl">Recently Played Tracks</CardTitle>
+              <CardDescription>Your listening history from the past few days</CardDescription>
+            </div>
           </div>
-          <div className="flex flex-col justify-center">
-            <CardTitle className="text-2xl">Recently Played Tracks</CardTitle>
-            <CardDescription>Your listening history from the past few days</CardDescription>
+          <div className="flex items-center text-zinc-400 bg-zinc-800/50 px-4 py-2 rounded-lg">
+            <Clock className="h-4 w-4 mr-2 text-bright-purple" />
+            <span className="text-sm">Your Spotify recently played tracks</span>
           </div>
         </div>
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-xs pointer-events-none opacity-60 z-0">

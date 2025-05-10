@@ -6,6 +6,7 @@ import { AuthProvider } from "@/contexts/auth-context"
 import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Suspense } from "react"
+import { AnimatedFavicon } from "@/components/animated-favicon"
 
 // Update the metadata title and description
 export const metadata: Metadata = {
@@ -27,7 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* Use the new vinyl favicon */}
+        {/* Base favicon for non-JS environments */}
         <link rel="icon" href="/vinyl-favicon-new.png" type="image/png" />
         <link rel="apple-touch-icon" href="/vinyl-favicon-new.png" />
       </head>
@@ -36,6 +37,8 @@ export default function RootLayout({
           <AuthProvider>
             <Suspense>{children}</Suspense>
           </AuthProvider>
+          {/* Add the animated favicon component */}
+          <AnimatedFavicon />
           <Analytics />
           <SpeedInsights />
         </ThemeProvider>
