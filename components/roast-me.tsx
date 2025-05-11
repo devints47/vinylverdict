@@ -27,6 +27,20 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab }: Ro
   const [typewriterComplete, setTypewriterComplete] = useState(false)
   const [isFallback, setIsFallback] = useState(false)
 
+  // Function to strip markdown characters from text
+  const stripMarkdownChars = (text: string): string => {
+    return text
+      .replace(/#{1,6}\s/g, "") // Remove headings
+      .replace(/\*\*/g, "") // Remove bold
+      .replace(/\*/g, "") // Remove italic
+      .replace(/\[([^\]]+)\]$$([^)]+)$$/g, "$1") // Replace links with just the text
+      .replace(/`([^`]+)`/g, "$1") // Remove inline code
+      .replace(/~~([^~]+)~~/g, "$1") // Remove strikethrough
+      .replace(/>\s/g, "") // Remove blockquotes
+      .replace(/\n\s*[-*+]\s/g, "\n• ") // Replace list markers with bullet points
+      .replace(/\n\s*\d+\.\s/g, "\n• ") // Replace numbered lists with bullet points
+  }
+
   const handleRoastMe = async () => {
     try {
       setIsLoading(true)
@@ -88,6 +102,26 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab }: Ro
     }
   }
 
+  // Extract the main roast content and fallback disclaimer if present
+  const extractRoastContent = () => {
+    if (!roast) return { mainContent: "", disclaimer: "" }
+
+    // Check if there's a fallback disclaimer
+    const fallbackIndex = roast.indexOf("*Note: This is a fallback roast")
+
+    if (fallbackIndex !== -1) {
+      return {
+        mainContent: roast.substring(0, fallbackIndex).trim(),
+        disclaimer:
+          "Note: Our resident Music Snob is taking a coffee break. You're getting the intern's opinion instead.",
+      }
+    }
+
+    return { mainContent: roast, disclaimer: "" }
+  }
+
+  const { mainContent, disclaimer } = extractRoastContent()
+
   return (
     <div className="mb-8 flex flex-col items-center sticky top-0 z-10 w-full">
       <div className="flex justify-center w-full">
@@ -125,22 +159,18 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab }: Ro
           <CardContent className="pt-6">
             <div className="markdown-content">
               {!typewriterComplete ? (
-                <SimpleReveal text={roast} speed={20} onComplete={() => setTypewriterComplete(true)} />
+                <SimpleReveal text={mainContent} speed={20} onComplete={() => setTypewriterComplete(true)} />
               ) : (
                 <ReactMarkdown
                   className="prose prose-invert max-w-none text-zinc-300 prose-headings:text-purple-gradient prose-strong:text-white prose-em:text-zinc-400 prose-li:marker:text-purple-gradient"
                   rehypePlugins={[rehypeRaw]} // Add rehypeRaw to process HTML in markdown
                 >
-                  {roast}
+                  {mainContent}
                 </ReactMarkdown>
               )}
             </div>
 
-            {isFallback && (
-              <div className="mt-4 pt-4 border-t border-zinc-700 text-sm text-zinc-500">
-                Note: Our resident Music Snob is taking a coffee break. You're getting the intern's opinion instead.
-              </div>
-            )}
+            {disclaimer && <div className="mt-4 pt-4 border-t border-zinc-700 text-sm text-zinc-500">{disclaimer}</div>}
           </CardContent>
         </Card>
       )}

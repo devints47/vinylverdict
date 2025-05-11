@@ -8,9 +8,16 @@ interface SimpleRevealProps {
   speed?: number
   className?: string
   onComplete?: () => void
+  stripMarkdown?: boolean
 }
 
-export function SimpleReveal({ text, speed = 20, className = "", onComplete }: SimpleRevealProps) {
+export function SimpleReveal({
+  text,
+  speed = 20,
+  className = "",
+  onComplete,
+  stripMarkdown = false,
+}: SimpleRevealProps) {
   const [visibleText, setVisibleText] = useState("")
   const [isComplete, setIsComplete] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)

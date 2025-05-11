@@ -178,7 +178,7 @@ function RecentlyPlayedContent({
             <span className="text-sm">Your Spotify recently played tracks</span>
           </div>
         </div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-xs pointer-events-none opacity-60 z-0">
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-xs pointer-events-none z-0">
           <AudioWave />
         </div>
       </CardHeader>
@@ -284,7 +284,7 @@ function TopTracksContent({
           </div>
           <TimeRangeSelector selectedRange={timeRange} onChange={handleTimeRangeChange} />
         </div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-xs pointer-events-none opacity-60 z-0">
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-xs pointer-events-none z-0">
           <AudioWave />
         </div>
       </CardHeader>
@@ -379,7 +379,7 @@ function TopArtistsContent({
           </div>
           <TimeRangeSelector selectedRange={timeRange} onChange={handleTimeRangeChange} />
         </div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-xs pointer-events-none opacity-60 z-0">
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-xs pointer-events-none z-0">
           <AudioWave />
         </div>
       </CardHeader>

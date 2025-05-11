@@ -15,7 +15,8 @@ const AudioWave = memo(function AudioWave() {
     const canvas = canvasRef.current
     if (!canvas) return
 
-    const ctx = canvas.getContext("2d", { alpha: false })
+    // Use alpha: true to ensure transparency
+    const ctx = canvas.getContext("2d", { alpha: true })
     if (!ctx) return
 
     // Use requestAnimationFrame timing for smoother animations
@@ -36,10 +37,10 @@ const AudioWave = memo(function AudioWave() {
     const barWidth = width / barCount - 2
     const bars = barsRef.current
 
-    // Clear with minimal area
+    // Clear with transparent background
     ctx.clearRect(0, 0, width, height)
 
-    // Chromatic color palette
+    // Chromatic color palette - using full vibrant colors
     const purpleColors = [
       "#9333ea", // --purple-gradient-start
       "#a855f7", // --purple-gradient-mid
@@ -234,8 +235,8 @@ const AudioWave = memo(function AudioWave() {
   }, [animate])
 
   return (
-    <div ref={containerRef} className="w-full overflow-hidden">
-      <canvas ref={canvasRef} className="h-20" aria-hidden="true" />
+    <div ref={containerRef} className="w-full overflow-hidden" style={{ background: "transparent" }}>
+      <canvas ref={canvasRef} className="h-20" aria-hidden="true" style={{ background: "transparent" }} />
     </div>
   )
 })
