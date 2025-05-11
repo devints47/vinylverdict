@@ -34,8 +34,10 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
 
   // Get the appropriate button text based on the active tab and assistant type
   const getButtonText = () => {
+    // Use a consistent action verb format based on assistant type
     const actionVerb = assistantType === "worshipper" ? "Validate" : "Roast"
 
+    // Use a consistent format for all tabs
     switch (activeTab) {
       case "top-tracks":
         return `${actionVerb} My Top Tracks`
@@ -82,7 +84,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
       // Call the API through our service with the assistant type
       const response = await getRoast(formattedData, viewType, assistantType)
 
-      // Check if this is a fallback response
+      // Check if this is a fallback response using a standardized pattern
       if (response.includes("*Note:") || response.includes("Note: This is a fallback")) {
         setIsFallback(true)
       }
@@ -100,15 +102,13 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
   useEffect(() => {
     if (!roast) return
 
-    // Check for various disclaimer patterns
+    // Use a standardized set of disclaimer patterns for all assistant types
     const disclaimerPatterns = [
-      "*Note: This is a fallback",
-      "*Note: The Music Snob is currently",
-      "*Note: The Taste Validator is currently",
-      "Note: Our resident Music Snob",
-      "Note: Our resident Taste Validator",
+      "*Note:",
+      "Note: ",
       "This roast is a satirical critique",
-      "This analysis is a celebration",
+      "This validation is a celebration",
+      "This analysis is",
     ]
 
     let disclaimerIndex = -1
@@ -129,14 +129,30 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
 
   // Get the appropriate card title based on the assistant type
   const getCardTitle = () => {
+    // Use a standardized format for all assistant types
     return assistantType === "worshipper" ? "Music Taste Validation" : "Music Taste Roast"
   }
 
   // Get the appropriate footer text based on the assistant type
   const getFooterText = () => {
+    // Use the same format for both assistant types, just change the content
     return assistantType === "worshipper"
       ? "This validation is a celebration of your personal listening habits. It's all in good fun and meant to highlight the positive aspects of your music taste."
       : "This roast is a satirical critique of your personal listening habits. It's all in good fun and not intended to insult any artists or fans."
+  }
+
+  // Get loading text based on assistant type
+  const getLoadingText = () => {
+    // Use a standardized format for loading text
+    return assistantType === "worshipper"
+      ? "The Taste Validator Is Appreciating..."
+      : "The Music Snob Is Judging You..."
+  }
+
+  // Get emoji based on assistant type
+  const getEmoji = () => {
+    // Use a standardized format for emojis
+    return assistantType === "worshipper" ? "✨" : "🔥"
   }
 
   return (
@@ -151,17 +167,13 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
           {isLoading ? (
             <>
               <Loader2 className="h-5 w-5 animate-spin" />
-              <span>
-                {assistantType === "worshipper"
-                  ? "The Taste Validator Is Appreciating..."
-                  : "The Music Snob Is Judging You..."}
-              </span>
+              <span>{getLoadingText()}</span>
             </>
           ) : (
             <>
-              <span className="text-xl">{assistantType === "worshipper" ? "✨" : "🔥"}</span>
+              <span className="text-xl">{getEmoji()}</span>
               <span>{getButtonText()}</span>
-              <span className="text-xl">{assistantType === "worshipper" ? "✨" : "🔥"}</span>
+              <span className="text-xl">{getEmoji()}</span>
             </>
           )}
         </Button>

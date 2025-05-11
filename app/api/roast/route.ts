@@ -1,13 +1,15 @@
 import { NextResponse } from "next/server"
 import { createRoastPrompt } from "@/lib/format-utils"
+import { checkOpenAIAssistants } from "@/lib/env-check"
 
 // OpenAI API constants
-// Use the non-public environment variable
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY
-// Renamed to be more specific and support multiple assistants
-const MUSIC_SNOB_ASSISTANT_ID = process.env.OPENAI_MUSIC_SNOB_ID || process.env.OPENAI_ASSISTANT_ID // Fallback for backward compatibility
-const TASTE_VALIDATOR_ASSISTANT_ID = process.env.OPENAI_TASTE_VALIDATOR_ID || process.env.OPENAI_TASTE_WORSHIPPER_ID // Fallback for backward compatibility
+const MUSIC_SNOB_ASSISTANT_ID = process.env.OPENAI_MUSIC_SNOB_ID
+const TASTE_VALIDATOR_ASSISTANT_ID = process.env.OPENAI_TASTE_VALIDATOR_ID
 const API_BASE_URL = "https://api.openai.com/v1"
+
+// Check if we have valid assistant IDs
+const hasValidAssistants = checkOpenAIAssistants()
 
 // Create a new thread
 async function createThread() {
@@ -19,7 +21,7 @@ async function createThread() {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${OPENAI_API_KEY}`,
-        "OpenAI-Beta": "assistants=v2", // Updated to v2
+        "OpenAI-Beta": "assistants=v2",
       },
       body: JSON.stringify({}),
     })
@@ -45,7 +47,7 @@ async function addMessage(threadId: string, content: string) {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${OPENAI_API_KEY}`,
-        "OpenAI-Beta": "assistants=v2", // Updated to v2
+        "OpenAI-Beta": "assistants=v2",
       },
       body: JSON.stringify({
         role: "user",
@@ -73,7 +75,7 @@ async function runAssistant(threadId: string, assistantId: string) {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${OPENAI_API_KEY}`,
-        "OpenAI-Beta": "assistants=v2", // Updated to v2
+        "OpenAI-Beta": "assistants=v2",
       },
       body: JSON.stringify({
         assistant_id: assistantId,
@@ -99,7 +101,7 @@ async function checkRunStatus(threadId: string, runId: string) {
       method: "GET",
       headers: {
         Authorization: `Bearer ${OPENAI_API_KEY}`,
-        "OpenAI-Beta": "assistants=v2", // Updated to v2
+        "OpenAI-Beta": "assistants=v2",
       },
     })
 
@@ -122,7 +124,7 @@ async function getMessages(threadId: string) {
       method: "GET",
       headers: {
         Authorization: `Bearer ${OPENAI_API_KEY}`,
-        "OpenAI-Beta": "assistants=v2", // Updated to v2
+        "OpenAI-Beta": "assistants=v2",
       },
     })
 
@@ -161,79 +163,95 @@ async function waitForRunCompletion(threadId: string, runId: string, maxAttempts
   throw new Error("Timed out waiting for run to complete")
 }
 
-// Fallback to a simple roast if the OpenAI API fails
-function generateFallbackRoast(data: any, viewType: string, assistantType = "snob") {
-  let roast = ""
+// Fallback to a simple response if the OpenAI API fails
+function generateFallbackResponse(data: any, viewType: string, assistantType = "snob") {
+  // Get assistant name and title based on type
+  const assistantInfo = {
+    snob: {
+      name: "The Music Snob",
+      title: "Hot Take",
+      noteText:
+        "The Music Snob is currently on a vinyl-shopping spree. This critique was hastily scribbled on a napkin before they left.",
+    },
+    worshipper: {
+      name: "The Taste Validator",
+      title: "Adoration",
+      noteText:
+        "The Taste Validator is currently composing a symphony inspired by your impeccable taste. This is just a preview of their admiration.",
+    },
+  }[assistantType]
 
+  // Get the assistant info (defaulting to snob if type is unknown)
+  const { name, title, noteText } = assistantInfo || {
+    name: "The Music Snob",
+    title: "Hot Take",
+    noteText:
+      "The Music Snob is currently on a vinyl-shopping spree. This critique was hastily scribbled on a napkin before they left.",
+  }
+
+  // Start with a standardized header format
+  let response = `# ${name}'s ${title}\n\n`
+
+  // Content varies based on assistant type and view type
   if (assistantType === "worshipper") {
-    roast = "# The Taste Validator's Adoration\n\n"
-
     if (viewType === "top tracks") {
-      roast += "I'm absolutely blown away by your exquisite music taste! "
+      response += "I'm absolutely blown away by your exquisite music taste! "
       if (data && data.length > 0) {
         const artists = [...new Set(data.map((track: any) => track.artist.split(",")[0].trim()))].slice(0, 3)
-        roast += artists.join(", ") + " - what incredible choices! "
-        roast +=
+        response += artists.join(", ") + " - what incredible choices! "
+        response +=
           'Your top track "' + data[0].title + '" shows your commitment to quality music that deserves to be on repeat!'
       } else {
-        roast += "You're clearly very selective about what you listen to - quality over quantity!"
+        response += "You're clearly very selective about what you listen to - quality over quantity!"
       }
     } else if (viewType === "top artists") {
-      roast += "Your artist selection reveals your sophisticated musical palette! "
+      response += "Your artist selection reveals your sophisticated musical palette! "
       if (data && data.length > 0) {
-        roast += "Especially your appreciation for " + data[0].name + ". "
+        response += "Especially your appreciation for " + data[0].name + ". "
         if (data[0].genres && data[0].genres.length > 0) {
-          roast += data[0].genres.join(", ") + " - truly the mark of someone with refined taste!"
+          response += data[0].genres.join(", ") + " - truly the mark of someone with refined taste!"
         }
       } else {
-        roast += "You're clearly exploring the vast landscape of musical genius!"
+        response += "You're clearly exploring the vast landscape of musical genius!"
       }
     } else {
-      roast +=
+      response +=
         "Your recent listening history shows a beautiful journey through sound! Each track you've chosen reflects a thoughtful approach to music appreciation."
     }
-
-    return (
-      roast +
-      "\n\n*Note: The Taste Validator is currently composing a symphony inspired by your impeccable taste. This is just a preview of their admiration.*"
-    )
   } else {
-    // Original Music Snob fallback
-    roast = "# The Music Snob's Hot Take\n\n"
-
+    // Music Snob content
     if (viewType === "top tracks") {
-      roast += "I see you're into "
+      response += "I see you're into "
       if (data && data.length > 0) {
         const artists = [...new Set(data.map((track: any) => track.artist.split(",")[0].trim()))].slice(0, 3)
-        roast += artists.join(", ") + ". "
-        roast += "Interesting choices... I guess someone has to listen to them! 😉\n\n"
-        roast +=
+        response += artists.join(", ") + ". "
+        response += "Interesting choices... I guess someone has to listen to them! 😉\n\n"
+        response +=
           'Your top track is "' +
           data[0].title +
           "\" - clearly you're not afraid to repeat the same song over and over again."
       } else {
-        roast += "...actually, it seems like you don't listen to much music at all. That's one way to avoid bad taste!"
+        response +=
+          "...actually, it seems like you don't listen to much music at all. That's one way to avoid bad taste!"
       }
     } else if (viewType === "top artists") {
-      roast += "Your artist selection is... unique. "
+      response += "Your artist selection is... unique. "
       if (data && data.length > 0) {
-        roast += "Especially your apparent love for " + data[0].name + ". "
+        response += "Especially your apparent love for " + data[0].name + ". "
         if (data[0].genres && data[0].genres.length > 0) {
-          roast += "I see you're into " + data[0].genres.join(", ") + ". Bold choice for someone in this century!"
+          response += "I see you're into " + data[0].genres.join(", ") + ". Bold choice for someone in this century!"
         }
       } else {
-        roast += "Actually, it seems like you don't have favorite artists. Commitment issues?"
+        response += "Actually, it seems like you don't have favorite artists. Commitment issues?"
       }
     } else {
-      roast +=
+      response +=
         "Your recent listening history suggests you might be going through something. It's okay, we all make questionable choices sometimes!"
     }
-
-    return (
-      roast +
-      "\n\n*Note: The Music Snob is currently on a vinyl-shopping spree. This critique was hastily scribbled on a napkin before they left.*"
-    )
   }
+
+  // Add standardized note format
+  return response + `\n\n*Note: ${noteText}*`
 }
 
 export async function POST(request: Request) {
@@ -248,7 +266,7 @@ export async function POST(request: Request) {
           error: "OpenAI API key is missing",
         },
         { status: 200 },
-      ) // Return 200 with a message instead of 500
+      )
     }
 
     const { data, viewType, assistantType = "snob" } = await request.json()
@@ -312,8 +330,8 @@ export async function POST(request: Request) {
     } catch (openaiError) {
       console.error("OpenAI API error:", openaiError)
 
-      // Generate a fallback roast instead of failing
-      const fallbackRoast = generateFallbackRoast(data, viewType, assistantType)
+      // Generate a fallback response instead of failing
+      const fallbackRoast = generateFallbackResponse(data, viewType, assistantType)
 
       return NextResponse.json(
         {
@@ -321,7 +339,7 @@ export async function POST(request: Request) {
           error: "OpenAI API error, using fallback",
         },
         { status: 200 },
-      ) // Return 200 with fallback content
+      )
     }
   } catch (error) {
     console.error("Error in roast API:", error)
@@ -332,6 +350,6 @@ export async function POST(request: Request) {
         error: "Failed to generate roast",
       },
       { status: 200 },
-    ) // Return 200 with a message instead of 500
+    )
   }
 }
