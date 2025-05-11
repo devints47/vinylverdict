@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
 import { Navbar } from "@/components/navbar"
@@ -12,13 +12,30 @@ import { TimeRangeSelector } from "@/components/time-range-selector"
 import { TrackItem } from "@/components/track-item"
 import { ArtistItem } from "@/components/artist-item"
 import { LoadingSkeleton } from "@/components/loading-skeleton"
-import { RoastMe } from "@/components/roast-me"
 import { TechGridBackground } from "@/components/tech-grid-background"
 import { VinylCollection, type VinylDesign } from "@/components/vinyl-collection"
 import { AudioWave } from "@/components/audio-wave"
 import type { TimeRange } from "@/lib/spotify-api"
 import { formatDate, getArtists } from "@/lib/spotify-api"
 import { ListContainer } from "@/components/list-container"
+import dynamic from "next/dynamic"
+
+// Dynamically import heavy components
+const DynamicRoastMe = dynamic(() => import("@/components/roast-me").then((mod) => ({ default: mod.RoastMe })), {
+  loading: () => (
+    <div className="flex justify-center w-full">
+      <button
+        disabled
+        className="btn-gradient holographic-shimmer text-white font-bold py-4 px-8 text-lg rounded-lg flex items-center justify-center gap-2 shadow-lg max-w-md opacity-70"
+      >
+        <span className="text-xl">🔥</span>
+        <span>Loading Roast Feature...</span>
+        <span className="text-xl">🔥</span>
+      </button>
+    </div>
+  ),
+  ssr: false,
+})
 
 interface UserProfile {
   display_name: string
@@ -74,10 +91,14 @@ export default function DashboardPage() {
   // Cache duration - 1 hour in milliseconds
   const CACHE_DURATION = 60 * 60 * 1000
 
+  // Get current data based on selected tab and time range
+  const currentTopTracks = useMemo(() => topTracks[timeRange], [topTracks, timeRange])
+  const currentTopArtists = useMemo(() => topArtists[timeRange], [topArtists, timeRange])
+
   // Handle vinyl selection
-  const handleVinylSelect = (design: VinylDesign) => {
+  const handleVinylSelect = useCallback((design: VinylDesign) => {
     setSelectedVinyl(design)
-  }
+  }, [])
 
   // Check authentication on mount
   useEffect(() => {
@@ -298,50 +319,53 @@ export default function DashboardPage() {
   }, [isAuthenticated, isLoading, fetchAllData])
 
   // Handle tab change
-  const handleTabChange = (value: string) => {
+  const handleTabChange = useCallback((value: string) => {
     setActiveTab(value)
-  }
+  }, [])
 
   // Handle time range change
-  const handleTimeRangeChange = (range: TimeRange) => {
+  const handleTimeRangeChange = useCallback((range: TimeRange) => {
     setTimeRange(range)
     // Reset visible count when changing time range
     setVisibleTracksCount(20)
     setVisibleArtistsCount(20)
-  }
+  }, [])
 
   // Handle manual refresh
-  const handleRefresh = () => {
+  const handleRefresh = useCallback(() => {
     fetchAllData(true)
-  }
+  }, [fetchAllData])
 
   // Load more handlers
-  const loadMoreRecent = () => {
+  const loadMoreRecent = useCallback(() => {
     setVisibleRecentCount((prev) => Math.min(prev + 20, recentlyPlayed?.items?.length || 0))
-  }
+  }, [recentlyPlayed?.items?.length])
 
-  const loadMoreTracks = () => {
+  const loadMoreTracks = useCallback(() => {
     setVisibleTracksCount((prev) => Math.min(prev + 20, currentTopTracks?.items?.length || 0))
-  }
+  }, [currentTopTracks?.items?.length, currentTopTracks])
 
-  const loadMoreArtists = () => {
+  const loadMoreArtists = useCallback(() => {
     setVisibleArtistsCount((prev) => Math.min(prev + 20, currentTopArtists?.items?.length || 0))
-  }
+  }, [currentTopArtists?.items?.length, currentTopArtists])
 
-  // Get genres for a track based on its artists
-  const getTrackGenres = (track: any): string[] => {
-    if (!track || !track.artists) return []
+  // Get genres for a track based on its artists - memoized to avoid recalculation
+  const getTrackGenres = useCallback(
+    (track: any): string[] => {
+      if (!track || !track.artists) return []
 
-    const genres = new Set<string>()
-    track.artists.forEach((artist: any) => {
-      const artistData = artistInfo[artist.id]
-      if (artistData && artistData.genres) {
-        artistData.genres.forEach((genre: string) => genres.add(genre))
-      }
-    })
+      const genres = new Set<string>()
+      track.artists.forEach((artist: any) => {
+        const artistData = artistInfo[artist.id]
+        if (artistData && artistData.genres) {
+          artistData.genres.forEach((genre: string) => genres.add(genre))
+        }
+      })
 
-    return Array.from(genres).slice(0, 3) // Limit to 3 genres
-  }
+      return Array.from(genres).slice(0, 3) // Limit to 3 genres
+    },
+    [artistInfo],
+  )
 
   // Show loading state
   if (isLoading || isLoadingProfile) {
@@ -366,12 +390,8 @@ export default function DashboardPage() {
     )
   }
 
-  // Get current data based on selected tab and time range
-  const currentTopTracks = topTracks[timeRange]
-  const currentTopArtists = topArtists[timeRange]
-
-  // Load More Button Component
-  const LoadMoreButton = ({ onClick, isVisible }: { onClick: () => void; isVisible: boolean }) => {
+  // Load More Button Component - memoized to prevent unnecessary re-renders
+  const LoadMoreButton = useCallback(({ onClick, isVisible }: { onClick: () => void; isVisible: boolean }) => {
     if (!isVisible) return null
 
     return (
@@ -384,10 +404,10 @@ export default function DashboardPage() {
         </button>
       </div>
     )
-  }
+  }, [])
 
-  // User Profile Card Component
-  const UserProfileCard = () => {
+  // User Profile Card Component - memoized to prevent unnecessary re-renders
+  const UserProfileCard = useMemo(() => {
     if (!profile) return null
 
     return (
@@ -402,6 +422,9 @@ export default function DashboardPage() {
                   src={profile.images?.[0]?.url || "/placeholder.svg?height=40&width=40&query=user"}
                   alt={profile.display_name}
                   className="w-full h-full object-cover"
+                  width={40}
+                  height={40}
+                  loading="eager"
                 />
               </div>
               <div className="flex-1 min-w-0">
@@ -446,7 +469,14 @@ export default function DashboardPage() {
           <div className="col-span-2 flex flex-col items-center justify-center pl-2 border-l border-zinc-800">
             <div className="flex flex-col items-center">
               <a href="https://www.spotify.com" target="_blank" rel="noopener noreferrer" title="Visit Spotify">
-                <img src="/spotify_logo_small.svg" alt="Spotify" className="h-[48px] w-auto mb-2" />
+                <img
+                  src="/spotify_logo_small.svg"
+                  alt="Spotify"
+                  className="h-[48px] w-auto mb-2"
+                  width={48}
+                  height={48}
+                  loading="eager"
+                />
               </a>
               <span className="text-xs text-zinc-500/80 text-center">Connected to Spotify</span>
             </div>
@@ -454,193 +484,248 @@ export default function DashboardPage() {
         </div>
       </div>
     )
-  }
+  }, [profile, handleRefresh, isRefreshing, lastFetched])
 
-  // Content components for each tab
-  const RecentlyPlayedContent = () => (
-    <Card
-      className="bg-gradient-to-r from-zinc-900 to-black border border-transparent"
-      style={{
-        borderImage:
-          "linear-gradient(135deg, var(--purple-gradient-start), var(--purple-gradient-mid), var(--purple-gradient-end)) 1",
-      }}
-    >
-      <CardHeader className="relative">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
-          <div className="flex items-center gap-6">
-            <div className="p-2">
-              <a href="https://www.spotify.com" target="_blank" rel="noopener noreferrer" title="Visit Spotify">
-                <img src="/spotify_logo_small.svg" alt="Spotify" className="h-14 w-14" />
-              </a>
+  // Content components for each tab - memoized to prevent unnecessary re-renders
+  const RecentlyPlayedContent = useMemo(() => {
+    return (
+      <Card
+        className="bg-gradient-to-r from-zinc-900 to-black border border-transparent"
+        style={{
+          borderImage:
+            "linear-gradient(135deg, var(--purple-gradient-start), var(--purple-gradient-mid), var(--purple-gradient-end)) 1",
+        }}
+      >
+        <CardHeader className="relative">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
+            <div className="flex items-center gap-6">
+              <div className="p-2">
+                <a href="https://www.spotify.com" target="_blank" rel="noopener noreferrer" title="Visit Spotify">
+                  <img
+                    src="/spotify_logo_small.svg"
+                    alt="Spotify"
+                    className="h-14 w-14"
+                    width={56}
+                    height={56}
+                    loading="eager"
+                  />
+                </a>
+              </div>
+              <div className="flex flex-col justify-center">
+                <CardTitle className="text-2xl">Recently Played Tracks</CardTitle>
+                <CardDescription>Your listening history from the past few days</CardDescription>
+              </div>
             </div>
-            <div className="flex flex-col justify-center">
-              <CardTitle className="text-2xl">Recently Played Tracks</CardTitle>
-              <CardDescription>Your listening history from the past few days</CardDescription>
-            </div>
-          </div>
-          <div className="flex items-center text-zinc-400 bg-zinc-800/50 px-4 py-2 rounded-lg">
-            <Clock className="h-4 w-4 mr-2 text-bright-purple" />
-            <span className="text-sm">Your Spotify recently played tracks</span>
-          </div>
-        </div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-xs pointer-events-none opacity-60 z-0">
-          <AudioWave />
-        </div>
-      </CardHeader>
-      <div className="h-px w-full bg-gradient-to-r from-zinc-800 via-bright-purple/20 to-zinc-800"></div>
-      <CardContent>
-        {isLoadingRecent || isRefreshing ? (
-          <LoadingSkeleton count={10} type="track" />
-        ) : recentlyPlayed?.items?.length > 0 ? (
-          <>
-            <ListContainer>
-              {recentlyPlayed.items.slice(0, visibleRecentCount).map((item: any, index: number) => {
-                // Add genres to the track from the artist info
-                const trackWithGenres = {
-                  ...item.track,
-                  genres: getTrackGenres(item.track),
-                }
-
-                return (
-                  <div key={`${item.track.id}-${index}`}>
-                    <TrackItem
-                      track={trackWithGenres}
-                      additionalInfo={`Played on ${formatDate(item.played_at)}`}
-                      isRecentlyPlayed={true}
-                      index={index}
-                    />
-                  </div>
-                )
-              })}
-            </ListContainer>
-
-            <LoadMoreButton onClick={loadMoreRecent} isVisible={visibleRecentCount < recentlyPlayed.items.length} />
-          </>
-        ) : (
-          <p className="text-center py-8 text-zinc-500">No recently played tracks found.</p>
-        )}
-      </CardContent>
-    </Card>
-  )
-
-  const TopTracksContent = () => (
-    <Card
-      className="bg-gradient-to-r from-zinc-900 to-black border border-transparent"
-      style={{
-        borderImage:
-          "linear-gradient(135deg, var(--purple-gradient-start), var(--purple-gradient-mid), var(--purple-gradient-end)) 1",
-      }}
-    >
-      <CardHeader className="relative">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
-          <div className="flex items-center gap-6">
-            <div className="p-2">
-              <a href="https://www.spotify.com" target="_blank" rel="noopener noreferrer" title="Visit Spotify">
-                <img src="/spotify_logo_small.svg" alt="Spotify" className="h-14 w-14" />
-              </a>
-            </div>
-            <div className="flex flex-col justify-center">
-              <CardTitle className="text-2xl">Your Top Tracks</CardTitle>
-              <CardDescription>
-                The songs you've listened to most over{" "}
-                {timeRange === "short_term"
-                  ? "the last 4 weeks"
-                  : timeRange === "medium_term"
-                    ? "the last 6 months"
-                    : "all time"}
-              </CardDescription>
+            <div className="flex items-center text-zinc-400 bg-zinc-800/50 px-4 py-2 rounded-lg">
+              <Clock className="h-4 w-4 mr-2 text-bright-purple" />
+              <span className="text-sm">Your Spotify recently played tracks</span>
             </div>
           </div>
-          <TimeRangeSelector selectedRange={timeRange} onChange={handleTimeRangeChange} />
-        </div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-xs pointer-events-none opacity-60 z-0">
-          <AudioWave />
-        </div>
-      </CardHeader>
-      <div className="h-px w-full bg-gradient-to-r from-zinc-800 via-bright-purple/20 to-zinc-800"></div>
-      <CardContent>
-        {isLoadingTracks || isRefreshing ? (
-          <LoadingSkeleton count={10} type="track" />
-        ) : currentTopTracks?.items?.length > 0 ? (
-          <>
-            <ListContainer>
-              {currentTopTracks.items.slice(0, visibleTracksCount).map((track: any, index: number) => {
-                // Add genres to the track from the artist info
-                const trackWithGenres = {
-                  ...track,
-                  genres: getTrackGenres(track),
-                }
-
-                return <TrackItem key={`${track.id}-${index}`} track={trackWithGenres} index={index} />
-              })}
-            </ListContainer>
-
-            <LoadMoreButton onClick={loadMoreTracks} isVisible={visibleTracksCount < currentTopTracks.items.length} />
-          </>
-        ) : (
-          <p className="text-center py-8 text-zinc-500">No top tracks found for this time period.</p>
-        )}
-      </CardContent>
-    </Card>
-  )
-
-  const TopArtistsContent = () => (
-    <Card
-      className="bg-gradient-to-r from-zinc-900 to-black border border-transparent"
-      style={{
-        borderImage:
-          "linear-gradient(135deg, var(--purple-gradient-start), var(--purple-gradient-mid), var(--purple-gradient-end)) 1",
-      }}
-    >
-      <CardHeader className="relative">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
-          <div className="flex items-center gap-6">
-            <div className="p-2">
-              <a href="https://www.spotify.com" target="_blank" rel="noopener noreferrer" title="Visit Spotify">
-                <img src="/spotify_logo_small.svg" alt="Spotify" className="h-14 w-14" />
-              </a>
-            </div>
-            <div className="flex flex-col justify-center">
-              <CardTitle className="text-2xl">Your Top Artists</CardTitle>
-              <CardDescription>
-                The artists you've listened to most over{" "}
-                {timeRange === "short_term"
-                  ? "the last 4 weeks"
-                  : timeRange === "medium_term"
-                    ? "the last 6 months"
-                    : "all time"}
-              </CardDescription>
-            </div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-xs pointer-events-none opacity-60 z-0">
+            <AudioWave />
           </div>
-          <TimeRangeSelector selectedRange={timeRange} onChange={handleTimeRangeChange} />
-        </div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-xs pointer-events-none opacity-60 z-0">
-          <AudioWave />
-        </div>
-      </CardHeader>
-      <div className="h-px w-full bg-gradient-to-r from-zinc-800 via-bright-purple/20 to-zinc-800"></div>
-      <CardContent>
-        {isLoadingArtists || isRefreshing ? (
-          <LoadingSkeleton count={10} type="artist" />
-        ) : currentTopArtists?.items?.length > 0 ? (
-          <>
-            <ListContainer>
-              {currentTopArtists.items.slice(0, visibleArtistsCount).map((artist: any, index: number) => (
-                <ArtistItem key={`${artist.id}-${index}`} artist={artist} index={index} />
-              ))}
-            </ListContainer>
+        </CardHeader>
+        <div className="h-px w-full bg-gradient-to-r from-zinc-800 via-bright-purple/20 to-zinc-800"></div>
+        <CardContent>
+          {isLoadingRecent || isRefreshing ? (
+            <LoadingSkeleton count={10} type="track" />
+          ) : recentlyPlayed?.items?.length > 0 ? (
+            <>
+              <ListContainer>
+                {recentlyPlayed.items.slice(0, visibleRecentCount).map((item: any, index: number) => {
+                  // Add genres to the track from the artist info
+                  const trackWithGenres = {
+                    ...item.track,
+                    genres: getTrackGenres(item.track),
+                  }
 
-            <LoadMoreButton
-              onClick={loadMoreArtists}
-              isVisible={visibleArtistsCount < currentTopArtists.items.length}
-            />
-          </>
-        ) : (
-          <p className="text-center py-8 text-zinc-500">No top artists found for this time period.</p>
-        )}
-      </CardContent>
-    </Card>
-  )
+                  return (
+                    <div key={`${item.track.id}-${index}`}>
+                      <TrackItem
+                        track={trackWithGenres}
+                        additionalInfo={`Played on ${formatDate(item.played_at)}`}
+                        isRecentlyPlayed={true}
+                        index={index}
+                      />
+                    </div>
+                  )
+                })}
+              </ListContainer>
+
+              <LoadMoreButton onClick={loadMoreRecent} isVisible={visibleRecentCount < recentlyPlayed.items.length} />
+            </>
+          ) : (
+            <p className="text-center py-8 text-zinc-500">No recently played tracks found.</p>
+          )}
+        </CardContent>
+      </Card>
+    )
+  }, [
+    isLoadingRecent,
+    isRefreshing,
+    recentlyPlayed?.items,
+    visibleRecentCount,
+    getTrackGenres,
+    loadMoreRecent,
+    LoadMoreButton,
+    formatDate,
+  ])
+
+  const TopTracksContent = useMemo(() => {
+    return (
+      <Card
+        className="bg-gradient-to-r from-zinc-900 to-black border border-transparent"
+        style={{
+          borderImage:
+            "linear-gradient(135deg, var(--purple-gradient-start), var(--purple-gradient-mid), var(--purple-gradient-end)) 1",
+        }}
+      >
+        <CardHeader className="relative">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
+            <div className="flex items-center gap-6">
+              <div className="p-2">
+                <a href="https://www.spotify.com" target="_blank" rel="noopener noreferrer" title="Visit Spotify">
+                  <img
+                    src="/spotify_logo_small.svg"
+                    alt="Spotify"
+                    className="h-14 w-14"
+                    width={56}
+                    height={56}
+                    loading="eager"
+                  />
+                </a>
+              </div>
+              <div className="flex flex-col justify-center">
+                <CardTitle className="text-2xl">Your Top Tracks</CardTitle>
+                <CardDescription>
+                  The songs you've listened to most over{" "}
+                  {timeRange === "short_term"
+                    ? "the last 4 weeks"
+                    : timeRange === "medium_term"
+                      ? "the last 6 months"
+                      : "all time"}
+                </CardDescription>
+              </div>
+            </div>
+            <TimeRangeSelector selectedRange={timeRange} onChange={handleTimeRangeChange} />
+          </div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-xs pointer-events-none opacity-60 z-0">
+            <AudioWave />
+          </div>
+        </CardHeader>
+        <div className="h-px w-full bg-gradient-to-r from-zinc-800 via-bright-purple/20 to-zinc-800"></div>
+        <CardContent>
+          {isLoadingTracks || isRefreshing ? (
+            <LoadingSkeleton count={10} type="track" />
+          ) : currentTopTracks?.items?.length > 0 ? (
+            <>
+              <ListContainer>
+                {currentTopTracks.items.slice(0, visibleTracksCount).map((track: any, index: number) => {
+                  // Add genres to the track from the artist info
+                  const trackWithGenres = {
+                    ...track,
+                    genres: getTrackGenres(track),
+                  }
+
+                  return <TrackItem key={`${track.id}-${index}`} track={trackWithGenres} index={index} />
+                })}
+              </ListContainer>
+
+              <LoadMoreButton onClick={loadMoreTracks} isVisible={visibleTracksCount < currentTopTracks.items.length} />
+            </>
+          ) : (
+            <p className="text-center py-8 text-zinc-500">No top tracks found for this time period.</p>
+          )}
+        </CardContent>
+      </Card>
+    )
+  }, [
+    timeRange,
+    handleTimeRangeChange,
+    isLoadingTracks,
+    isRefreshing,
+    currentTopTracks,
+    visibleTracksCount,
+    getTrackGenres,
+    loadMoreTracks,
+    LoadMoreButton,
+  ])
+
+  const TopArtistsContent = useMemo(() => {
+    return (
+      <Card
+        className="bg-gradient-to-r from-zinc-900 to-black border border-transparent"
+        style={{
+          borderImage:
+            "linear-gradient(135deg, var(--purple-gradient-start), var(--purple-gradient-mid), var(--purple-gradient-end)) 1",
+        }}
+      >
+        <CardHeader className="relative">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
+            <div className="flex items-center gap-6">
+              <div className="p-2">
+                <a href="https://www.spotify.com" target="_blank" rel="noopener noreferrer" title="Visit Spotify">
+                  <img
+                    src="/spotify_logo_small.svg"
+                    alt="Spotify"
+                    className="h-14 w-14"
+                    width={56}
+                    height={56}
+                    loading="eager"
+                  />
+                </a>
+              </div>
+              <div className="flex flex-col justify-center">
+                <CardTitle className="text-2xl">Your Top Artists</CardTitle>
+                <CardDescription>
+                  The artists you've listened to most over{" "}
+                  {timeRange === "short_term"
+                    ? "the last 4 weeks"
+                    : timeRange === "medium_term"
+                      ? "the last 6 months"
+                      : "all time"}
+                </CardDescription>
+              </div>
+            </div>
+            <TimeRangeSelector selectedRange={timeRange} onChange={handleTimeRangeChange} />
+          </div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-xs pointer-events-none opacity-60 z-0">
+            <AudioWave />
+          </div>
+        </CardHeader>
+        <div className="h-px w-full bg-gradient-to-r from-zinc-800 via-bright-purple/20 to-zinc-800"></div>
+        <CardContent>
+          {isLoadingArtists || isRefreshing ? (
+            <LoadingSkeleton count={10} type="artist" />
+          ) : currentTopArtists?.items?.length > 0 ? (
+            <>
+              <ListContainer>
+                {currentTopArtists.items.slice(0, visibleArtistsCount).map((artist: any, index: number) => (
+                  <ArtistItem key={`${artist.id}-${index}`} artist={artist} index={index} />
+                ))}
+              </ListContainer>
+
+              <LoadMoreButton
+                onClick={loadMoreArtists}
+                isVisible={visibleArtistsCount < currentTopArtists.items.length}
+              />
+            </>
+          ) : (
+            <p className="text-center py-8 text-zinc-500">No top artists found for this time period.</p>
+          )}
+        </CardContent>
+      </Card>
+    )
+  }, [
+    timeRange,
+    handleTimeRangeChange,
+    isLoadingArtists,
+    isRefreshing,
+    currentTopArtists,
+    visibleArtistsCount,
+    loadMoreArtists,
+    LoadMoreButton,
+  ])
 
   return (
     <div className="min-h-screen bg-black flex flex-col relative overflow-hidden">
@@ -651,9 +736,7 @@ export default function DashboardPage() {
         {/* Top Section with Grid Layout */}
         <div className="flex flex-col md:flex-row gap-6 mb-12">
           {/* Mobile-first layout: Profile Card first on mobile, then Vinyl Collection */}
-          <div className="w-full md:hidden mb-6">
-            <UserProfileCard />
-          </div>
+          <div className="w-full md:hidden mb-6">{UserProfileCard}</div>
 
           {/* Left Column - Vinyl Collection (25% on desktop) */}
           <div className="w-full md:w-[25%]">
@@ -675,7 +758,7 @@ export default function DashboardPage() {
               )}
             </div>
             <div className="mt-auto">
-              <RoastMe
+              <DynamicRoastMe
                 topTracks={currentTopTracks}
                 topArtists={currentTopArtists}
                 recentlyPlayed={recentlyPlayed}
@@ -685,18 +768,16 @@ export default function DashboardPage() {
           </div>
 
           {/* Right Column - Profile Card (25% on desktop) - Hidden on mobile as it's moved to the top */}
-          <div className="w-full md:w-[25%] md:self-start hidden md:block">
-            <UserProfileCard />
-          </div>
+          <div className="w-full md:w-[25%] md:self-start hidden md:block">{UserProfileCard}</div>
         </div>
 
         {/* Custom Tabs Navigation */}
         <MusicTabs activeTab={activeTab} onTabChange={handleTabChange} />
 
         {/* Tab Content */}
-        {activeTab === "recently-played" && <RecentlyPlayedContent />}
-        {activeTab === "top-tracks" && <TopTracksContent />}
-        {activeTab === "top-artists" && <TopArtistsContent />}
+        {activeTab === "recently-played" && RecentlyPlayedContent}
+        {activeTab === "top-tracks" && TopTracksContent}
+        {activeTab === "top-artists" && TopArtistsContent}
       </main>
 
       <Footer />

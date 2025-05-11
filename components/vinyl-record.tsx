@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, memo } from "react"
 
 // Define the vinyl design type
 export interface VinylDesign {
@@ -27,7 +27,8 @@ const DEFAULT_DESIGN: VinylDesign = {
   labelText: "SNOBSCORE • PREMIUM VINYL • AUDIOPHILE EDITION •",
 }
 
-export function VinylRecord({
+// Memoize the VinylRecord component to prevent unnecessary re-renders
+const VinylRecord = memo(function VinylRecord({
   design = DEFAULT_DESIGN,
   size,
   className = "",
@@ -45,12 +46,14 @@ export function VinylRecord({
       width: number
     }>
   >([])
+  const isVisibleRef = useRef(true)
+  const gradientColorsRef = useRef<string[]>([])
 
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
 
-    const ctx = canvas.getContext("2d")
+    const ctx = canvas.getContext("2d", { alpha: false })
     if (!ctx) return
 
     // Set canvas dimensions - responsive to container size
@@ -98,26 +101,26 @@ export function VinylRecord({
       }
     }
 
-    // Create gradient colors for the label based on design
-    let gradientColors: string[] = []
-
-    switch (design.labelColor) {
-      case "teal":
-        gradientColors = ["#14b8a6", "#0d9488", "#5eead4", "#2dd4bf", "#0f766e", "#14b8a6"]
-        break
-      case "pink":
-        gradientColors = ["#ec4899", "#db2777", "#fbcfe8", "#f472b6", "#be185d", "#ec4899"]
-        break
-      case "red":
-        gradientColors = ["#ef4444", "#dc2626", "#fca5a5", "#f87171", "#b91c1c", "#ef4444"]
-        break
-      case "blue":
-        gradientColors = ["#3b82f6", "#2563eb", "#93c5fd", "#60a5fa", "#1d4ed8", "#3b82f6"]
-        break
-      case "purple":
-      default:
-        gradientColors = ["#A855F7", "#9333EA", "#C084FC", "#8B5CF6", "#D946EF", "#A855F7"]
-        break
+    // Create gradient colors for the label based on design - only compute once
+    if (gradientColorsRef.current.length === 0) {
+      switch (design.labelColor) {
+        case "teal":
+          gradientColorsRef.current = ["#14b8a6", "#0d9488", "#5eead4", "#2dd4bf", "#0f766e", "#14b8a6"]
+          break
+        case "pink":
+          gradientColorsRef.current = ["#ec4899", "#db2777", "#fbcfe8", "#f472b6", "#be185d", "#ec4899"]
+          break
+        case "red":
+          gradientColorsRef.current = ["#ef4444", "#dc2626", "#fca5a5", "#f87171", "#b91c1c", "#ef4444"]
+          break
+        case "blue":
+          gradientColorsRef.current = ["#3b82f6", "#2563eb", "#93c5fd", "#60a5fa", "#1d4ed8", "#3b82f6"]
+          break
+        case "purple":
+        default:
+          gradientColorsRef.current = ["#A855F7", "#9333EA", "#C084FC", "#8B5CF6", "#D946EF", "#A855F7"]
+          break
+      }
     }
 
     // Function to create a gradient with current animation offset
@@ -130,8 +133,8 @@ export function VinylRecord({
       )
 
       // Calculate positions with offset
-      gradientColors.forEach((color, index) => {
-        const position = (index / (gradientColors.length - 1) + offset) % 1
+      gradientColorsRef.current.forEach((color, index) => {
+        const position = (index / (gradientColorsRef.current.length - 1) + offset) % 1
         gradient.addColorStop(position, color)
       })
 
@@ -547,6 +550,12 @@ export function VinylRecord({
     let totalElapsedTime = 0
 
     const animate = (timestamp: number) => {
+      // Skip animation if not visible
+      if (!isVisibleRef.current) {
+        animationRef.current = requestAnimationFrame(animate)
+        return
+      }
+
       // Initialize lastTimeRef on first frame
       if (!lastTimeRef.current) {
         lastTimeRef.current = timestamp
@@ -575,24 +584,59 @@ export function VinylRecord({
     // Start the animation
     animationRef.current = requestAnimationFrame(animate)
 
-    // Handle resize
+    // Handle resize with debounce
+    let resizeTimeout: NodeJS.Timeout
     const handleResize = () => {
-      const newWidth = canvas.parentElement?.clientWidth || 300
-      canvas.width = newWidth
-      canvas.height = newWidth
+      clearTimeout(resizeTimeout)
+      resizeTimeout = setTimeout(() => {
+        const newWidth = canvas.parentElement?.clientWidth || 300
+        canvas.width = newWidth
+        canvas.height = newWidth
+      }, 100) // 100ms debounce
     }
 
     window.addEventListener("resize", handleResize)
 
+    // Handle visibility changes to pause animation when not visible
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        isVisibleRef.current = false
+      } else {
+        isVisibleRef.current = true
+      }
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange)
+
+    // Handle intersection observer to pause animation when not in viewport
+    const observer = new IntersectionObserver(
+      (entries) => {
+        isVisibleRef.current = entries[0].isIntersecting
+      },
+      { threshold: 0.1 },
+    )
+
+    observer.observe(canvas)
+
     return () => {
       cancelAnimationFrame(animationRef.current)
       window.removeEventListener("resize", handleResize)
+      document.removeEventListener("visibilitychange", handleVisibilityChange)
+      observer.disconnect()
+      clearTimeout(resizeTimeout)
     }
   }, [design, size, rpm])
 
   return (
     <div className={`relative flex justify-center items-center ${className}`}>
-      <canvas ref={canvasRef} className="w-full h-auto mx-auto shadow-2xl rounded-full" aria-hidden="true" />
+      <canvas
+        ref={canvasRef}
+        className="w-full h-auto mx-auto shadow-2xl rounded-full"
+        aria-hidden="true"
+        style={{ willChange: "transform" }}
+      />
     </div>
   )
-}
+})
+
+export { VinylRecord }

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, memo } from "react"
 
 interface ArtistItemProps {
   artist: {
@@ -20,7 +20,8 @@ interface ArtistItemProps {
   index?: number
 }
 
-export function ArtistItem({ artist, index }: ArtistItemProps) {
+// Memoize the ArtistItem component to prevent unnecessary re-renders
+const ArtistItem = memo(function ArtistItem({ artist, index }: ArtistItemProps) {
   const [isMobile, setIsMobile] = useState(false)
 
   // Check if we're on mobile
@@ -32,11 +33,20 @@ export function ArtistItem({ artist, index }: ArtistItemProps) {
     // Initial check
     checkMobile()
 
-    // Add resize listener
-    window.addEventListener("resize", checkMobile)
+    // Add resize listener with debounce
+    let resizeTimeout: NodeJS.Timeout
+    const handleResize = () => {
+      clearTimeout(resizeTimeout)
+      resizeTimeout = setTimeout(checkMobile, 100)
+    }
+
+    window.addEventListener("resize", handleResize)
 
     // Cleanup
-    return () => window.removeEventListener("resize", checkMobile)
+    return () => {
+      window.removeEventListener("resize", handleResize)
+      clearTimeout(resizeTimeout)
+    }
   }, [])
 
   // Format follower count with commas
@@ -46,7 +56,9 @@ export function ArtistItem({ artist, index }: ArtistItemProps) {
 
   return (
     <div
-      className={`flex items-center gap-1 sm:gap-2 ${isMobile ? "px-1 py-2" : "p-3"} rounded-lg hover:bg-gradient-to-r hover:from-zinc-800/70 hover:to-zinc-900/30 transition-colors`}
+      className={`flex items-center gap-1 sm:gap-2 ${
+        isMobile ? "px-1 py-2" : "p-3"
+      } rounded-lg hover:bg-gradient-to-r hover:from-zinc-800/70 hover:to-zinc-900/30 transition-colors`}
     >
       {index !== undefined && <div className="w-4 sm:w-6 text-center text-zinc-500 font-mono text-sm">{index + 1}</div>}
       <div className="flex-shrink-0 w-14 sm:w-16 h-14 sm:h-16">
@@ -61,6 +73,9 @@ export function ArtistItem({ artist, index }: ArtistItemProps) {
             src={artist.images[0]?.url || "/placeholder.svg?height=64&width=64&query=artist"}
             alt={artist.name}
             className={`w-full h-full object-cover ${isMobile ? "rounded-[2px]" : "rounded-[4px]"}`}
+            width={isMobile ? 56 : 64}
+            height={isMobile ? 56 : 64}
+            loading="lazy"
           />
         </a>
       </div>
@@ -93,4 +108,6 @@ export function ArtistItem({ artist, index }: ArtistItemProps) {
       </div>
     </div>
   )
-}
+})
+
+export { ArtistItem }
