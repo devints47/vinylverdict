@@ -7,7 +7,7 @@ import { AuthProvider } from "@/contexts/auth-context"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Snobify.me - Your Spotify Music Taste Analyzer",
+  title: "SnobScore - Your Spotify Music Taste Analyzer",
   description:
     "Analyze your Spotify listening habits with Snobify.me. Get insights into your top tracks, artists, and genres with a touch of snark.",
   icons: [
