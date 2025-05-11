@@ -14,9 +14,13 @@ export interface VinylDesign {
   description: string
 }
 
+// Define flip direction for animation
+type FlipDirection = "left" | "right" | "none"
+
 export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: VinylDesign) => void }) {
   const [activeIndex, setActiveIndex] = useState(0)
   const [isTransitioning, setIsTransitioning] = useState(false)
+  const [flipDirection, setFlipDirection] = useState<FlipDirection>("none")
 
   // Define our vinyl designs
   const vinylDesigns: VinylDesign[] = [
@@ -71,79 +75,144 @@ export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: Vi
   const nextVinyl = () => {
     if (isTransitioning) return
     setIsTransitioning(true)
+    setFlipDirection("right")
     const newIndex = (activeIndex + 1) % vinylDesigns.length
-    setActiveIndex(newIndex)
-    if (onSelectVinyl) {
-      onSelectVinyl(vinylDesigns[newIndex])
-    }
-    setTimeout(() => setIsTransitioning(false), 500) // 500ms transition duration
+
+    // Delay the actual index change to allow for animation
+    setTimeout(() => {
+      setActiveIndex(newIndex)
+      if (onSelectVinyl) {
+        onSelectVinyl(vinylDesigns[newIndex])
+      }
+    }, 250) // Half of the transition time
+
+    // Reset transition state after animation completes
+    setTimeout(() => {
+      setIsTransitioning(false)
+      setFlipDirection("none")
+    }, 500)
   }
 
   const prevVinyl = () => {
     if (isTransitioning) return
     setIsTransitioning(true)
+    setFlipDirection("left")
     const newIndex = (activeIndex - 1 + vinylDesigns.length) % vinylDesigns.length
-    setActiveIndex(newIndex)
-    if (onSelectVinyl) {
-      onSelectVinyl(vinylDesigns[newIndex])
-    }
-    setTimeout(() => setIsTransitioning(false), 500) // 500ms transition duration
+
+    // Delay the actual index change to allow for animation
+    setTimeout(() => {
+      setActiveIndex(newIndex)
+      if (onSelectVinyl) {
+        onSelectVinyl(vinylDesigns[newIndex])
+      }
+    }, 250) // Half of the transition time
+
+    // Reset transition state after animation completes
+    setTimeout(() => {
+      setIsTransitioning(false)
+      setFlipDirection("none")
+    }, 500)
   }
 
   const selectVinyl = (index: number) => {
     if (isTransitioning || index === activeIndex) return
     setIsTransitioning(true)
-    setActiveIndex(index)
-    if (onSelectVinyl) {
-      onSelectVinyl(vinylDesigns[index])
-    }
-    setTimeout(() => setIsTransitioning(false), 500) // 500ms transition duration
+
+    // Determine flip direction based on index difference
+    const direction = index > activeIndex ? "right" : "left"
+    setFlipDirection(direction)
+
+    // Delay the actual index change to allow for animation
+    setTimeout(() => {
+      setActiveIndex(index)
+      if (onSelectVinyl) {
+        onSelectVinyl(vinylDesigns[index])
+      }
+    }, 250) // Half of the transition time
+
+    // Reset transition state after animation completes
+    setTimeout(() => {
+      setIsTransitioning(false)
+      setFlipDirection("none")
+    }, 500)
   }
 
   // Call onSelectVinyl with the initial vinyl on first render
   useEffect(() => {
-    if (onSelectVinyl) {
+    if (onSelectVinyl && !isTransitioning) {
       onSelectVinyl(vinylDesigns[activeIndex])
     }
-  }, [activeIndex, onSelectVinyl])
+  }, [activeIndex, onSelectVinyl, isTransitioning])
 
   return (
     <div className="flex flex-col items-center">
-      {/* Vinyl Record Container - ensures proper centering */}
+      {/* Vinyl Record Container - ensures proper centering and containment */}
       <div className="flex justify-center items-center w-full mb-4">
-        {/* Vinyl sizing wrapper */}
+        {/* Fixed size container to prevent layout shifts */}
         <div
-          className="relative transition-opacity duration-500"
+          className="vinyl-container relative"
           style={{
-            maxWidth: "300px",
-            opacity: isTransitioning ? 0.5 : 1,
+            width: "300px",
+            height: "300px",
+            contain: "layout",
+            overflow: "visible",
           }}
         >
-          <VinylRecord design={vinylDesigns[activeIndex]} key={vinylDesigns[activeIndex].id} />
+          {/* Vinyl sizing wrapper with 3D perspective */}
+          <div
+            className="w-full h-full perspective-1000"
+            style={{
+              transformStyle: "preserve-3d",
+              transform:
+                flipDirection === "none"
+                  ? "rotateY(0deg)"
+                  : flipDirection === "right"
+                    ? `rotateY(${isTransitioning ? "90deg" : "0deg"})`
+                    : `rotateY(${isTransitioning ? "-90deg" : "0deg"})`,
+              transition: "transform 500ms ease",
+            }}
+          >
+            <VinylRecord
+              design={vinylDesigns[activeIndex]}
+              key={vinylDesigns[activeIndex].id}
+              flipDirection={flipDirection}
+              isTransitioning={isTransitioning}
+            />
+          </div>
         </div>
       </div>
 
-      {/* Vinyl Selection Controls */}
+      {/* Vinyl Selection Controls with fixed positioning */}
       <div className="flex flex-col items-center mt-2">
-        {/* Title and Navigation Buttons */}
-        <div className="flex items-center justify-center gap-4 mb-2">
-          <button
-            onClick={prevVinyl}
-            disabled={isTransitioning}
-            className="bg-zinc-800/50 hover:bg-zinc-700/70 rounded-full p-2 transition-colors disabled:opacity-50"
-            aria-label="Previous vinyl"
-          >
-            <ChevronLeft className="h-5 w-5 text-white" />
-          </button>
-          <h3 className="text-xl font-bold text-purple-gradient">{vinylDesigns[activeIndex].name}</h3>
-          <button
-            onClick={nextVinyl}
-            disabled={isTransitioning}
-            className="bg-zinc-800/50 hover:bg-zinc-700/70 rounded-full p-2 transition-colors disabled:opacity-50"
-            aria-label="Next vinyl"
-          >
-            <ChevronRight className="h-5 w-5 text-white" />
-          </button>
+        {/* Title and Navigation Buttons with fixed width container */}
+        <div className="relative flex items-center justify-center w-full mb-2">
+          {/* Fixed width container for consistent layout */}
+          <div className="w-64 h-10 flex items-center justify-between">
+            {/* Left button with fixed position */}
+            <button
+              onClick={prevVinyl}
+              disabled={isTransitioning}
+              className="bg-zinc-800/50 hover:bg-zinc-700/70 rounded-full p-2 transition-colors disabled:opacity-50 absolute left-0"
+              aria-label="Previous vinyl"
+            >
+              <ChevronLeft className="h-5 w-5 text-white" />
+            </button>
+
+            {/* Title with fixed width and centered */}
+            <div className="w-full text-center px-10">
+              <h3 className="text-xl font-bold text-purple-gradient truncate">{vinylDesigns[activeIndex].name}</h3>
+            </div>
+
+            {/* Right button with fixed position */}
+            <button
+              onClick={nextVinyl}
+              disabled={isTransitioning}
+              className="bg-zinc-800/50 hover:bg-zinc-700/70 rounded-full p-2 transition-colors disabled:opacity-50 absolute right-0"
+              aria-label="Next vinyl"
+            >
+              <ChevronRight className="h-5 w-5 text-white" />
+            </button>
+          </div>
         </div>
 
         {/* Indicator Dots */}

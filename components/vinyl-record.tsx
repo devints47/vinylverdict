@@ -11,11 +11,16 @@ export interface VinylDesign {
   labelText: string
 }
 
+// Define flip direction for animation
+type FlipDirection = "left" | "right" | "none"
+
 interface VinylRecordProps {
   design?: VinylDesign
   size?: number
   className?: string
   rpm?: number // Added RPM prop with default of 33 1/3
+  flipDirection?: FlipDirection
+  isTransitioning?: boolean
 }
 
 // Default design if none provided
@@ -33,6 +38,8 @@ const VinylRecord = memo(function VinylRecord({
   size,
   className = "",
   rpm = 33.33, // Standard LP speed
+  flipDirection = "none",
+  isTransitioning = false,
 }: VinylRecordProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const animationRef = useRef<number>(0)
@@ -48,6 +55,9 @@ const VinylRecord = memo(function VinylRecord({
   >([])
   const isVisibleRef = useRef(true)
   const gradientColorsRef = useRef<string[]>([])
+  const flipProgressRef = useRef(0)
+  const flipStartTimeRef = useRef(0)
+  const flipDurationRef = useRef(500) // 500ms for flip animation
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -67,6 +77,13 @@ const VinylRecord = memo(function VinylRecord({
     const centerY = canvasSize / 2
     const outerRadius = canvasSize / 2 - 10
     const labelRadius = outerRadius / 3
+
+    // Reset scratches when design changes
+    if (isTransitioning && flipDirection !== "none") {
+      scratchesRef.current = []
+      gradientColorsRef.current = []
+      flipStartTimeRef.current = performance.now()
+    }
 
     // Generate random scratches if not already generated
     if (scratchesRef.current.length === 0) {
@@ -418,6 +435,70 @@ const VinylRecord = memo(function VinylRecord({
       ctx.restore()
     }
 
+    // Draw record player platter/base
+    const drawTurntablePlatter = () => {
+      // Save the current context state
+      ctx.save()
+
+      // Draw the turntable platter (slightly larger than the record)
+      const platterRadius = outerRadius + 15
+
+      // Create a gradient for the platter
+      const platterGradient = ctx.createRadialGradient(
+        centerX,
+        centerY,
+        outerRadius - 5,
+        centerX,
+        centerY,
+        platterRadius,
+      )
+      platterGradient.addColorStop(0, "#222")
+      platterGradient.addColorStop(1, "#111")
+
+      // Draw the main platter circle
+      ctx.beginPath()
+      ctx.arc(centerX, centerY, platterRadius, 0, Math.PI * 2)
+      ctx.fillStyle = platterGradient
+      ctx.fill()
+
+      // Add a subtle edge highlight
+      ctx.beginPath()
+      ctx.arc(centerX, centerY, platterRadius, 0, Math.PI * 2)
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.1)"
+      ctx.lineWidth = 1
+      ctx.stroke()
+
+      // Add a felt mat under the record
+      ctx.beginPath()
+      ctx.arc(centerX, centerY, outerRadius + 5, 0, Math.PI * 2)
+      ctx.fillStyle = "rgba(30, 30, 30, 0.8)"
+      ctx.fill()
+
+      // Add texture to the felt mat (subtle circular pattern)
+      for (let r = outerRadius; r > outerRadius - 20; r -= 4) {
+        ctx.beginPath()
+        ctx.arc(centerX, centerY, r, 0, Math.PI * 2)
+        ctx.strokeStyle = "rgba(0, 0, 0, 0.2)"
+        ctx.lineWidth = 0.5
+        ctx.stroke()
+      }
+
+      // Add a spindle in the center
+      ctx.beginPath()
+      ctx.arc(centerX, centerY, 6, 0, Math.PI * 2)
+      ctx.fillStyle = "#555"
+      ctx.fill()
+
+      // Add highlight to spindle
+      ctx.beginPath()
+      ctx.arc(centerX - 1, centerY - 1, 2, 0, Math.PI * 2)
+      ctx.fillStyle = "rgba(255, 255, 255, 0.3)"
+      ctx.fill()
+
+      // Restore the context state
+      ctx.restore()
+    }
+
     // Draw scratches and imperfections
     const drawScratches = () => {
       scratchesRef.current.forEach((scratch) => {
@@ -443,13 +524,42 @@ const VinylRecord = memo(function VinylRecord({
       }
     }
 
-    // Draw outer black vinyl
-    const drawVinyl = (rotation = 0, gradientOffset = 0, totalElapsedTime = 0) => {
+    // Calculate flip progress for animation
+    const calculateFlipProgress = (timestamp: number) => {
+      if (flipDirection === "none" || !isTransitioning) return 0
+
+      const elapsed = timestamp - flipStartTimeRef.current
+      const progress = Math.min(elapsed / flipDurationRef.current, 1)
+
+      // Normalize to 0-1 range for the first half, then 1-0 for the second half
+      return progress <= 0.5 ? progress * 2 : 2 - progress * 2
+    }
+
+    // Draw outer black vinyl with flip animation
+    const drawVinyl = (rotation = 0, gradientOffset = 0, totalElapsedTime = 0, timestamp = 0) => {
       // Clear canvas
       ctx.clearRect(0, 0, canvasSize, canvasSize)
 
-      // Rotate canvas for the vinyl
+      // Calculate flip progress for animation
+      const flipProgress = calculateFlipProgress(timestamp)
+      flipProgressRef.current = flipProgress
+
+      // First draw the turntable platter (base layer)
+      drawTurntablePlatter()
+
+      // Apply flip transformation if transitioning
       ctx.save()
+
+      if (isTransitioning && flipDirection !== "none") {
+        // Scale the record horizontally based on flip progress (0-1)
+        // This creates the illusion of the record flipping
+        const scaleX = Math.max(0.01, 1 - flipProgress)
+        ctx.translate(centerX, centerY)
+        ctx.scale(scaleX, 1)
+        ctx.translate(-centerX, -centerY)
+      }
+
+      // Rotate canvas for the vinyl
       ctx.translate(centerX, centerY)
       ctx.rotate(rotation)
       ctx.translate(-centerX, -centerY)
@@ -536,7 +646,10 @@ const VinylRecord = memo(function VinylRecord({
       drawReflection(totalElapsedTime)
 
       // Draw the stationary tonearm (not affected by vinyl rotation)
-      drawTonearm()
+      // Only draw if not in the middle of a flip
+      if (flipProgress < 0.5) {
+        drawTonearm()
+      }
     }
 
     // Calculate rotation speed based on RPM
@@ -569,7 +682,14 @@ const VinylRecord = memo(function VinylRecord({
       totalElapsedTime += elapsed
 
       // Update rotation based on elapsed time and RPM
-      rotation += radiansPerMs * elapsed
+      // Slow down or stop rotation during flip animation
+      if (isTransitioning && flipDirection !== "none") {
+        const flipProgress = calculateFlipProgress(timestamp)
+        // Slow down rotation as flip progresses
+        rotation += radiansPerMs * elapsed * Math.max(0, 1 - flipProgress * 2)
+      } else {
+        rotation += radiansPerMs * elapsed
+      }
 
       // Keep rotation within 0-2π range to avoid floating point issues over time
       rotation %= 2 * Math.PI
@@ -577,7 +697,7 @@ const VinylRecord = memo(function VinylRecord({
       // Update gradient offset at a slower rate
       gradientOffset += (radiansPerMs * elapsed * 0.5) % 1
 
-      drawVinyl(rotation, gradientOffset, totalElapsedTime)
+      drawVinyl(rotation, gradientOffset, totalElapsedTime, timestamp)
       animationRef.current = requestAnimationFrame(animate)
     }
 
@@ -625,15 +745,18 @@ const VinylRecord = memo(function VinylRecord({
       observer.disconnect()
       clearTimeout(resizeTimeout)
     }
-  }, [design, size, rpm])
+  }, [design, size, rpm, flipDirection, isTransitioning])
 
   return (
-    <div className={`relative flex justify-center items-center ${className}`}>
+    <div className={`relative w-full h-full flex justify-center items-center ${className}`}>
       <canvas
         ref={canvasRef}
-        className="w-full h-auto mx-auto shadow-2xl rounded-full"
+        className="w-full h-full mx-auto shadow-2xl rounded-full"
         aria-hidden="true"
-        style={{ willChange: "transform" }}
+        style={{
+          willChange: "transform",
+          backfaceVisibility: "hidden",
+        }}
       />
     </div>
   )

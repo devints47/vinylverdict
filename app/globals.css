@@ -445,3 +445,17 @@ html {
 [data-radix-tabs-trigger]:hover {
   background-color: rgba(168, 85, 247, 0.1);
 }
+
+/* Vinyl container styles to prevent layout shifts */
+.vinyl-container {
+  isolation: isolate;
+  will-change: transform;
+  z-index: 1;
+  transform: translateZ(0);
+}
+
+/* Ensure 3D transformations work properly */
+.perspective-1000 {
+  perspective: 1000px;
+  transform-style: preserve-3d;
+}
