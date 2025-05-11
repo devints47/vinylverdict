@@ -21,23 +21,7 @@ export function CursorTypewriter({
 }: CursorTypewriterProps) {
   const [displayPosition, setDisplayPosition] = useState(0)
   const [isComplete, setIsComplete] = useState(false)
-  const [showCursor, setShowCursor] = useState(true)
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
-  const cursorIntervalRef = useRef<NodeJS.Timeout | null>(null)
-
-  // Handle cursor blinking
-  useEffect(() => {
-    // Start cursor blinking
-    cursorIntervalRef.current = setInterval(() => {
-      setShowCursor((prev) => !prev)
-    }, 530) // Blink rate similar to terminals
-
-    return () => {
-      if (cursorIntervalRef.current) {
-        clearInterval(cursorIntervalRef.current)
-      }
-    }
-  }, [])
 
   // Handle the typewriter effect
   useEffect(() => {
@@ -53,7 +37,6 @@ export function CursorTypewriter({
 
     setDisplayPosition(0)
     setIsComplete(false)
-    setShowCursor(true) // Ensure cursor is visible at start
 
     const totalLength = markdown.length
 
@@ -86,8 +69,8 @@ export function CursorTypewriter({
     // Get only the text that has been "typed" so far
     const visibleText = markdown.substring(0, displayPosition)
 
-    // Add the cursor at the end of the visible text if it should be shown
-    return visibleText + (showCursor ? `<span class="terminal-cursor">${cursorChar}</span>` : "")
+    // Add the cursor at the end of the visible text
+    return visibleText + `<span class="terminal-cursor">${cursorChar}</span>`
   }
 
   return (
@@ -95,13 +78,8 @@ export function CursorTypewriter({
       <style jsx global>{`
         .terminal-cursor {
           color: #a855f7; /* Tailwind purple-500 */
-          animation: blink 1.06s step-end infinite;
           display: inline-block;
-        }
-        
-        @keyframes blink {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0; }
+          transform: scaleX(0.9); /* Make the cursor 10% narrower */
         }
       `}</style>
       <ReactMarkdown
