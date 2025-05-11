@@ -26,7 +26,7 @@ export default function LoginPage() {
       <header className="p-4 flex justify-between items-center">
         <Link href="/" className="flex items-center gap-2">
           <SnobifyLogo size={32} />
-          <span className="font-bold text-xl text-white">Snobcore.ME</span>
+          <span className="font-bold text-xl text-white">SnobScore</span>
         </Link>
       </header>
 

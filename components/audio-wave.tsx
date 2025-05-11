@@ -8,14 +8,27 @@ const AudioWave = memo(function AudioWave() {
   const barsRef = useRef<number[]>([])
   const isInitializedRef = useRef(false)
   const containerRef = useRef<HTMLDivElement>(null)
+  const lastFrameTimeRef = useRef<number>(0)
 
   // Memoize the animation function to prevent recreating it on each render
   const animate = useCallback(() => {
     const canvas = canvasRef.current
     if (!canvas) return
 
-    const ctx = canvas.getContext("2d")
+    const ctx = canvas.getContext("2d", { alpha: false })
     if (!ctx) return
+
+    // Use requestAnimationFrame timing for smoother animations
+    const now = performance.now()
+    const elapsed = now - lastFrameTimeRef.current
+    lastFrameTimeRef.current = now
+
+    // Skip frames if needed to maintain performance
+    if (elapsed < 16) {
+      // Target ~60fps
+      animationRef.current = requestAnimationFrame(animate)
+      return
+    }
 
     const width = canvas.width
     const height = canvas.height
@@ -90,6 +103,32 @@ const AudioWave = memo(function AudioWave() {
 
     animationRef.current = requestAnimationFrame(animate)
   }, [])
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const isVisible = entries[0].isIntersecting
+        if (isVisible) {
+          if (!animationRef.current) {
+            lastFrameTimeRef.current = performance.now()
+            animationRef.current = requestAnimationFrame(animate)
+          }
+        } else {
+          if (animationRef.current) {
+            cancelAnimationFrame(animationRef.current)
+            animationRef.current = 0
+          }
+        }
+      },
+      { threshold: 0.1 },
+    )
+
+    observer.observe(canvas)
+    return () => observer.disconnect()
+  }, [animate])
 
   useEffect(() => {
     const canvas = canvasRef.current

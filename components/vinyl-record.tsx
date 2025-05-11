@@ -60,6 +60,27 @@ const VinylRecord = memo(function VinylRecord({
   const flipDurationRef = useRef(500) // 500ms for flip animation
 
   useEffect(() => {
+    // Use a ResizeObserver instead of window resize event
+    const resizeObserver = new ResizeObserver(
+      debounce(() => {
+        const canvas = canvasRef.current
+        if (!canvas) return
+
+        const containerWidth = canvas.parentElement?.clientWidth || 300
+        const canvasSize = size || containerWidth
+        canvas.width = canvasSize
+        canvas.height = canvasSize
+      }, 100),
+    )
+
+    if (canvasRef.current?.parentElement) {
+      resizeObserver.observe(canvasRef.current.parentElement)
+    }
+
+    return () => resizeObserver.disconnect()
+  }, [size])
+
+  useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
 
@@ -761,5 +782,23 @@ const VinylRecord = memo(function VinylRecord({
     </div>
   )
 })
+
+// Debounce function
+function debounce<F extends (...args: any[]) => any>(func: F, wait: number): (...args: Parameters<F>) => void {
+  let timeout: NodeJS.Timeout | null
+
+  return function debouncedFunction(...args: Parameters<F>): void {
+    const later = () => {
+      timeout = null
+      func(...args)
+    }
+
+    if (timeout) {
+      clearTimeout(timeout)
+    }
+
+    timeout = setTimeout(later, wait)
+  }
+}
 
 export { VinylRecord }

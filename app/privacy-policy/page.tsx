@@ -22,7 +22,7 @@ export default function PrivacyPolicyPage() {
 
                 <h2 className="text-2xl font-bold mt-8 mb-4 text-purple-gradient">Introduction</h2>
                 <p>
-                  Welcome to Snobcore.ME ("we," "our," or "us"). We respect your privacy and are committed to protecting
+                  Welcome to SnobScore ("we," "our," or "us"). We respect your privacy and are committed to protecting
                   your personal data. This privacy policy explains how we collect, use, and safeguard your information
                   when you use our service.
                 </p>
@@ -127,7 +127,7 @@ export default function PrivacyPolicyPage() {
 
                 <h2 className="text-2xl font-bold mt-8 mb-4 text-purple-gradient">Contact Us</h2>
                 <p>If you have any questions about this privacy policy or our data practices, please contact us at:</p>
-                <p className="pl-4 border-l-4 border-bright-purple/30 my-4">Email: privacy@snobcore.me</p>
+                <p className="pl-4 border-l-4 border-bright-purple/30 my-4">Email: privacy@snobscore.me</p>
               </div>
             </div>
 

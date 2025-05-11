@@ -7,8 +7,9 @@ import "./globals.css"
 
 const inter = Inter({ subsets: ["latin"] })
 
+// Update the metadata title
 export const metadata: Metadata = {
-  title: "Snobify - Your Spotify Stats with a Side of Sass",
+  title: "SnobScore - Your Spotify Stats with a Side of Sass",
   description: "View your Spotify listening statistics and get roasted by our music critics",
   icons: {
     icon: [

@@ -256,7 +256,14 @@ export async function POST(request: Request) {
       // Return the content of the last assistant message
       const roastContent = assistantMessages[0].content[0].text.value
 
-      return NextResponse.json({ roast: roastContent })
+      return NextResponse.json(
+        { roast: roastContent },
+        {
+          headers: {
+            "Cache-Control": "private, max-age=3600",
+          },
+        },
+      )
     } catch (openaiError) {
       console.error("OpenAI API error:", openaiError)
 

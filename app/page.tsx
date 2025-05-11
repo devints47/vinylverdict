@@ -154,7 +154,7 @@ export default function LandingPage() {
               <p className="text-2xl text-zinc-300 font-medium">Built Using the</p>
               <div className="py-3">
                 <a href="https://www.spotify.com" target="_blank" rel="noopener noreferrer" title="Visit Spotify">
-                  <img src="/spotify_full_logo.svg" alt="Spotify" className="h-[80px] w-auto" />
+                  <img src="/spotify_full_logo.svg" alt="Spotify" className="h-[80px] w-auto" loading="lazy" />
                 </a>
               </div>
               <p className="text-2xl text-zinc-300 font-medium">Web API</p>
@@ -165,7 +165,12 @@ export default function LandingPage() {
               <p className="text-2xl md:text-3xl text-zinc-300 mr-8 font-medium">Built Using the</p>
               <div className="px-3">
                 <a href="https://www.spotify.com" target="_blank" rel="noopener noreferrer" title="Visit Spotify">
-                  <img src="/spotify_full_logo.svg" alt="Spotify" className="h-[70px] min-h-[70px] w-auto" />
+                  <img
+                    src="/spotify_full_logo.svg"
+                    alt="Spotify"
+                    className="h-[70px] min-h-[70px] w-auto"
+                    loading="lazy"
+                  />
                 </a>
               </div>
               <p className="text-2xl md:text-3xl text-zinc-300 ml-8 font-medium">Web API</p>
@@ -245,7 +250,7 @@ export default function LandingPage() {
       </section>
 
       {/* CTA Section - WITH GRID */}
-      <section className="relative py-20 px-4 bg-black overflow-hidden">
+      <section className="relative py-20 px-4 bg-black overflow-hidden cta-section">
         <TechGridBackground />
         <div className="container mx-auto max-w-4xl relative z-10">
           <div className="bg-gradient-to-r from-zinc-900/80 to-black/80 p-8 md:p-12 rounded-2xl border border-zinc-800 text-center backdrop-blur-sm">

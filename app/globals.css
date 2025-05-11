@@ -125,6 +125,7 @@
 .holographic-shimmer {
   position: relative;
   overflow: hidden;
+  will-change: transform, opacity;
 }
 
 .holographic-shimmer::after {
@@ -452,10 +453,21 @@ html {
   will-change: transform;
   z-index: 1;
   transform: translateZ(0);
+  contain: layout style paint;
 }
 
 /* Ensure 3D transformations work properly */
 .perspective-1000 {
   perspective: 1000px;
   transform-style: preserve-3d;
+}
+
+/* Add contain property to improve rendering performance */
+
+/* Add content-visibility to improve rendering performance for off-screen elements */
+.cta-section,
+.testimonials-section,
+.features-section {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 500px;
 }

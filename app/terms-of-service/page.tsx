@@ -22,9 +22,9 @@ export default function TermsOfServicePage() {
 
                 <h2 className="text-2xl font-bold mt-8 mb-4 text-purple-gradient">Introduction</h2>
                 <p>
-                  Welcome to Snobcore.ME. These Terms of Service ("Terms") govern your use of our website and services.
-                  By accessing or using Snobcore.ME, you agree to be bound by these Terms. If you disagree with any part
-                  of the Terms, you may not access the service.
+                  Welcome to SnobScore. These Terms of Service ("Terms") govern your use of our website and services. By
+                  accessing or using SnobScore, you agree to be bound by these Terms. If you disagree with any part of
+                  the Terms, you may not access the service.
                 </p>
 
                 <h2 className="text-2xl font-bold mt-8 mb-4 text-purple-gradient">Spotify Integration</h2>
@@ -125,7 +125,7 @@ export default function TermsOfServicePage() {
 
                 <h2 className="text-2xl font-bold mt-8 mb-4 text-purple-gradient">Contact Us</h2>
                 <p>If you have any questions about these Terms, please contact us at:</p>
-                <p className="pl-4 border-l-4 border-bright-purple/30 my-4">Email: terms@snobcore.me</p>
+                <p className="pl-4 border-l-4 border-bright-purple/30 my-4">Email: terms@snobscore.me</p>
               </div>
             </div>
 
