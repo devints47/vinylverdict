@@ -12,6 +12,7 @@ export interface VinylDesign {
   faceType: "snob" | "happy" | "cool" | "surprised"
   labelText: string
   description: string
+  assistantType?: string // Add assistant type to identify which assistant to use
 }
 
 // Define flip direction for animation
@@ -25,18 +26,29 @@ export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: Vi
   // Define our vinyl designs
   const vinylDesigns: VinylDesign[] = [
     {
-      id: "snob-classic",
-      name: "The Critic",
+      id: "music-snob",
+      name: "Music Snob",
       labelColor: "purple",
       faceType: "snob",
       labelText: "SNOBSCORE • PREMIUM VINYL • AUDIOPHILE EDITION •",
       description:
-        "The most discerning and judgmental of our critics. The Critic has strong opinions about everything from production quality to lyrical depth. Prepare for a thorough dissection of your musical choices with zero mercy.",
+        "The most discerning and judgmental of our critics. Music Snob has strong opinions about everything from production quality to lyrical depth. Prepare for a thorough dissection of your musical choices with zero mercy.",
+      assistantType: "snob", // This is the Music Snob assistant
+    },
+    {
+      id: "taste-validator",
+      name: "Taste Validator",
+      labelColor: "teal",
+      faceType: "happy",
+      labelText: "VALIDATION • APPRECIATION • AFFIRMATION • PRAISE •",
+      description:
+        "The ultimate music enthusiast who sees the beauty in every genre and artist. Taste Validator celebrates your musical journey with genuine excitement and positivity, finding the artistic merit in even your most questionable choices.",
+      assistantType: "worshipper", // Keep the assistantType the same for API compatibility
     },
     {
       id: "indie-vibes",
       name: "The Historian",
-      labelColor: "teal",
+      labelColor: "blue",
       faceType: "cool",
       labelText: "INDIE • ALTERNATIVE • UNDERGROUND • EXCLUSIVE •",
       description:
@@ -59,15 +71,6 @@ export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: Vi
       labelText: "CLASSIC ROCK • GUITAR SOLOS • HEADBANGERS • LIVE •",
       description:
         "A true believer in the power of electric guitars and drum solos. Rock Legend evaluates your music based on its raw energy, instrumental prowess, and authenticity. Expects music that makes you want to headbang.",
-    },
-    {
-      id: "electronic",
-      name: "Digital Wave",
-      labelColor: "blue",
-      faceType: "cool",
-      labelText: "ELECTRONIC • SYNTH • BEATS • DIGITAL • FUTURE •",
-      description:
-        "On the cutting edge of digital sound design and production. Digital Wave analyzes your taste for innovative beats, synthesizer work, and production techniques that push boundaries.",
     },
   ]
 

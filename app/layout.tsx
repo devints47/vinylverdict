@@ -11,7 +11,8 @@ export const metadata: Metadata = {
   title: "SnobScore - Your Spotify Music Taste Analyzer",
   description: "Analyze your Spotify listening habits and get a personalized music taste analysis",
   icons: {
-    icon: "/favicon.png",
+    icon: "/vinyl-favicon.png",
+    apple: "/vinyl-favicon.png",
   },
     generator: 'v0.dev'
 }

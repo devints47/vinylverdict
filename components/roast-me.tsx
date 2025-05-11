@@ -18,15 +18,35 @@ interface RoastMeProps {
   topArtists: any
   recentlyPlayed: any
   activeTab: string
+  selectedVinyl?: any // Add selected vinyl prop
 }
 
-export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab }: RoastMeProps) {
+export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, selectedVinyl }: RoastMeProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [roast, setRoast] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [typewriterComplete, setTypewriterComplete] = useState(false)
   const [isFallback, setIsFallback] = useState(false)
   const [mainContent, setMainContent] = useState<string>("")
+
+  // Determine the assistant type based on the selected vinyl
+  const assistantType = selectedVinyl?.assistantType || "snob"
+
+  // Get the appropriate button text based on the active tab and assistant type
+  const getButtonText = () => {
+    const actionVerb = assistantType === "worshipper" ? "Validate" : "Roast"
+
+    switch (activeTab) {
+      case "top-tracks":
+        return `${actionVerb} My Top Tracks`
+      case "top-artists":
+        return `${actionVerb} My Top Artists`
+      case "recently-played":
+        return `${actionVerb} My Recent Plays`
+      default:
+        return `${actionVerb} My Music Taste`
+    }
+  }
 
   const handleRoastMe = async () => {
     try {
@@ -59,18 +79,18 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab }: Ro
           viewType = "top tracks"
       }
 
-      // Call the API through our service
-      const response = await getRoast(formattedData, viewType)
+      // Call the API through our service with the assistant type
+      const response = await getRoast(formattedData, viewType, assistantType)
 
       // Check if this is a fallback response
-      if (response.includes("*Note:") || response.includes("Note: This is a fallback roast")) {
+      if (response.includes("*Note:") || response.includes("Note: This is a fallback")) {
         setIsFallback(true)
       }
 
       setRoast(response)
     } catch (err) {
       console.error("Error getting roast:", err)
-      setError("Failed to roast your music taste. Our AI critic is taking a break. Please try again later.")
+      setError(`Failed to analyze your music taste. Our AI critic is taking a break. Please try again later.`)
     } finally {
       setIsLoading(false)
     }
@@ -82,10 +102,13 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab }: Ro
 
     // Check for various disclaimer patterns
     const disclaimerPatterns = [
-      "*Note: This is a fallback roast",
+      "*Note: This is a fallback",
       "*Note: The Music Snob is currently",
+      "*Note: The Taste Validator is currently",
       "Note: Our resident Music Snob",
+      "Note: Our resident Taste Validator",
       "This roast is a satirical critique",
+      "This analysis is a celebration",
     ]
 
     let disclaimerIndex = -1
@@ -104,18 +127,16 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab }: Ro
     }
   }, [roast])
 
-  // Get the appropriate button text based on the active tab
-  const getButtonText = () => {
-    switch (activeTab) {
-      case "top-tracks":
-        return "Roast My Top Tracks"
-      case "top-artists":
-        return "Roast My Top Artists"
-      case "recently-played":
-        return "Roast My Recent Plays"
-      default:
-        return "Roast My Music Taste"
-    }
+  // Get the appropriate card title based on the assistant type
+  const getCardTitle = () => {
+    return assistantType === "worshipper" ? "Music Taste Validation" : "Music Taste Roast"
+  }
+
+  // Get the appropriate footer text based on the assistant type
+  const getFooterText = () => {
+    return assistantType === "worshipper"
+      ? "This validation is a celebration of your personal listening habits. It's all in good fun and meant to highlight the positive aspects of your music taste."
+      : "This roast is a satirical critique of your personal listening habits. It's all in good fun and not intended to insult any artists or fans."
   }
 
   return (
@@ -130,13 +151,17 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab }: Ro
           {isLoading ? (
             <>
               <Loader2 className="h-5 w-5 animate-spin" />
-              <span>The Music Snob Is Judging You...</span>
+              <span>
+                {assistantType === "worshipper"
+                  ? "The Taste Validator Is Appreciating..."
+                  : "The Music Snob Is Judging You..."}
+              </span>
             </>
           ) : (
             <>
-              <span className="text-xl">🔥</span>
+              <span className="text-xl">{assistantType === "worshipper" ? "✨" : "🔥"}</span>
               <span>{getButtonText()}</span>
-              <span className="text-xl">🔥</span>
+              <span className="text-xl">{assistantType === "worshipper" ? "✨" : "🔥"}</span>
             </>
           )}
         </Button>
@@ -172,10 +197,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab }: Ro
             </div>
           </CardContent>
 
-          <CardFooter className="pt-4 pb-4 text-sm text-zinc-500 italic">
-            This roast is a satirical critique of your personal listening habits. It's all in good fun and not intended
-            to insult any artists or fans.
-          </CardFooter>
+          <CardFooter className="pt-4 pb-4 text-sm text-zinc-500 italic">{getFooterText()}</CardFooter>
         </Card>
       )}
     </div>

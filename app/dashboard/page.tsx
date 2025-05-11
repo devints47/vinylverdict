@@ -36,6 +36,58 @@ interface ArtistInfo {
   [key: string]: any
 }
 
+// Collapsible Critic Info Component
+function CollapsibleCriticInfo({ selectedVinyl }: { selectedVinyl: VinylDesign | null }) {
+  const [isExpanded, setIsExpanded] = useState(false)
+
+  const toggleExpand = () => {
+    setIsExpanded(!isExpanded)
+  }
+
+  return (
+    <div className="bg-zinc-900/50 rounded-xl border border-zinc-800 overflow-hidden">
+      {selectedVinyl ? (
+        <>
+          <div className="p-4">
+            {/* Mobile view - Collapsible content */}
+            <div className="md:hidden">
+              <button
+                onClick={toggleExpand}
+                className="flex items-center justify-between w-full text-sm text-zinc-400 hover:text-white transition-colors"
+                aria-expanded={isExpanded}
+              >
+                <span className="flex items-center">
+                  <Info className="h-4 w-4 mr-1" />
+                  {isExpanded ? "Hide details" : `Learn more about ${selectedVinyl.name}`}
+                </span>
+                {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              </button>
+
+              <div
+                className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? "max-h-96 mt-3" : "max-h-0"}`}
+              >
+                <p className="text-zinc-300">{selectedVinyl.description}</p>
+              </div>
+            </div>
+
+            {/* Desktop view - Always visible content */}
+            <div className="hidden md:block h-[5.5rem] overflow-hidden mt-2">
+              <p className="text-zinc-300 line-clamp-4">
+                <span className="font-bold text-purple-gradient">{selectedVinyl.name}:</span>{" "}
+                {selectedVinyl.description}
+              </p>
+            </div>
+          </div>
+        </>
+      ) : (
+        <div className="p-6 flex items-center justify-center">
+          <p className="text-zinc-400 text-center">Select a personality to see their description</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // User Profile Card Component
 function UserProfileCard({
   profile,
@@ -411,58 +463,6 @@ function TopArtistsContent({
         )}
       </CardContent>
     </Card>
-  )
-}
-
-// Collapsible Critic Info Component
-function CollapsibleCriticInfo({ selectedVinyl }: { selectedVinyl: VinylDesign | null }) {
-  const [isExpanded, setIsExpanded] = useState(false)
-
-  const toggleExpand = () => {
-    setIsExpanded(!isExpanded)
-  }
-
-  return (
-    <div className="bg-zinc-900/50 rounded-xl border border-zinc-800 overflow-hidden">
-      {selectedVinyl ? (
-        <>
-          <div className="p-4">
-            {/* Mobile view - Collapsible content */}
-            <div className="md:hidden">
-              <button
-                onClick={toggleExpand}
-                className="flex items-center justify-between w-full text-sm text-zinc-400 hover:text-white transition-colors"
-                aria-expanded={isExpanded}
-              >
-                <span className="flex items-center">
-                  <Info className="h-4 w-4 mr-1" />
-                  {isExpanded ? "Hide details" : "Learn more about this critic"}
-                </span>
-                {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-              </button>
-
-              <div
-                className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? "max-h-96 mt-3" : "max-h-0"}`}
-              >
-                <p className="text-zinc-300">{selectedVinyl.description}</p>
-              </div>
-            </div>
-
-            {/* Desktop view - Always visible content */}
-            <div className="hidden md:block h-[5.5rem] overflow-hidden mt-2">
-              <p className="text-zinc-300 line-clamp-4">
-                <span className="font-bold text-purple-gradient">{selectedVinyl.name}:</span>{" "}
-                {selectedVinyl.description}
-              </p>
-            </div>
-          </div>
-        </>
-      ) : (
-        <div className="p-6 flex items-center justify-center">
-          <p className="text-zinc-400 text-center">Select a critic to see their description</p>
-        </div>
-      )}
-    </div>
   )
 }
 
@@ -859,6 +859,7 @@ export default function DashboardPage() {
                 topArtists={currentTopArtists}
                 recentlyPlayed={recentlyPlayed}
                 activeTab={activeTab}
+                selectedVinyl={selectedVinyl}
               />
             </div>
           </div>
