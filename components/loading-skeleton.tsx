@@ -32,7 +32,7 @@ export function LoadingSkeleton({ count = 5, type = "track" }: LoadingSkeletonPr
       {Array.from({ length: count }).map((_, i) => (
         <div key={i} className="flex items-center gap-1 sm:gap-2 p-3">
           <Skeleton className="w-4 sm:w-6 h-4" />
-          <Skeleton className={`w-16 h-16 ${isMobile ? "rounded-[2px]" : "rounded-[4px]"}`} />
+          <Skeleton loading="lazy" className={`w-16 h-16 ${isMobile ? "rounded-[2px]" : "rounded-[4px]"}`} />
           <div className="flex-1 min-w-0 flex flex-col">
             <Skeleton className="h-4 w-3/4" />
             {type === "artist" && <Skeleton className="h-3 w-1/3" />}
