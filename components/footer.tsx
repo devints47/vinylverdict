@@ -6,7 +6,86 @@ export function Footer() {
   return (
     <footer className="bg-black text-zinc-400 py-12 border-t border-zinc-800 w-full relative z-20">
       <div className="container mx-auto px-4 max-w-7xl">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        {/* Mobile Footer - 3 Column Grid */}
+        <div className="md:hidden">
+          <div className="mb-8">
+            <Link href="/" className="flex items-center gap-1 mb-4 hover:opacity-90 transition-opacity">
+              <VinylLogo size={48} />
+              <span className="font-bold text-2xl text-purple-gradient tracking-tight">SnobScore</span>
+            </Link>
+            <p className="text-sm">
+              Your personal music taste critic, powered by our resident Music Snob and your Spotify listening history.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-3 gap-6 mb-8">
+            <div>
+              <h3 className="font-bold text-white mb-3">Links</h3>
+              <ul className="space-y-2">
+                <li>
+                  <PolicyNavLink href="#features" className="hover:text-white transition-colors text-sm">
+                    Features
+                  </PolicyNavLink>
+                </li>
+                <li>
+                  <PolicyNavLink href="#how-it-works" className="hover:text-white transition-colors text-sm">
+                    How It Works
+                  </PolicyNavLink>
+                </li>
+                <li>
+                  <PolicyNavLink href="#testimonials" className="hover:text-white transition-colors text-sm">
+                    Testimonials
+                  </PolicyNavLink>
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="font-bold text-white mb-3">Legal</h3>
+              <ul className="space-y-2">
+                <li>
+                  <Link href="/privacy-policy" className="hover:text-white transition-colors text-sm">
+                    Privacy Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/terms-of-service" className="hover:text-white transition-colors text-sm">
+                    Terms of Service
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/cookie-policy" className="hover:text-white transition-colors text-sm">
+                    Cookie Policy
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="font-bold text-white mb-3">Connect</h3>
+              <ul className="space-y-2">
+                <li>
+                  <a href="#" className="hover:text-white transition-colors text-sm">
+                    Twitter
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white transition-colors text-sm">
+                    GitHub
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white transition-colors text-sm">
+                    Contact
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        {/* Desktop Footer - Original 4 Column Layout */}
+        <div className="hidden md:grid md:grid-cols-4 gap-8">
           <div>
             <Link href="/" className="flex items-center gap-1 mb-4 hover:opacity-90 transition-opacity">
               <VinylLogo size={48} />
@@ -81,7 +160,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 pt-8 border-t border-zinc-800 text-sm text-center">
+        <div className="mt-8 pt-8 border-t border-zinc-800 text-sm text-center">
           <p>© {new Date().getFullYear()} SnobScore. All rights reserved.</p>
           <p className="mt-2">Not affiliated with Spotify. Spotify is a trademark of Spotify AB.</p>
         </div>

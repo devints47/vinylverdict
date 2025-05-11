@@ -65,12 +65,18 @@ export default function LandingPage() {
                   Meet Your <span className="text-purple-gradient">Personal</span> Music Taste Critic
                 </h1>
                 <p className="text-xl text-zinc-400 mb-8 max-w-lg">
-                  Connect your Spotify account and choose from one of our resident Music Snobs to analyze your listening habits with brutal
-                  honesty and witty commentary.
+                  Connect your Spotify account and choose from one of our resident Music Snobs to analyze your listening
+                  habits with brutal honesty and witty commentary.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-4 items-start">
-                  <SpotifyLoginButton text="Face Judgement" showHoverEffect={true} />
-                  <p className="text-sm text-zinc-500 mt-2">No judgment. (Just kidding, lots of judgment.)</p>
+
+                {/* Button container - completely restructured for proper mobile centering */}
+                <div className="w-full flex flex-col items-center sm:items-start gap-4">
+                  <div className="w-full flex justify-center sm:justify-start">
+                    <SpotifyLoginButton text="Face Judgement" showHoverEffect={true} />
+                  </div>
+                  <p className="text-sm text-zinc-500 text-center sm:text-left">
+                    No judgment. (Just kidding, lots of judgment.)
+                  </p>
                 </div>
 
                 {error && (
@@ -142,8 +148,20 @@ export default function LandingPage() {
       <section className="relative py-12 px-4 bg-black overflow-hidden">
         <TechGridBackground />
         <div className="container mx-auto relative z-10">
-          <div className="bg-black py-1 px-4 rounded-xl max-w-3xl mx-auto">
-            <div className="flex flex-row items-center justify-center">
+          <div className="bg-black py-6 px-4 rounded-xl max-w-3xl mx-auto">
+            {/* Mobile layout (stacked vertically) */}
+            <div className="flex flex-col items-center text-center md:hidden gap-4">
+              <p className="text-2xl text-zinc-300 font-medium">Built Using the</p>
+              <div className="py-3">
+                <a href="https://www.spotify.com" target="_blank" rel="noopener noreferrer" title="Visit Spotify">
+                  <img src="/spotify_full_logo.svg" alt="Spotify" className="h-[80px] w-auto" />
+                </a>
+              </div>
+              <p className="text-2xl text-zinc-300 font-medium">Web API</p>
+            </div>
+
+            {/* Desktop layout (horizontal) */}
+            <div className="hidden md:flex flex-row items-center justify-center">
               <p className="text-2xl md:text-3xl text-zinc-300 mr-8 font-medium">Built Using the</p>
               <div className="px-3">
                 <a href="https://www.spotify.com" target="_blank" rel="noopener noreferrer" title="Visit Spotify">

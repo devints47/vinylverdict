@@ -44,8 +44,13 @@ export function AnimatedFavicon() {
       // Use a slow interval for subtle animation (250ms per frame = 2 seconds per full rotation)
       intervalId = setInterval(() => {
         if (link) {
-          link.href = frames[frameIndex]
-          frameIndex = (frameIndex + 1) % frames.length
+          try {
+            link.href = frames[frameIndex]
+            frameIndex = (frameIndex + 1) % frames.length
+          } catch (error) {
+            console.error("Error updating favicon:", error)
+            pauseAnimation()
+          }
         }
       }, 250)
     }
@@ -72,7 +77,8 @@ export function AnimatedFavicon() {
 
     // Start animation initially if page is visible
     if (document.visibilityState === "visible") {
-      startAnimation()
+      // Delay start to avoid conflicts with initial page load
+      setTimeout(startAnimation, 1000)
     }
 
     // Clean up on unmount
@@ -81,7 +87,11 @@ export function AnimatedFavicon() {
       document.removeEventListener("visibilitychange", handleVisibilityChange)
       // Reset to static favicon
       if (link) {
-        link.href = "/vinyl-favicon-new.png"
+        try {
+          link.href = "/vinyl-favicon-new.png"
+        } catch (error) {
+          console.error("Error resetting favicon:", error)
+        }
       }
     }
   }, [])
