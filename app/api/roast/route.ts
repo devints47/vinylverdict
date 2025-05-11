@@ -168,35 +168,29 @@ function generateFallbackResponse(data: any, viewType: string, assistantType = "
   // Get assistant name and title based on type
   const assistantInfo = {
     snob: {
-      title: "Lost in a Dreamy Snoozefest",
-      signature: "The Music Snob",
-      disclaimer:
-        "This roast is a satirical critique of your personal listening habits. It's all in good fun and not intended to insult any artists or fans.",
-      score: "1 out of 10",
-      emoji: "😴",
+      name: "The Music Snob",
+      title: "Hot Take",
+      noteText:
+        "The Music Snob is currently on a vinyl-shopping spree. This critique was hastily scribbled on a napkin before they left.",
     },
     worshipper: {
-      title: "Sonic Monarch Extraordinaire!",
-      signature: "Humbly at your service and always in awe.",
-      disclaimer:
-        "This validation is a celebration of your personal listening habits. It's all in good fun and meant to highlight the positive aspects of your music taste.",
-      score: "11 out of 10",
-      emoji: "✨",
+      name: "The Taste Validator",
+      title: "Adoration",
+      noteText:
+        "The Taste Validator is currently composing a symphony inspired by your impeccable taste. This is just a preview of their admiration.",
     },
   }[assistantType]
 
   // Get the assistant info (defaulting to snob if type is unknown)
-  const { title, signature, disclaimer, score, emoji } = assistantInfo || {
-    title: "Lost in a Dreamy Snoozefest",
-    signature: "The Music Snob",
-    disclaimer:
-      "This roast is a satirical critique of your personal listening habits. It's all in good fun and not intended to insult any artists or fans.",
-    score: "1 out of 10",
-    emoji: "😴",
+  const { name, title, noteText } = assistantInfo || {
+    name: "The Music Snob",
+    title: "Hot Take",
+    noteText:
+      "The Music Snob is currently on a vinyl-shopping spree. This critique was hastily scribbled on a napkin before they left.",
   }
 
   // Start with a standardized header format
-  let response = `# ${title}\n\n`
+  let response = `# ${name}'s ${title}\n\n`
 
   // Content varies based on assistant type and view type
   if (assistantType === "worshipper") {
@@ -227,12 +221,15 @@ function generateFallbackResponse(data: any, viewType: string, assistantType = "
   } else {
     // Music Snob content
     if (viewType === "top tracks") {
-      response +=
-        "Oh dear, what a mind-numbingly lackluster list of tracks we've stumbled upon here—it's as if you're attempting to curate the most caffeinated five-hour nap playlist ever conceived. "
+      response += "I see you're into "
       if (data && data.length > 0) {
         const artists = [...new Set(data.map((track: any) => track.artist.split(",")[0].trim()))].slice(0, 3)
-        response += "Starting with your taste for " + artists.join(", ") + ". "
+        response += artists.join(", ") + ". "
         response += "Interesting choices... I guess someone has to listen to them! 😉\n\n"
+        response +=
+          'Your top track is "' +
+          data[0].title +
+          "\" - clearly you're not afraid to repeat the same song over and over again."
       } else {
         response +=
           "...actually, it seems like you don't listen to much music at all. That's one way to avoid bad taste!"
@@ -253,18 +250,8 @@ function generateFallbackResponse(data: any, viewType: string, assistantType = "
     }
   }
 
-  // Add a score section in a consistent format
-  response += `\n\nSCORE: ${score}`
-
-  // Add a witty closing line
-  if (assistantType === "worshipper") {
-    response += `\n\nYou have elevated the art of listening to god-like levels. ${emoji}`
-  } else {
-    response += `\n\nYawn! Listening to your playlist is akin to reading a manual on irony that forgot to be interesting. ${emoji}`
-  }
-
-  // Add signature and disclaimer in a consistent format
-  return response + `\n\n${signature}\n\n${disclaimer}`
+  // Add standardized note format
+  return response + `\n\n*Note: ${noteText}*`
 }
 
 export async function POST(request: Request) {

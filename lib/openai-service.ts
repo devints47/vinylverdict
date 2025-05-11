@@ -32,22 +32,10 @@ export async function getRoast(data: any, viewType: string, assistantType = "sno
         ? "This validation is a celebration of your personal listening habits. It's all in good fun and meant to highlight the positive aspects of your music taste."
         : "This roast is a satirical critique of your personal listening habits. It's all in good fun and not intended to insult any artists or fans."
 
-    // Get the appropriate signature based on assistant type
-    const signature =
-      assistantType === "worshipper" ? "\n\nHumbly at your service and always in awe." : "\n\nThe Music Snob"
+    // Use a standardized disclaimer format for all assistant types
+    const disclaimer = `\n\n<div class='text-xs text-center text-zinc-500 mt-4'>${disclaimerText}</div>`
 
-    // If the response already has a signature or disclaimer, return it as is
-    if (
-      result.roast.includes("The Music Snob") ||
-      result.roast.includes("Humbly at your service") ||
-      result.roast.includes("This roast is") ||
-      result.roast.includes("This validation is")
-    ) {
-      return result.roast
-    }
-
-    // Otherwise, add the standard signature and disclaimer
-    return result.roast + signature + "\n\n" + disclaimerText
+    return result.roast + disclaimer
   } catch (error) {
     console.error("Error in getRoast:", error)
     return "Failed to generate analysis. Our music personality is currently unavailable."
