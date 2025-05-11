@@ -9,101 +9,103 @@ const AudioWave = memo(function AudioWave() {
   const isInitializedRef = useRef(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const lastFrameTimeRef = useRef<number>(0)
+  const fpsInterval = 1000 / 60 // Target 60 FPS
 
   // Memoize the animation function to prevent recreating it on each render
-  const animate = useCallback(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
+  const animate = useCallback(
+    (timestamp: number) => {
+      const canvas = canvasRef.current
+      if (!canvas) return
 
-    // Use alpha: true to ensure transparency
-    const ctx = canvas.getContext("2d", { alpha: true })
-    if (!ctx) return
+      // Calculate elapsed time
+      const elapsed = timestamp - lastFrameTimeRef.current
 
-    // Use requestAnimationFrame timing for smoother animations
-    const now = performance.now()
-    const elapsed = now - lastFrameTimeRef.current
-    lastFrameTimeRef.current = now
+      // Only render if enough time has passed
+      if (elapsed > fpsInterval) {
+        // Remember when we last rendered
+        lastFrameTimeRef.current = timestamp - (elapsed % fpsInterval)
 
-    // Skip frames if needed to maintain performance
-    if (elapsed < 16) {
-      // Target ~60fps
-      animationRef.current = requestAnimationFrame(animate)
-      return
-    }
+        // Use alpha: true to ensure transparency
+        const ctx = canvas.getContext("2d", { alpha: true })
+        if (!ctx) return
 
-    const width = canvas.width
-    const height = canvas.height
-    const barCount = 60 // Increased bar count for better fidelity
-    const barWidth = width / barCount - 2
-    const bars = barsRef.current
+        const width = canvas.width
+        const height = canvas.height
+        const barCount = 60 // Increased bar count for better fidelity
+        const barWidth = width / barCount - 2
+        const bars = barsRef.current
 
-    // Clear with transparent background
-    ctx.clearRect(0, 0, width, height)
+        // Clear with transparent background
+        ctx.clearRect(0, 0, width, height)
 
-    // Chromatic color palette - using full vibrant colors
-    const purpleColors = [
-      "#9333ea", // --purple-gradient-start
-      "#a855f7", // --purple-gradient-mid
-      "#c026d3", // --purple-gradient-end
-      "#d946ef", // --purple-accent
-      "#f0abfc", // --purple-highlight
-    ]
+        // Chromatic color palette - using full vibrant colors
+        const purpleColors = [
+          "#9333ea", // --purple-gradient-start
+          "#a855f7", // --purple-gradient-mid
+          "#c026d3", // --purple-gradient-end
+          "#d946ef", // --purple-accent
+          "#f0abfc", // --purple-highlight
+        ]
 
-    // Update bar heights with reduced calculations
-    for (let i = 0; i < barCount; i++) {
-      // Randomly adjust bar height with more variation
-      bars[i] += Math.random() * 12 - 6
+        // Update bar heights with reduced calculations
+        for (let i = 0; i < barCount; i++) {
+          // Randomly adjust bar height with more variation
+          bars[i] += Math.random() * 12 - 6
 
-      // Keep bars within bounds
-      bars[i] = Math.max(10, Math.min(70, bars[i]))
+          // Keep bars within bounds
+          bars[i] = Math.max(10, Math.min(70, bars[i]))
 
-      // Draw bar
-      const x = i * (barWidth + 2)
-      const barHeight = bars[i]
-      const y = (height - barHeight) / 2
+          // Draw bar
+          const x = i * (barWidth + 2)
+          const barHeight = bars[i]
+          const y = (height - barHeight) / 2
 
-      // Simplified color selection - reduce calculations
-      const colorIndex1 = i % purpleColors.length
-      const colorIndex2 = (i + 2) % purpleColors.length
+          // Simplified color selection - reduce calculations
+          const colorIndex1 = i % purpleColors.length
+          const colorIndex2 = (i + 2) % purpleColors.length
 
-      // Get colors from our palette
-      const color1 = purpleColors[colorIndex1]
-      const color2 = purpleColors[colorIndex2]
+          // Get colors from our palette
+          const color1 = purpleColors[colorIndex1]
+          const color2 = purpleColors[colorIndex2]
 
-      // Create gradient
-      const gradient = ctx.createLinearGradient(0, y, 0, y + barHeight)
-      gradient.addColorStop(0, color1)
-      gradient.addColorStop(1, color2)
+          // Create gradient
+          const gradient = ctx.createLinearGradient(0, y, 0, y + barHeight)
+          gradient.addColorStop(0, color1)
+          gradient.addColorStop(1, color2)
 
-      // Apply the gradient
-      ctx.fillStyle = gradient
+          // Apply the gradient
+          ctx.fillStyle = gradient
 
-      // Add glow effect - but only when not in power saving mode
-      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
-      if (!prefersReducedMotion) {
-        ctx.shadowColor = color1
-        ctx.shadowBlur = 5
-        ctx.shadowOffsetX = 0
-        ctx.shadowOffsetY = 0
+          // Add glow effect - but only when not in power saving mode
+          const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+          if (!prefersReducedMotion) {
+            ctx.shadowColor = color1
+            ctx.shadowBlur = 5
+            ctx.shadowOffsetX = 0
+            ctx.shadowOffsetY = 0
+          }
+
+          // Draw the bar with rounded corners for a more polished look
+          // Use precise coordinates to avoid anti-aliasing blur
+          const xPos = Math.round(x) + 0.5 // Adding 0.5 aligns with pixel grid
+          const yPos = Math.round(y) + 0.5
+          const barWidthRounded = Math.round(barWidth)
+          const barHeightRounded = Math.round(barHeight)
+
+          ctx.beginPath()
+          ctx.roundRect(xPos, yPos, barWidthRounded, barHeightRounded, 2)
+          ctx.fill()
+
+          // Reset shadow for next bar
+          ctx.shadowBlur = 0
+        }
       }
 
-      // Draw the bar with rounded corners for a more polished look
-      // Use precise coordinates to avoid anti-aliasing blur
-      const xPos = Math.round(x) + 0.5 // Adding 0.5 aligns with pixel grid
-      const yPos = Math.round(y) + 0.5
-      const barWidthRounded = Math.round(barWidth)
-      const barHeightRounded = Math.round(barHeight)
-
-      ctx.beginPath()
-      ctx.roundRect(xPos, yPos, barWidthRounded, barHeightRounded, 2)
-      ctx.fill()
-
-      // Reset shadow for next bar
-      ctx.shadowBlur = 0
-    }
-
-    animationRef.current = requestAnimationFrame(animate)
-  }, [])
+      // Request next frame
+      animationRef.current = requestAnimationFrame(animate)
+    },
+    [fpsInterval],
+  )
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -183,6 +185,7 @@ const AudioWave = memo(function AudioWave() {
     }
 
     // Start animation with requestAnimationFrame
+    lastFrameTimeRef.current = performance.now()
     animationRef.current = requestAnimationFrame(animate)
 
     // Handle resize with debounce
@@ -219,6 +222,7 @@ const AudioWave = memo(function AudioWave() {
         cancelAnimationFrame(animationRef.current)
       } else {
         // Resume animation when tab becomes visible
+        lastFrameTimeRef.current = performance.now()
         animationRef.current = requestAnimationFrame(animate)
       }
     }
