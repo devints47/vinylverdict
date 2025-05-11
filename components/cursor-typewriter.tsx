@@ -19,14 +19,14 @@ export function CursorTypewriter({
   onComplete,
   cursorChar = "|",
 }: CursorTypewriterProps) {
-  const [cursorPosition, setCursorPosition] = useState(0)
+  const [displayPosition, setDisplayPosition] = useState(0)
   const [isComplete, setIsComplete] = useState(false)
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // Handle the typewriter effect
   useEffect(() => {
     if (!markdown) {
-      setCursorPosition(0)
+      setDisplayPosition(0)
       setIsComplete(false)
       return
     }
@@ -35,13 +35,13 @@ export function CursorTypewriter({
       clearTimeout(timeoutRef.current)
     }
 
-    setCursorPosition(0)
+    setDisplayPosition(0)
     setIsComplete(false)
 
     const totalLength = markdown.length
 
     const animateText = () => {
-      setCursorPosition((prev) => {
+      setDisplayPosition((prev) => {
         if (prev < totalLength) {
           timeoutRef.current = setTimeout(animateText, speed)
           return prev + 1
@@ -60,26 +60,17 @@ export function CursorTypewriter({
     }
   }, [markdown, speed, onComplete])
 
-  // Create the text with the cursor inserted at the right position
+  // Create the text with only the typed characters visible plus cursor
   const getTextWithCursor = () => {
     if (isComplete) {
       return markdown
     }
 
-    // Get the text before and after the cursor
-    const beforeCursor = markdown.substring(0, cursorPosition)
-    const afterCursor = markdown.substring(cursorPosition + 1)
+    // Get only the text that has been "typed" so far
+    const visibleText = markdown.substring(0, displayPosition)
 
-    // If we're at the end, just return the text with cursor at the end
-    if (cursorPosition >= markdown.length) {
-      return beforeCursor + cursorChar
-    }
-
-    // Get the character at the cursor position
-    const cursorPositionChar = markdown.charAt(cursorPosition)
-
-    // Replace the character at cursor position with the cursor
-    return beforeCursor + cursorChar + afterCursor
+    // Add the cursor at the end of the visible text
+    return visibleText + cursorChar
   }
 
   return (
