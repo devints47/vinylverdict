@@ -26,7 +26,10 @@ export function Navbar() {
         <div className="flex items-center justify-between">
           <Link href="/" className="flex items-center gap-1">
             <VinylLogo size={48} />
-            <span className="font-bold text-2xl text-purple-gradient tracking-tight">SnobScore</span>
+            <div className="flex flex-col">
+              <span className="font-bold text-2xl text-purple-gradient tracking-tight">SnobScore</span>
+              <span className="text-xs text-zinc-400 -mt-1">Personalized Music Taste Critic</span>
+            </div>
           </Link>
 
           {/* Desktop Navigation */}

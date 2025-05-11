@@ -18,7 +18,7 @@ export function Footer() {
             </p>
           </div>
 
-          <div className="grid grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-4 gap-6 mb-8">
             <div>
               <h3 className="font-bold text-white mb-3">Links</h3>
               <ul className="space-y-2">
@@ -81,12 +81,29 @@ export function Footer() {
                 </li>
               </ul>
             </div>
+
+            <div>
+              <h3 className="font-bold text-white mb-3">API</h3>
+              <div className="flex flex-col items-center">
+                <span className="text-sm mb-1">Built Using the</span>
+                <a
+                  href="https://developer.spotify.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:opacity-80 transition-opacity"
+                >
+                  <img src="/spotify_full_logo.svg" alt="Spotify" className="h-7 mb-1" />
+                </a>
+                <span className="text-sm">Web API</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Desktop Footer - Original 4 Column Layout */}
-        <div className="hidden md:grid md:grid-cols-4 gap-8">
-          <div>
+        {/* Desktop Footer - 5 Column Layout with adjusted spacing */}
+        <div className="hidden md:flex md:flex-row md:gap-0">
+          {/* First column - SnobScore */}
+          <div className="w-[22%] pr-4">
             <Link href="/" className="flex items-center gap-1 mb-4 hover:opacity-90 transition-opacity">
               <VinylLogo size={48} />
               <span className="font-bold text-2xl text-purple-gradient tracking-tight">SnobScore</span>
@@ -96,7 +113,8 @@ export function Footer() {
             </p>
           </div>
 
-          <div>
+          {/* Second column - Links */}
+          <div className="w-[19%] pr-4">
             <h3 className="font-bold text-white mb-4">Links</h3>
             <ul className="space-y-2">
               <li>
@@ -117,7 +135,8 @@ export function Footer() {
             </ul>
           </div>
 
-          <div>
+          {/* Third column - Legal */}
+          <div className="w-[19%] pr-4">
             <h3 className="font-bold text-white mb-4">Legal</h3>
             <ul className="space-y-2">
               <li>
@@ -138,7 +157,8 @@ export function Footer() {
             </ul>
           </div>
 
-          <div>
+          {/* Fourth column - Connect (narrower) */}
+          <div className="w-[12%] pr-0">
             <h3 className="font-bold text-white mb-4">Connect</h3>
             <ul className="space-y-2">
               <li>
@@ -157,6 +177,23 @@ export function Footer() {
                 </a>
               </li>
             </ul>
+          </div>
+
+          {/* Fifth column - Spotify API (wider) */}
+          <div className="w-[28%] flex flex-col items-center justify-center pl-0">
+            <h3 className="font-bold text-white mb-3 text-center">Built Using the</h3>
+            <div className="flex flex-col items-center">
+              <a
+                href="https://developer.spotify.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:opacity-80 transition-opacity"
+                aria-label="Visit Spotify Developer Portal"
+              >
+                <img src="/spotify_full_logo.svg" alt="Spotify" className="h-12 mb-1.5" />
+              </a>
+              <span className="text-white text-lg font-medium">Web API</span>
+            </div>
           </div>
         </div>
 
