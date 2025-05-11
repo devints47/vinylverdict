@@ -184,7 +184,7 @@ export function Footer() {
             <h3 className="font-bold text-white mb-3 text-center">Built Using the</h3>
             <div className="flex flex-col items-center">
               <a
-                href="https://developer.spotify.com/"
+                href="https://spotify.com/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:opacity-80 transition-opacity"
