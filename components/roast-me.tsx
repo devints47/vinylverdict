@@ -10,6 +10,9 @@ import { getRoast } from "@/lib/openai-service"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { SimpleReveal } from "./simple-reveal"
 
+// Add the rehype-raw plugin to allow HTML in markdown
+import rehypeRaw from "rehype-raw"
+
 interface RoastMeProps {
   topTracks: any
   topArtists: any
@@ -124,7 +127,10 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab }: Ro
               {!typewriterComplete ? (
                 <SimpleReveal text={roast} speed={20} onComplete={() => setTypewriterComplete(true)} />
               ) : (
-                <ReactMarkdown className="prose prose-invert max-w-none text-zinc-300 prose-headings:text-purple-gradient prose-strong:text-white prose-em:text-zinc-400 prose-li:marker:text-purple-gradient">
+                <ReactMarkdown
+                  className="prose prose-invert max-w-none text-zinc-300 prose-headings:text-purple-gradient prose-strong:text-white prose-em:text-zinc-400 prose-li:marker:text-purple-gradient"
+                  rehypePlugins={[rehypeRaw]} // Add rehypeRaw to process HTML in markdown
+                >
                   {roast}
                 </ReactMarkdown>
               )}
