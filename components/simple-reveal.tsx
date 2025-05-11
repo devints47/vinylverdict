@@ -117,11 +117,12 @@ export function SimpleReveal({ text, speed = 20, className = "", onComplete }: S
 
   return (
     <div className={className}>
-      <div
-        className="prose prose-invert max-w-none text-zinc-300 prose-headings:text-purple-gradient prose-strong:text-white prose-em:text-zinc-400 prose-li:marker:text-purple-gradient"
-        dangerouslySetInnerHTML={{ __html: displayedHTML.join("") }}
-      />
-      {currentIndex < renderedHTML.length && <span className="inline-block w-2 h-4 bg-purple-500 ml-1 animate-pulse" />}
+      <div className="prose prose-invert max-w-none text-zinc-300 prose-headings:text-purple-gradient prose-strong:text-white prose-em:text-zinc-400 prose-li:marker:text-purple-gradient relative">
+        <span dangerouslySetInnerHTML={{ __html: displayedHTML.join("") }} />
+        {currentIndex < renderedHTML.length && (
+          <span className="inline-block w-2 h-4 bg-purple-500 ml-0.5 align-middle animate-pulse" aria-hidden="true" />
+        )}
+      </div>
     </div>
   )
 }
