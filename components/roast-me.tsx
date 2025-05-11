@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Loader2, AlertCircle } from "lucide-react"
@@ -26,12 +26,16 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab }: Ro
   const [error, setError] = useState<string | null>(null)
   const [typewriterComplete, setTypewriterComplete] = useState(false)
   const [isFallback, setIsFallback] = useState(false)
+  const [disclaimer, setDisclaimer] = useState<string>("")
+  const [mainContent, setMainContent] = useState<string>("")
 
   const handleRoastMe = async () => {
     try {
       setIsLoading(true)
       setError(null)
       setRoast(null)
+      setMainContent("")
+      setDisclaimer("")
       setTypewriterComplete(false)
       setIsFallback(false)
 
@@ -74,6 +78,37 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab }: Ro
     }
   }
 
+  // Extract the main roast content and fallback disclaimer when roast changes
+  useEffect(() => {
+    if (!roast) return
+
+    // Check for various disclaimer patterns
+    const disclaimerPatterns = [
+      "*Note: This is a fallback roast",
+      "*Note: The Music Snob is currently",
+      "Note: Our resident Music Snob",
+    ]
+
+    let disclaimerIndex = -1
+
+    for (const pattern of disclaimerPatterns) {
+      const index = roast.indexOf(pattern)
+      if (index !== -1 && (disclaimerIndex === -1 || index < disclaimerIndex)) {
+        disclaimerIndex = index
+      }
+    }
+
+    if (disclaimerIndex !== -1) {
+      setMainContent(roast.substring(0, disclaimerIndex).trim())
+      setDisclaimer(
+        "Note: Our resident Music Snob is taking a coffee break. You're getting the intern's opinion instead.",
+      )
+    } else {
+      setMainContent(roast)
+      setDisclaimer("")
+    }
+  }, [roast])
+
   // Get the appropriate button text based on the active tab
   const getButtonText = () => {
     switch (activeTab) {
@@ -87,41 +122,6 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab }: Ro
         return "Roast My Music Taste"
     }
   }
-
-  // Extract the main roast content and fallback disclaimer if present
-  const extractRoastContent = () => {
-    if (!roast) return { mainContent: "", disclaimer: "" }
-
-    // Check for various disclaimer patterns
-    const disclaimerPatterns = [
-      "*Note: This is a fallback roast",
-      "*Note: The Music Snob is currently",
-      "Note: Our resident Music Snob",
-    ]
-
-    let disclaimerIndex = -1
-    let disclaimerText = ""
-
-    for (const pattern of disclaimerPatterns) {
-      const index = roast.indexOf(pattern)
-      if (index !== -1 && (disclaimerIndex === -1 || index < disclaimerIndex)) {
-        disclaimerIndex = index
-        disclaimerText = roast.substring(index)
-      }
-    }
-
-    if (disclaimerIndex !== -1) {
-      return {
-        mainContent: roast.substring(0, disclaimerIndex).trim(),
-        disclaimer:
-          "Note: Our resident Music Snob is taking a coffee break. You're getting the intern's opinion instead.",
-      }
-    }
-
-    return { mainContent: roast, disclaimer: "" }
-  }
-
-  const { mainContent, disclaimer } = extractRoastContent()
 
   return (
     <div className="mb-8 flex flex-col items-center sticky top-0 z-10 w-full">
@@ -155,7 +155,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab }: Ro
         </Alert>
       )}
 
-      {roast && (
+      {mainContent && (
         <Card className="mt-6 card-holographic bg-gradient-to-r from-zinc-900 to-black max-w-3xl w-full">
           <CardContent className="pt-6">
             <div className="markdown-content">
