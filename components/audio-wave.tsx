@@ -7,6 +7,7 @@ const AudioWave = memo(function AudioWave() {
   const animationRef = useRef<number>(0)
   const barsRef = useRef<number[]>([])
   const isInitializedRef = useRef(false)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   // Memoize the animation function to prevent recreating it on each render
   const animate = useCallback(() => {
@@ -18,7 +19,7 @@ const AudioWave = memo(function AudioWave() {
 
     const width = canvas.width
     const height = canvas.height
-    const barCount = 40
+    const barCount = 60 // Increased bar count for better fidelity
     const barWidth = width / barCount - 2
     const bars = barsRef.current
 
@@ -73,8 +74,14 @@ const AudioWave = memo(function AudioWave() {
       }
 
       // Draw the bar with rounded corners for a more polished look
+      // Use precise coordinates to avoid anti-aliasing blur
+      const xPos = Math.round(x) + 0.5 // Adding 0.5 aligns with pixel grid
+      const yPos = Math.round(y) + 0.5
+      const barWidthRounded = Math.round(barWidth)
+      const barHeightRounded = Math.round(barHeight)
+
       ctx.beginPath()
-      ctx.roundRect(x, y, barWidth, barHeight, 2)
+      ctx.roundRect(xPos, yPos, barWidthRounded, barHeightRounded, 2)
       ctx.fill()
 
       // Reset shadow for next bar
@@ -86,7 +93,8 @@ const AudioWave = memo(function AudioWave() {
 
   useEffect(() => {
     const canvas = canvasRef.current
-    if (!canvas) return
+    const container = containerRef.current
+    if (!canvas || !container) return
 
     // Add a media query check to hide on smaller screens, but only on the dashboard page
     const mediaQuery = window.matchMedia("(max-width: 1350px)")
@@ -96,10 +104,10 @@ const AudioWave = memo(function AudioWave() {
 
       if (e.matches && isDashboardPage) {
         // If screen is smaller than 1350px AND we're on dashboard, hide the canvas
-        canvas.style.display = "none"
+        container.style.display = "none"
       } else {
         // Otherwise show it
-        canvas.style.display = "block"
+        container.style.display = "block"
       }
     }
 
@@ -109,13 +117,24 @@ const AudioWave = memo(function AudioWave() {
     // Add listener for changes
     mediaQuery.addEventListener("change", handleMediaChange)
 
-    // Set canvas dimensions
-    canvas.width = canvas.offsetWidth
+    // Set canvas dimensions - use a fixed minimum width for better quality
+    const minWidth = 650
+    const containerWidth = container.offsetWidth
+
+    // Use the larger of the container width or our minimum width
+    const canvasWidth = Math.max(containerWidth, minWidth)
+    canvas.width = canvasWidth
     canvas.height = 80
+
+    // If the canvas is wider than the container, center it
+    if (canvasWidth > containerWidth) {
+      canvas.style.marginLeft = `${-(canvasWidth - containerWidth) / 2}px`
+      canvas.style.width = `${canvasWidth}px`
+    }
 
     // Initialize bars only once
     if (!isInitializedRef.current) {
-      const barCount = 40
+      const barCount = 60 // Increased bar count to match the animation
       // Initialize bars with random heights
       for (let i = 0; i < barCount; i++) {
         barsRef.current.push(Math.random() * 50 + 10)
@@ -131,8 +150,20 @@ const AudioWave = memo(function AudioWave() {
     const handleResize = () => {
       clearTimeout(resizeTimeout)
       resizeTimeout = setTimeout(() => {
-        if (canvas) {
-          canvas.width = canvas.offsetWidth
+        if (canvas && container) {
+          const containerWidth = container.offsetWidth
+          const canvasWidth = Math.max(containerWidth, minWidth)
+          canvas.width = canvasWidth
+
+          // If the canvas is wider than the container, center it
+          if (canvasWidth > containerWidth) {
+            canvas.style.marginLeft = `${-(canvasWidth - containerWidth) / 2}px`
+            canvas.style.width = `${canvasWidth}px`
+          } else {
+            canvas.style.marginLeft = "0"
+            canvas.style.width = "100%"
+          }
+
           // Also check media query on resize
           handleMediaChange(mediaQuery)
         }
@@ -163,7 +194,11 @@ const AudioWave = memo(function AudioWave() {
     }
   }, [animate])
 
-  return <canvas ref={canvasRef} className="w-full h-20" aria-hidden="true" />
+  return (
+    <div ref={containerRef} className="w-full overflow-hidden">
+      <canvas ref={canvasRef} className="h-20" aria-hidden="true" />
+    </div>
+  )
 })
 
 export { AudioWave }
