@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { VinylRecord } from "./vinyl-record"
 
@@ -101,11 +101,11 @@ export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: Vi
   }
 
   // Call onSelectVinyl with the initial vinyl on first render
-  useState(() => {
+  useEffect(() => {
     if (onSelectVinyl) {
       onSelectVinyl(vinylDesigns[activeIndex])
     }
-  })
+  }, [activeIndex, onSelectVinyl])
 
   return (
     <div className="flex flex-col items-center">

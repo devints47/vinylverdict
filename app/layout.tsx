@@ -1,47 +1,44 @@
 import type React from "react"
 import type { Metadata } from "next"
-import "@/app/globals.css"
-import { ThemeProvider } from "@/components/theme-provider"
-import { AuthProvider } from "@/contexts/auth-context"
-import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
-import { Suspense } from "react"
+import { Inter } from "next/font/google"
+import { AuthProvider } from "@/contexts/auth-context"
 import { AnimatedFavicon } from "@/components/animated-favicon"
+import "./globals.css"
 
-// Update the metadata title and description
+const inter = Inter({ subsets: ["latin"] })
+
 export const metadata: Metadata = {
-  title: "SnobScore - Your Personal Music Taste Critic",
-  description:
-    "Connect your Spotify account and let our resident Music Snob analyze your listening habits with brutal honesty and witty commentary.",
+  title: "Snobify - Your Spotify Stats with a Side of Sass",
+  description: "View your Spotify listening statistics and get roasted by our music critics",
   icons: {
-    icon: "/vinyl-favicon-new.png",
-    apple: "/vinyl-favicon-new.png",
+    icon: [
+      {
+        url: "/music-snob-favicon.ico",
+        href: "/music-snob-favicon.ico",
+      },
+    ],
+    apple: [
+      {
+        url: "/music-snob-apple-icon.png",
+        sizes: "180x180",
+        href: "/music-snob-apple-icon.png",
+      },
+    ],
   },
     generator: 'v0.dev'
 }
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en">
       <head>
-        {/* Base favicon for non-JS environments */}
-        <link rel="icon" href="/vinyl-favicon-new.png" type="image/png" />
-        <link rel="apple-touch-icon" href="/vinyl-favicon-new.png" />
+        <meta charSet="utf-8" />
+        <AnimatedFavicon />
       </head>
-      <body>
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
-          <AuthProvider>
-            <Suspense>{children}</Suspense>
-          </AuthProvider>
-          {/* Add the animated favicon component */}
-          <AnimatedFavicon />
-          <Analytics />
-          <SpeedInsights />
-        </ThemeProvider>
+      <body className={`${inter.className} bg-black text-white`}>
+        <AuthProvider>{children}</AuthProvider>
+        <SpeedInsights />
       </body>
     </html>
   )
