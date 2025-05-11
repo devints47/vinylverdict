@@ -18,24 +18,9 @@ import { AudioWave } from "@/components/audio-wave"
 import type { TimeRange } from "@/lib/spotify-api"
 import { formatDate, getArtists } from "@/lib/spotify-api"
 import { ListContainer } from "@/components/list-container"
-import dynamic from "next/dynamic"
 
-// Dynamically import heavy components
-const DynamicRoastMe = dynamic(() => import("@/components/roast-me").then((mod) => ({ default: mod.RoastMe })), {
-  loading: () => (
-    <div className="flex justify-center w-full">
-      <button
-        disabled
-        className="btn-gradient holographic-shimmer text-white font-bold py-4 px-8 text-lg rounded-lg flex items-center justify-center gap-2 shadow-lg max-w-md opacity-70"
-      >
-        <span className="text-xl">🔥</span>
-        <span>Loading Roast Feature...</span>
-        <span className="text-xl">🔥</span>
-      </button>
-    </div>
-  ),
-  ssr: false,
-})
+// Import RoastMe directly to avoid dynamic import issues
+import { RoastMe } from "@/components/roast-me"
 
 interface UserProfile {
   display_name: string
@@ -51,6 +36,22 @@ interface ArtistInfo {
   name: string
   genres: string[]
   [key: string]: any
+}
+
+// Load More Button Component - defined outside the component to avoid hook issues
+const LoadMoreButton = ({ onClick, isVisible }: { onClick: () => void; isVisible: boolean }) => {
+  if (!isVisible) return null
+
+  return (
+    <div className="flex justify-center mt-6">
+      <button
+        onClick={onClick}
+        className="bg-zinc-800 hover:bg-zinc-700 text-white px-6 py-2 rounded-full text-sm transition-colors"
+      >
+        Load More
+      </button>
+    </div>
+  )
 }
 
 export default function DashboardPage() {
@@ -100,6 +101,9 @@ export default function DashboardPage() {
     setSelectedVinyl(design)
   }, [])
 
+  // Authentication check moved outside useEffect to avoid conditional hook call
+  const [authChecked, setAuthChecked] = useState(false)
+
   // Check authentication on mount
   useEffect(() => {
     const checkAuth = async () => {
@@ -113,6 +117,8 @@ export default function DashboardPage() {
       } catch (err) {
         console.error("Error checking auth:", err)
         setError("Failed to check authentication status")
+      } finally {
+        setAuthChecked(true) // Ensure authCheck is set regardless of the outcome
       }
     }
 
@@ -313,10 +319,10 @@ export default function DashboardPage() {
 
   // Initial data fetch
   useEffect(() => {
-    if (isAuthenticated && !isLoading) {
+    if (isAuthenticated && !isLoading && authChecked) {
       fetchAllData()
     }
-  }, [isAuthenticated, isLoading, fetchAllData])
+  }, [isAuthenticated, isLoading, fetchAllData, authChecked])
 
   // Handle tab change
   const handleTabChange = useCallback((value: string) => {
@@ -368,7 +374,7 @@ export default function DashboardPage() {
   )
 
   // Show loading state
-  if (isLoading || isLoadingProfile) {
+  if (isLoading || isLoadingProfile || !authChecked) {
     return (
       <div className="min-h-screen bg-black flex flex-col relative overflow-hidden">
         <TechGridBackground />
@@ -389,22 +395,6 @@ export default function DashboardPage() {
       </div>
     )
   }
-
-  // Load More Button Component - memoized to prevent unnecessary re-renders
-  const LoadMoreButton = useCallback(({ onClick, isVisible }: { onClick: () => void; isVisible: boolean }) => {
-    if (!isVisible) return null
-
-    return (
-      <div className="flex justify-center mt-6">
-        <button
-          onClick={onClick}
-          className="bg-zinc-800 hover:bg-zinc-700 text-white px-6 py-2 rounded-full text-sm transition-colors"
-        >
-          Load More
-        </button>
-      </div>
-    )
-  }, [])
 
   // User Profile Card Component - memoized to prevent unnecessary re-renders
   const UserProfileCard = useMemo(() => {
@@ -488,7 +478,7 @@ export default function DashboardPage() {
 
   // Content components for each tab - memoized to prevent unnecessary re-renders
   const RecentlyPlayedContent = useMemo(() => {
-    return (
+    const content = (
       <Card
         className="bg-gradient-to-r from-zinc-900 to-black border border-transparent"
         style={{
@@ -560,6 +550,7 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
     )
+    return content
   }, [
     isLoadingRecent,
     isRefreshing,
@@ -572,7 +563,7 @@ export default function DashboardPage() {
   ])
 
   const TopTracksContent = useMemo(() => {
-    return (
+    const content = (
       <Card
         className="bg-gradient-to-r from-zinc-900 to-black border border-transparent"
         style={{
@@ -639,6 +630,7 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
     )
+    return content
   }, [
     timeRange,
     handleTimeRangeChange,
@@ -652,7 +644,7 @@ export default function DashboardPage() {
   ])
 
   const TopArtistsContent = useMemo(() => {
-    return (
+    const content = (
       <Card
         className="bg-gradient-to-r from-zinc-900 to-black border border-transparent"
         style={{
@@ -716,6 +708,7 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
     )
+    return content
   }, [
     timeRange,
     handleTimeRangeChange,
@@ -758,7 +751,7 @@ export default function DashboardPage() {
               )}
             </div>
             <div className="mt-auto">
-              <DynamicRoastMe
+              <RoastMe
                 topTracks={currentTopTracks}
                 topArtists={currentTopArtists}
                 recentlyPlayed={recentlyPlayed}

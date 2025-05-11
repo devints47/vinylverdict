@@ -3,7 +3,6 @@ import type { Metadata } from "next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Inter } from "next/font/google"
 import { AuthProvider } from "@/contexts/auth-context"
-import { AnimatedFavicon } from "@/components/animated-favicon"
 import "./globals.css"
 
 const inter = Inter({ subsets: ["latin"] })
@@ -34,7 +33,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <head>
         <meta charSet="utf-8" />
-        <AnimatedFavicon />
       </head>
       <body className={`${inter.className} bg-black text-white`}>
         <AuthProvider>{children}</AuthProvider>
