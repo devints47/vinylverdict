@@ -27,6 +27,14 @@ export default function CallbackPage() {
         const errorParam = searchParams.get("error")
         if (errorParam) {
           addLog(`Spotify returned an error: ${errorParam}`)
+
+          // If the error is "access_denied" (user clicked Cancel), redirect to homepage
+          if (errorParam === "access_denied") {
+            addLog("User denied access. Redirecting to homepage...")
+            window.location.href = "/"
+            return
+          }
+
           throw new Error(`Spotify authorization error: ${errorParam}`)
         }
 
