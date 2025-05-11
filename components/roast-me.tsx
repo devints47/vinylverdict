@@ -8,7 +8,7 @@ import ReactMarkdown from "react-markdown"
 import { formatTrackData, formatArtistData, formatRecentlyPlayedData } from "@/lib/format-utils"
 import { getRoast } from "@/lib/openai-service"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { SimpleReveal } from "./simple-reveal"
+import { PreRenderedTypewriter } from "./pre-rendered-typewriter"
 
 // Add the rehype-raw plugin to allow HTML in markdown
 import rehypeRaw from "rehype-raw"
@@ -26,20 +26,6 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab }: Ro
   const [error, setError] = useState<string | null>(null)
   const [typewriterComplete, setTypewriterComplete] = useState(false)
   const [isFallback, setIsFallback] = useState(false)
-
-  // Function to strip markdown characters from text
-  const stripMarkdownChars = (text: string): string => {
-    return text
-      .replace(/#{1,6}\s/g, "") // Remove headings
-      .replace(/\*\*/g, "") // Remove bold
-      .replace(/\*/g, "") // Remove italic
-      .replace(/\[([^\]]+)\]$$([^)]+)$$/g, "$1") // Replace links with just the text
-      .replace(/`([^`]+)`/g, "$1") // Remove inline code
-      .replace(/~~([^~]+)~~/g, "$1") // Remove strikethrough
-      .replace(/>\s/g, "") // Remove blockquotes
-      .replace(/\n\s*[-*+]\s/g, "\n• ") // Replace list markers with bullet points
-      .replace(/\n\s*\d+\.\s/g, "\n• ") // Replace numbered lists with bullet points
-  }
 
   const handleRoastMe = async () => {
     try {
@@ -75,7 +61,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab }: Ro
       const response = await getRoast(formattedData, viewType)
 
       // Check if this is a fallback response
-      if (response.includes("*Note: This is a fallback roast")) {
+      if (response.includes("*Note:") || response.includes("Note: This is a fallback roast")) {
         setIsFallback(true)
       }
 
@@ -106,12 +92,27 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab }: Ro
   const extractRoastContent = () => {
     if (!roast) return { mainContent: "", disclaimer: "" }
 
-    // Check if there's a fallback disclaimer
-    const fallbackIndex = roast.indexOf("*Note: This is a fallback roast")
+    // Check for various disclaimer patterns
+    const disclaimerPatterns = [
+      "*Note: This is a fallback roast",
+      "*Note: The Music Snob is currently",
+      "Note: Our resident Music Snob",
+    ]
 
-    if (fallbackIndex !== -1) {
+    let disclaimerIndex = -1
+    let disclaimerText = ""
+
+    for (const pattern of disclaimerPatterns) {
+      const index = roast.indexOf(pattern)
+      if (index !== -1 && (disclaimerIndex === -1 || index < disclaimerIndex)) {
+        disclaimerIndex = index
+        disclaimerText = roast.substring(index)
+      }
+    }
+
+    if (disclaimerIndex !== -1) {
       return {
-        mainContent: roast.substring(0, fallbackIndex).trim(),
+        mainContent: roast.substring(0, disclaimerIndex).trim(),
         disclaimer:
           "Note: Our resident Music Snob is taking a coffee break. You're getting the intern's opinion instead.",
       }
@@ -159,11 +160,15 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab }: Ro
           <CardContent className="pt-6">
             <div className="markdown-content">
               {!typewriterComplete ? (
-                <SimpleReveal text={mainContent} speed={20} onComplete={() => setTypewriterComplete(true)} />
+                <PreRenderedTypewriter
+                  markdown={mainContent}
+                  speed={20}
+                  onComplete={() => setTypewriterComplete(true)}
+                />
               ) : (
                 <ReactMarkdown
                   className="prose prose-invert max-w-none text-zinc-300 prose-headings:text-purple-gradient prose-strong:text-white prose-em:text-zinc-400 prose-li:marker:text-purple-gradient"
-                  rehypePlugins={[rehypeRaw]} // Add rehypeRaw to process HTML in markdown
+                  rehypePlugins={[rehypeRaw]}
                 >
                   {mainContent}
                 </ReactMarkdown>
