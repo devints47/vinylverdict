@@ -1,17 +1,12 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Loader2, AlertCircle } from "lucide-react"
-import ReactMarkdown from "react-markdown"
 import { formatTrackData, formatArtistData, formatRecentlyPlayedData } from "@/lib/format-utils"
 import { getRoast } from "@/lib/openai-service"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { CursorTypewriter } from "./cursor-typewriter"
-
-// Add the rehype-raw plugin to allow HTML in markdown
-import rehypeRaw from "rehype-raw"
+import { AssistantResponse } from "./assistant-response"
 
 interface RoastMeProps {
   topTracks: any
@@ -25,10 +20,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
   const [isLoading, setIsLoading] = useState(false)
   const [roast, setRoast] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [typewriterComplete, setTypewriterComplete] = useState(false)
   const [isFallback, setIsFallback] = useState(false)
-  const [mainContent, setMainContent] = useState<string>("")
-  const [disclaimerText, setDisclaimerText] = useState<string>("")
 
   // Determine the assistant type based on the selected vinyl
   const assistantType = selectedVinyl?.assistantType || "snob"
@@ -56,9 +48,6 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
       setIsLoading(true)
       setError(null)
       setRoast(null)
-      setMainContent("")
-      setDisclaimerText("")
-      setTypewriterComplete(false)
       setIsFallback(false)
 
       // Determine which data to use based on the active tab
@@ -99,37 +88,6 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
       setIsLoading(false)
     }
   }
-
-  // Extract the main roast content when roast changes
-  useEffect(() => {
-    if (!roast) return
-
-    // Find the disclaimer section - look for standard patterns
-    const disclaimerPatterns = [
-      "This roast is a satirical critique",
-      "This validation is a celebration",
-      "*Note:",
-      "The Music Snob",
-      "Humbly at your service",
-    ]
-
-    let disclaimerIndex = -1
-
-    for (const pattern of disclaimerPatterns) {
-      const index = roast.indexOf(pattern)
-      if (index !== -1 && (disclaimerIndex === -1 || index < disclaimerIndex)) {
-        disclaimerIndex = index
-      }
-    }
-
-    if (disclaimerIndex !== -1) {
-      setMainContent(roast.substring(0, disclaimerIndex).trim())
-      setDisclaimerText(roast.substring(disclaimerIndex).trim())
-    } else {
-      setMainContent(roast)
-      setDisclaimerText("")
-    }
-  }, [roast])
 
   // Get loading text based on assistant type
   const getLoadingText = () => {
@@ -175,40 +133,8 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
         </Alert>
       )}
 
-      {mainContent && (
-        <Card className="mt-6 card-holographic bg-gradient-to-r from-zinc-900 to-black max-w-3xl w-full">
-          <CardContent className="pt-6 pb-2">
-            <div className="markdown-content">
-              {!typewriterComplete ? (
-                <CursorTypewriter
-                  markdown={mainContent}
-                  speed={20}
-                  onComplete={() => setTypewriterComplete(true)}
-                  cursorChar="█"
-                />
-              ) : (
-                <ReactMarkdown
-                  className="prose prose-invert max-w-none text-zinc-300 prose-headings:text-purple-gradient prose-strong:text-white prose-em:text-zinc-400 prose-li:marker:text-purple-gradient"
-                  rehypePlugins={[rehypeRaw]}
-                >
-                  {mainContent}
-                </ReactMarkdown>
-              )}
-            </div>
-          </CardContent>
-
-          {disclaimerText && (
-            <CardFooter className="pt-4 pb-4 text-sm text-zinc-500 italic">
-              <ReactMarkdown
-                className="prose prose-invert max-w-none text-zinc-500 text-sm italic"
-                rehypePlugins={[rehypeRaw]}
-              >
-                {disclaimerText}
-              </ReactMarkdown>
-            </CardFooter>
-          )}
-        </Card>
-      )}
+      {/* Use the unified AssistantResponse component for all assistant types */}
+      {roast && <AssistantResponse content={roast} isLoading={isLoading} className="mt-6 max-w-3xl" />}
     </div>
   )
 }
