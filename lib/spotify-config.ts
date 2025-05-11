@@ -5,9 +5,7 @@ export const SPOTIFY_SCOPES = [
   "user-read-private",
   "user-read-email",
   "user-read-recently-played",
-  "playlist-read-private",
   "user-top-read", // Required to read user's top items
-  "user-read-playback-state", // Can help with getting more playlist data
 ]
 
 // Make sure to always include user-top-read whenever authorizing users
