@@ -5,15 +5,16 @@ import { ChevronLeft, ChevronRight } from "lucide-react"
 import { VinylRecord } from "./vinyl-record"
 
 // Define vinyl design type for better type safety
-interface VinylDesign {
+export interface VinylDesign {
   id: string
   name: string
   labelColor: string
   faceType: "snob" | "happy" | "cool" | "surprised"
   labelText: string
+  description: string
 }
 
-export function VinylCollection() {
+export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: VinylDesign) => void }) {
   const [activeIndex, setActiveIndex] = useState(0)
   const [isTransitioning, setIsTransitioning] = useState(false)
 
@@ -25,6 +26,8 @@ export function VinylCollection() {
       labelColor: "purple",
       faceType: "snob",
       labelText: "SNOBSCORE • PREMIUM VINYL • AUDIOPHILE EDITION •",
+      description:
+        "The most discerning and judgmental of our critics. The Critic has strong opinions about everything from production quality to lyrical depth. Prepare for a thorough dissection of your musical choices with zero mercy.",
     },
     {
       id: "indie-vibes",
@@ -32,6 +35,8 @@ export function VinylCollection() {
       labelColor: "teal",
       faceType: "cool",
       labelText: "INDIE • ALTERNATIVE • UNDERGROUND • EXCLUSIVE •",
+      description:
+        "A walking encyclopedia of music history and cultural context. The Historian will analyze your taste through the lens of musical movements, influences, and the artists' place in the greater musical canon.",
     },
     {
       id: "pop-hits",
@@ -39,6 +44,8 @@ export function VinylCollection() {
       labelColor: "pink",
       faceType: "happy",
       labelText: "TOP CHARTS • DANCE HITS • PARTY ANTHEMS • REMIX •",
+      description:
+        "Enthusiastic about all things mainstream and catchy. Pop Sensation judges your playlist based on its danceability, chart performance, and viral potential. Expects maximum energy and hooks.",
     },
     {
       id: "classic-rock",
@@ -46,6 +53,8 @@ export function VinylCollection() {
       labelColor: "red",
       faceType: "surprised",
       labelText: "CLASSIC ROCK • GUITAR SOLOS • HEADBANGERS • LIVE •",
+      description:
+        "A true believer in the power of electric guitars and drum solos. Rock Legend evaluates your music based on its raw energy, instrumental prowess, and authenticity. Expects music that makes you want to headbang.",
     },
     {
       id: "electronic",
@@ -53,6 +62,8 @@ export function VinylCollection() {
       labelColor: "blue",
       faceType: "cool",
       labelText: "ELECTRONIC • SYNTH • BEATS • DIGITAL • FUTURE •",
+      description:
+        "On the cutting edge of digital sound design and production. Digital Wave analyzes your taste for innovative beats, synthesizer work, and production techniques that push boundaries.",
     },
   ]
 
@@ -60,14 +71,22 @@ export function VinylCollection() {
   const nextVinyl = () => {
     if (isTransitioning) return
     setIsTransitioning(true)
-    setActiveIndex((prev) => (prev + 1) % vinylDesigns.length)
+    const newIndex = (activeIndex + 1) % vinylDesigns.length
+    setActiveIndex(newIndex)
+    if (onSelectVinyl) {
+      onSelectVinyl(vinylDesigns[newIndex])
+    }
     setTimeout(() => setIsTransitioning(false), 500) // 500ms transition duration
   }
 
   const prevVinyl = () => {
     if (isTransitioning) return
     setIsTransitioning(true)
-    setActiveIndex((prev) => (prev - 1 + vinylDesigns.length) % vinylDesigns.length)
+    const newIndex = (activeIndex - 1 + vinylDesigns.length) % vinylDesigns.length
+    setActiveIndex(newIndex)
+    if (onSelectVinyl) {
+      onSelectVinyl(vinylDesigns[newIndex])
+    }
     setTimeout(() => setIsTransitioning(false), 500) // 500ms transition duration
   }
 
@@ -75,8 +94,18 @@ export function VinylCollection() {
     if (isTransitioning || index === activeIndex) return
     setIsTransitioning(true)
     setActiveIndex(index)
+    if (onSelectVinyl) {
+      onSelectVinyl(vinylDesigns[index])
+    }
     setTimeout(() => setIsTransitioning(false), 500) // 500ms transition duration
   }
+
+  // Call onSelectVinyl with the initial vinyl on first render
+  useState(() => {
+    if (onSelectVinyl) {
+      onSelectVinyl(vinylDesigns[activeIndex])
+    }
+  })
 
   return (
     <div className="flex flex-col items-center">

@@ -14,7 +14,7 @@ import { ArtistItem } from "@/components/artist-item"
 import { LoadingSkeleton } from "@/components/loading-skeleton"
 import { RoastMe } from "@/components/roast-me"
 import { TechGridBackground } from "@/components/tech-grid-background"
-import { VinylCollection } from "@/components/vinyl-collection"
+import { VinylCollection, type VinylDesign } from "@/components/vinyl-collection"
 import { AudioWave } from "@/components/audio-wave"
 import type { TimeRange } from "@/lib/spotify-api"
 import { formatDate, getArtists } from "@/lib/spotify-api"
@@ -43,6 +43,7 @@ export default function DashboardPage() {
   const [isLoadingProfile, setIsLoadingProfile] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [debugInfo, setDebugInfo] = useState<string>("")
+  const [selectedVinyl, setSelectedVinyl] = useState<VinylDesign | null>(null)
 
   // State for Spotify data
   const [recentlyPlayed, setRecentlyPlayed] = useState<any>(null)
@@ -72,6 +73,11 @@ export default function DashboardPage() {
 
   // Cache duration - 1 hour in milliseconds
   const CACHE_DURATION = 60 * 60 * 1000
+
+  // Handle vinyl selection
+  const handleVinylSelect = (design: VinylDesign) => {
+    setSelectedVinyl(design)
+  }
 
   // Check authentication on mount
   useEffect(() => {
@@ -652,13 +658,23 @@ export default function DashboardPage() {
           {/* Left Column - Vinyl Collection (25% on desktop) */}
           <div className="w-full md:w-[25%]">
             <div className="sticky top-24">
-              <VinylCollection />
+              <VinylCollection onSelectVinyl={handleVinylSelect} />
             </div>
           </div>
 
-          {/* Middle Column - Roast Me Button (50% on desktop) */}
-          <div className="w-full md:w-[50%] flex justify-center">
-            <div className="w-full max-w-3xl">
+          {/* Middle Column - Critic Description and Roast Me Button (50% on desktop) */}
+          <div className="w-full md:w-[50%] flex flex-col">
+            <div className="flex-1 bg-zinc-900/50 rounded-xl p-6 mb-4 border border-zinc-800">
+              {selectedVinyl ? (
+                <>
+                  <h2 className="text-2xl font-bold text-purple-gradient mb-4">{selectedVinyl.name}</h2>
+                  <p className="text-zinc-300 mb-6">{selectedVinyl.description}</p>
+                </>
+              ) : (
+                <p className="text-zinc-400 text-center py-8">Select a critic to see their description</p>
+              )}
+            </div>
+            <div className="mt-auto">
               <RoastMe
                 topTracks={currentTopTracks}
                 topArtists={currentTopArtists}
