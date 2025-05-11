@@ -4,20 +4,24 @@ import { useEffect, useState, useRef } from "react"
 import ReactMarkdown from "react-markdown"
 import rehypeRaw from "rehype-raw"
 
-interface CharacterTypewriterProps {
+interface CursorTypewriterProps {
   markdown: string
   speed?: number
   className?: string
   onComplete?: () => void
+  cursorChar?: string
 }
 
-export function CharacterTypewriter({ markdown, speed = 20, className = "", onComplete }: CharacterTypewriterProps) {
+export function CursorTypewriter({
+  markdown,
+  speed = 20,
+  className = "",
+  onComplete,
+  cursorChar = "|",
+}: CursorTypewriterProps) {
   const [cursorPosition, setCursorPosition] = useState(0)
   const [isComplete, setIsComplete] = useState(false)
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
-
-  // The cursor character
-  const cursor = "|"
 
   // Handle the typewriter effect
   useEffect(() => {
@@ -62,16 +66,20 @@ export function CharacterTypewriter({ markdown, speed = 20, className = "", onCo
       return markdown
     }
 
-    // Get the text before the cursor
+    // Get the text before and after the cursor
     const beforeCursor = markdown.substring(0, cursorPosition)
+    const afterCursor = markdown.substring(cursorPosition + 1)
 
     // If we're at the end, just return the text with cursor at the end
     if (cursorPosition >= markdown.length) {
-      return beforeCursor + cursor
+      return beforeCursor + cursorChar
     }
 
-    // Otherwise, insert the cursor in place of the next character
-    return beforeCursor + cursor
+    // Get the character at the cursor position
+    const cursorPositionChar = markdown.charAt(cursorPosition)
+
+    // Replace the character at cursor position with the cursor
+    return beforeCursor + cursorChar + afterCursor
   }
 
   return (

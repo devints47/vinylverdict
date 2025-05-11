@@ -4,24 +4,23 @@ import { useEffect, useState, useRef } from "react"
 import ReactMarkdown from "react-markdown"
 import rehypeRaw from "rehype-raw"
 
-interface CharacterTypewriterProps {
+interface ImprovedTypewriterProps {
   markdown: string
   speed?: number
   className?: string
   onComplete?: () => void
 }
 
-export function CharacterTypewriter({ markdown, speed = 20, className = "", onComplete }: CharacterTypewriterProps) {
+export function ImprovedTypewriter({ markdown, speed = 20, className = "", onComplete }: ImprovedTypewriterProps) {
+  const [displayText, setDisplayText] = useState("")
   const [cursorPosition, setCursorPosition] = useState(0)
   const [isComplete, setIsComplete] = useState(false)
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  // The cursor character
-  const cursor = "|"
-
   // Handle the typewriter effect
   useEffect(() => {
     if (!markdown) {
+      setDisplayText("")
       setCursorPosition(0)
       setIsComplete(false)
       return
@@ -31,6 +30,7 @@ export function CharacterTypewriter({ markdown, speed = 20, className = "", onCo
       clearTimeout(timeoutRef.current)
     }
 
+    setDisplayText("")
     setCursorPosition(0)
     setIsComplete(false)
 
@@ -39,9 +39,13 @@ export function CharacterTypewriter({ markdown, speed = 20, className = "", onCo
     const animateText = () => {
       setCursorPosition((prev) => {
         if (prev < totalLength) {
+          // Update the displayed text to include everything up to the cursor
+          setDisplayText(markdown.substring(0, prev))
+
           timeoutRef.current = setTimeout(animateText, speed)
           return prev + 1
         } else {
+          setDisplayText(markdown)
           setIsComplete(true)
           if (onComplete) onComplete()
           return prev
@@ -56,22 +60,22 @@ export function CharacterTypewriter({ markdown, speed = 20, className = "", onCo
     }
   }, [markdown, speed, onComplete])
 
-  // Create the text with the cursor inserted at the right position
-  const getTextWithCursor = () => {
-    if (isComplete) {
-      return markdown
-    }
-
-    // Get the text before the cursor
-    const beforeCursor = markdown.substring(0, cursorPosition)
-
-    // If we're at the end, just return the text with cursor at the end
-    if (cursorPosition >= markdown.length) {
-      return beforeCursor + cursor
-    }
-
-    // Otherwise, insert the cursor in place of the next character
-    return beforeCursor + cursor
+  // Custom components for ReactMarkdown
+  const components = {
+    // Add a blinking cursor after the last character
+    p: ({ children, ...props }: any) => {
+      return (
+        <p {...props}>
+          {children}
+          {!isComplete && (
+            <span
+              className="inline-block w-[0.1em] h-[1.2em] bg-purple-500 animate-pulse ml-[1px] align-middle"
+              aria-hidden="true"
+            />
+          )}
+        </p>
+      )
+    },
   }
 
   return (
@@ -79,8 +83,9 @@ export function CharacterTypewriter({ markdown, speed = 20, className = "", onCo
       <ReactMarkdown
         className="prose prose-invert max-w-none text-zinc-300 prose-headings:text-purple-gradient prose-strong:text-white prose-em:text-zinc-400 prose-li:marker:text-purple-gradient"
         rehypePlugins={[rehypeRaw]}
+        components={components}
       >
-        {getTextWithCursor()}
+        {displayText}
       </ReactMarkdown>
     </div>
   )
