@@ -6,9 +6,11 @@ const AudioWave = memo(function AudioWave() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const animationRef = useRef<number>(0)
   const barsRef = useRef<number[]>([])
+  const targetHeightsRef = useRef<number[]>([])
   const isInitializedRef = useRef(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const lastFrameTimeRef = useRef<number>(0)
+  const colorOffsetRef = useRef(0)
   const fpsInterval = 1000 / 60 // Target 60 FPS
 
   // Memoize the animation function to prevent recreating it on each render
@@ -31,69 +33,102 @@ const AudioWave = memo(function AudioWave() {
 
         const width = canvas.width
         const height = canvas.height
-        const barCount = 60 // Increased bar count for better fidelity
-        const barWidth = width / barCount - 2
+        const barCount = 90 // Increased bar count for skinnier bars
+        const barWidth = width / barCount - 1.2 // Reduced width even more
         const bars = barsRef.current
+        const targetHeights = targetHeightsRef.current
 
         // Clear with transparent background
         ctx.clearRect(0, 0, width, height)
 
-        // Chromatic color palette - using full vibrant colors
+        // Update color offset for moving gradient - slowed down by 30%
+        colorOffsetRef.current = (colorOffsetRef.current + 0.35) % barCount // Reduced from 0.5 to 0.35
+
+        // Purple color palette matching the image
         const purpleColors = [
-          "#9333ea", // --purple-gradient-start
-          "#a855f7", // --purple-gradient-mid
-          "#c026d3", // --purple-gradient-end
-          "#d946ef", // --purple-accent
-          "#f0abfc", // --purple-highlight
+          "#9333ea", // Deep purple
+          "#a855f7", // Medium purple
+          "#c026d3", // Bright purple
+          "#d946ef", // Pink-purple
+          "#f0abfc", // Light pink-purple
         ]
 
-        // Update bar heights with reduced calculations
+        // Update target heights more frequently (15% chance per frame)
         for (let i = 0; i < barCount; i++) {
-          // Randomly adjust bar height with more variation
-          bars[i] += Math.random() * 12 - 6
+          if (Math.random() < 0.15) {
+            // Create more randomness with wider range and occasional peaks
+            if (Math.random() < 0.1) {
+              // 10% chance for a high peak or very low valley
+              if (Math.random() < 0.5) {
+                // High peak - increased maximum height
+                targetHeights[i] = Math.random() * 25 + 65 // Range from 65 to 90 (increased from 60-80)
+              } else {
+                // Low valley
+                targetHeights[i] = Math.random() * 5 + 2 // Range from 2 to 7
+              }
+            } else {
+              // Normal range
+              targetHeights[i] = Math.random() * 50 + 10 // Range from 10 to 60
+            }
+          }
+        }
 
-          // Keep bars within bounds
-          bars[i] = Math.max(10, Math.min(70, bars[i]))
+        // Update bar heights with faster transitions
+        for (let i = 0; i < barCount; i++) {
+          // Faster easing towards target height
+          const diff = targetHeights[i] - bars[i]
+          bars[i] += diff * 0.15 // Responsive movement
+
+          // Add small random jitter for more liveliness
+          bars[i] += Math.random() * 2 - 1
+
+          // Keep bars within expanded bounds - increased maximum height
+          bars[i] = Math.max(2, Math.min(90, bars[i])) // Increased from 80 to 90
 
           // Draw bar
-          const x = i * (barWidth + 2)
+          const x = i * (barWidth + 1.2)
           const barHeight = bars[i]
           const y = (height - barHeight) / 2
 
-          // Simplified color selection - reduce calculations
-          const colorIndex1 = i % purpleColors.length
-          const colorIndex2 = (i + 2) % purpleColors.length
+          // Color selection with moving gradient effect
+          // Calculate color index based on position and moving offset
+          const colorPosition = (i + colorOffsetRef.current) % barCount
+          const colorIndex = Math.floor((colorPosition / barCount) * purpleColors.length)
+          const nextColorIndex = (colorIndex + 1) % purpleColors.length
 
-          // Get colors from our palette
-          const color1 = purpleColors[colorIndex1]
-          const color2 = purpleColors[colorIndex2]
+          // Calculate how far we are between the current color and the next
+          const colorProgress = (colorPosition / barCount) * purpleColors.length - colorIndex
 
-          // Create gradient
+          // Interpolate between colors for smoother gradient
+          const baseColor = purpleColors[colorIndex]
+          const nextColor = purpleColors[nextColorIndex]
+
+          // Create gradient - vertical gradient from lighter to darker
           const gradient = ctx.createLinearGradient(0, y, 0, y + barHeight)
-          gradient.addColorStop(0, color1)
-          gradient.addColorStop(1, color2)
+
+          // Start with current color
+          gradient.addColorStop(0, baseColor)
+
+          // End with next color
+          gradient.addColorStop(1, nextColor)
 
           // Apply the gradient
           ctx.fillStyle = gradient
 
-          // Add glow effect - but only when not in power saving mode
-          const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
-          if (!prefersReducedMotion) {
-            ctx.shadowColor = color1
-            ctx.shadowBlur = 5
-            ctx.shadowOffsetX = 0
-            ctx.shadowOffsetY = 0
-          }
+          // Add stronger glow effect to match the image
+          ctx.shadowColor = baseColor
+          ctx.shadowBlur = 8 // Increased blur for more prominent glow
+          ctx.shadowOffsetX = 0
+          ctx.shadowOffsetY = 0
 
-          // Draw the bar with rounded corners for a more polished look
-          // Use precise coordinates to avoid anti-aliasing blur
-          const xPos = Math.round(x) + 0.5 // Adding 0.5 aligns with pixel grid
+          // Draw the bar with more rounded corners to match the image
+          const xPos = Math.round(x) + 0.5
           const yPos = Math.round(y) + 0.5
-          const barWidthRounded = Math.round(barWidth)
+          const barWidthRounded = Math.max(1, Math.round(barWidth)) // Ensure minimum width of 1px
           const barHeightRounded = Math.round(barHeight)
 
           ctx.beginPath()
-          ctx.roundRect(xPos, yPos, barWidthRounded, barHeightRounded, 2)
+          ctx.roundRect(xPos, yPos, barWidthRounded, barHeightRounded, 2) // Reduced corner radius for skinnier bars
           ctx.fill()
 
           // Reset shadow for next bar
@@ -174,13 +209,27 @@ const AudioWave = memo(function AudioWave() {
       canvas.style.width = `${canvasWidth}px`
     }
 
+    // Set background to black to match the image
+    canvas.style.background = "black"
+
     // Initialize bars only once
     if (!isInitializedRef.current) {
-      const barCount = 60 // Increased bar count to match the animation
-      // Initialize bars with random heights
+      const barCount = 90 // Increased bar count for skinnier bars
+
+      // Initialize bars with varied heights to match the image pattern
       for (let i = 0; i < barCount; i++) {
-        barsRef.current.push(Math.random() * 50 + 10)
+        // Create a wave-like pattern for initial state
+        const baseHeight = 30
+        const variance = 25 // Increased variance for more dramatic initial state
+        const frequency = 0.15
+
+        // Create a sine wave with some randomness
+        const height = baseHeight + Math.sin(i * frequency) * variance + (Math.random() * 10 - 5)
+
+        barsRef.current.push(height)
+        targetHeightsRef.current.push(height)
       }
+
       isInitializedRef.current = true
     }
 
@@ -239,8 +288,8 @@ const AudioWave = memo(function AudioWave() {
   }, [animate])
 
   return (
-    <div ref={containerRef} className="w-full overflow-hidden" style={{ background: "transparent" }}>
-      <canvas ref={canvasRef} className="h-20" aria-hidden="true" style={{ background: "transparent" }} />
+    <div ref={containerRef} className="w-full overflow-hidden" style={{ background: "black" }}>
+      <canvas ref={canvasRef} className="h-20" aria-hidden="true" />
     </div>
   )
 })
