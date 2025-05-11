@@ -18,7 +18,7 @@ interface RoastMeProps {
   topArtists: any
   recentlyPlayed: any
   activeTab: string
-  selectedVinyl?: any // Add selected vinyl prop
+  selectedVinyl?: any
 }
 
 export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, selectedVinyl }: RoastMeProps) {
@@ -28,6 +28,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
   const [typewriterComplete, setTypewriterComplete] = useState(false)
   const [isFallback, setIsFallback] = useState(false)
   const [mainContent, setMainContent] = useState<string>("")
+  const [disclaimerText, setDisclaimerText] = useState<string>("")
 
   // Determine the assistant type based on the selected vinyl
   const assistantType = selectedVinyl?.assistantType || "snob"
@@ -56,6 +57,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
       setError(null)
       setRoast(null)
       setMainContent("")
+      setDisclaimerText("")
       setTypewriterComplete(false)
       setIsFallback(false)
 
@@ -84,7 +86,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
       // Call the API through our service with the assistant type
       const response = await getRoast(formattedData, viewType, assistantType)
 
-      // Check if this is a fallback response using a standardized pattern
+      // Check if this is a fallback response
       if (response.includes("*Note:") || response.includes("Note: This is a fallback")) {
         setIsFallback(true)
       }
@@ -102,13 +104,13 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
   useEffect(() => {
     if (!roast) return
 
-    // Use a standardized set of disclaimer patterns for all assistant types
+    // Find the disclaimer section - look for standard patterns
     const disclaimerPatterns = [
-      "*Note:",
-      "Note: ",
       "This roast is a satirical critique",
       "This validation is a celebration",
-      "This analysis is",
+      "*Note:",
+      "The Music Snob",
+      "Humbly at your service",
     ]
 
     let disclaimerIndex = -1
@@ -122,28 +124,15 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
 
     if (disclaimerIndex !== -1) {
       setMainContent(roast.substring(0, disclaimerIndex).trim())
+      setDisclaimerText(roast.substring(disclaimerIndex).trim())
     } else {
       setMainContent(roast)
+      setDisclaimerText("")
     }
   }, [roast])
 
-  // Get the appropriate card title based on the assistant type
-  const getCardTitle = () => {
-    // Use a standardized format for all assistant types
-    return assistantType === "worshipper" ? "Music Taste Validation" : "Music Taste Roast"
-  }
-
-  // Get the appropriate footer text based on the assistant type
-  const getFooterText = () => {
-    // Use the same format for both assistant types, just change the content
-    return assistantType === "worshipper"
-      ? "This validation is a celebration of your personal listening habits. It's all in good fun and meant to highlight the positive aspects of your music taste."
-      : "This roast is a satirical critique of your personal listening habits. It's all in good fun and not intended to insult any artists or fans."
-  }
-
   // Get loading text based on assistant type
   const getLoadingText = () => {
-    // Use a standardized format for loading text
     return assistantType === "worshipper"
       ? "The Taste Validator Is Appreciating..."
       : "The Music Snob Is Judging You..."
@@ -151,7 +140,6 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
 
   // Get emoji based on assistant type
   const getEmoji = () => {
-    // Use a standardized format for emojis
     return assistantType === "worshipper" ? "✨" : "🔥"
   }
 
@@ -209,7 +197,16 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
             </div>
           </CardContent>
 
-          <CardFooter className="pt-4 pb-4 text-sm text-zinc-500 italic">{getFooterText()}</CardFooter>
+          {disclaimerText && (
+            <CardFooter className="pt-4 pb-4 text-sm text-zinc-500 italic">
+              <ReactMarkdown
+                className="prose prose-invert max-w-none text-zinc-500 text-sm italic"
+                rehypePlugins={[rehypeRaw]}
+              >
+                {disclaimerText}
+              </ReactMarkdown>
+            </CardFooter>
+          )}
         </Card>
       )}
     </div>
