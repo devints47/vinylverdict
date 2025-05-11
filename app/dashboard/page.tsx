@@ -779,17 +779,24 @@ export default function DashboardPage() {
 
           {/* Middle Column - Critic Description and Roast Me Button (50% on desktop) */}
           <div className="w-full md:w-[50%] flex flex-col">
-            <div className="flex-1 bg-zinc-900/50 rounded-xl p-6 mb-4 border border-zinc-800">
+            {/* Fixed height description box */}
+            <div className="bg-zinc-900/50 rounded-xl p-6 border border-zinc-800">
               {selectedVinyl ? (
-                <>
+                <div className="flex flex-col">
                   <h2 className="text-2xl font-bold text-purple-gradient mb-4">{selectedVinyl.name}</h2>
-                  <p className="text-zinc-300 mb-6">{selectedVinyl.description}</p>
-                </>
+                  <div className="h-[5.5rem] overflow-hidden">
+                    <p className="text-zinc-300 line-clamp-4">{selectedVinyl.description}</p>
+                  </div>
+                </div>
               ) : (
-                <p className="text-zinc-400 text-center py-8">Select a critic to see their description</p>
+                <div className="h-[9.5rem] flex items-center justify-center">
+                  <p className="text-zinc-400 text-center">Select a critic to see their description</p>
+                </div>
               )}
             </div>
-            <div className="mt-auto">
+
+            {/* Roast Me button positioned directly below the description box */}
+            <div className="mt-4">
               <RoastMe
                 topTracks={currentTopTracks}
                 topArtists={currentTopArtists}
