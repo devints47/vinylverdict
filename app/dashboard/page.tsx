@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
-import { Loader2, RefreshCw, Users, Clock } from "lucide-react"
+import { Loader2, RefreshCw, Users, Clock, ChevronDown, ChevronUp, Info } from "lucide-react"
 import { MusicTabs } from "@/components/music-tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { TimeRangeSelector } from "@/components/time-range-selector"
@@ -412,6 +412,57 @@ function TopArtistsContent({
   )
 }
 
+// Collapsible Critic Info Component
+function CollapsibleCriticInfo({ selectedVinyl }: { selectedVinyl: VinylDesign | null }) {
+  const [isExpanded, setIsExpanded] = useState(false)
+
+  const toggleExpand = () => {
+    setIsExpanded(!isExpanded)
+  }
+
+  return (
+    <div className="bg-zinc-900/50 rounded-xl border border-zinc-800 overflow-hidden">
+      {selectedVinyl ? (
+        <>
+          <div className="p-4">
+            <h2 className="text-2xl font-bold text-purple-gradient">{selectedVinyl.name}</h2>
+
+            {/* Mobile view - Collapsible content */}
+            <div className="md:hidden">
+              <button
+                onClick={toggleExpand}
+                className="flex items-center justify-between w-full mt-2 text-sm text-zinc-400 hover:text-white transition-colors"
+                aria-expanded={isExpanded}
+              >
+                <span className="flex items-center">
+                  <Info className="h-4 w-4 mr-1" />
+                  {isExpanded ? "Hide details" : "Learn more about this critic"}
+                </span>
+                {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              </button>
+
+              <div
+                className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? "max-h-96 mt-3" : "max-h-0"}`}
+              >
+                <p className="text-zinc-300">{selectedVinyl.description}</p>
+              </div>
+            </div>
+
+            {/* Desktop view - Always visible content */}
+            <div className="hidden md:block h-[5.5rem] overflow-hidden mt-4">
+              <p className="text-zinc-300 line-clamp-4">{selectedVinyl.description}</p>
+            </div>
+          </div>
+        </>
+      ) : (
+        <div className="p-6 flex items-center justify-center">
+          <p className="text-zinc-400 text-center">Select a critic to see their description</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function DashboardPage() {
   const { isAuthenticated, isLoading } = useAuth()
   const router = useRouter()
@@ -779,21 +830,8 @@ export default function DashboardPage() {
 
           {/* Middle Column - Critic Description and Roast Me Button (50% on desktop) */}
           <div className="w-full md:w-[50%] flex flex-col">
-            {/* Fixed height description box */}
-            <div className="bg-zinc-900/50 rounded-xl p-6 border border-zinc-800">
-              {selectedVinyl ? (
-                <div className="flex flex-col">
-                  <h2 className="text-2xl font-bold text-purple-gradient mb-4">{selectedVinyl.name}</h2>
-                  <div className="h-[5.5rem] overflow-hidden">
-                    <p className="text-zinc-300 line-clamp-4">{selectedVinyl.description}</p>
-                  </div>
-                </div>
-              ) : (
-                <div className="h-[9.5rem] flex items-center justify-center">
-                  <p className="text-zinc-400 text-center">Select a critic to see their description</p>
-                </div>
-              )}
-            </div>
+            {/* Collapsible critic info box */}
+            <CollapsibleCriticInfo selectedVinyl={selectedVinyl} />
 
             {/* Roast Me button positioned directly below the description box */}
             <div className="mt-4">
