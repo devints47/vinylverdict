@@ -209,9 +209,6 @@ const AudioWave = memo(function AudioWave() {
       canvas.style.width = `${canvasWidth}px`
     }
 
-    // Set background to black to match the image
-    canvas.style.background = "black"
-
     // Initialize bars only once
     if (!isInitializedRef.current) {
       const barCount = 90 // Increased bar count for skinnier bars
@@ -288,7 +285,7 @@ const AudioWave = memo(function AudioWave() {
   }, [animate])
 
   return (
-    <div ref={containerRef} className="w-full overflow-hidden" style={{ background: "black" }}>
+    <div ref={containerRef} className="w-full overflow-hidden">
       <canvas ref={canvasRef} className="h-20" aria-hidden="true" />
     </div>
   )
