@@ -36,22 +36,6 @@ interface ArtistInfo {
   [key: string]: any
 }
 
-// Load More Button Component - defined outside the component to avoid hook issues
-function LoadMoreButton({ onClick, isVisible }: { onClick: () => void; isVisible: boolean }) {
-  if (!isVisible) return null
-
-  return (
-    <div className="flex justify-center mt-6">
-      <button
-        onClick={onClick}
-        className="bg-zinc-800 hover:bg-zinc-700 text-white px-6 py-2 rounded-full text-sm transition-colors"
-      >
-        Load More
-      </button>
-    </div>
-  )
-}
-
 // User Profile Card Component
 function UserProfileCard({
   profile,
@@ -223,7 +207,16 @@ function RecentlyPlayedContent({
               })}
             </ListContainer>
 
-            <LoadMoreButton onClick={loadMoreRecent} isVisible={visibleRecentCount < recentlyPlayed.items.length} />
+            {visibleRecentCount < recentlyPlayed.items.length && (
+              <div className="flex justify-center mt-6">
+                <button
+                  onClick={loadMoreRecent}
+                  className="bg-zinc-800 hover:bg-zinc-700 text-white px-6 py-2 rounded-full text-sm transition-colors"
+                >
+                  Load More
+                </button>
+              </div>
+            )}
           </>
         ) : (
           <p className="text-center py-8 text-zinc-500">No recently played tracks found.</p>
@@ -311,7 +304,16 @@ function TopTracksContent({
               })}
             </ListContainer>
 
-            <LoadMoreButton onClick={loadMoreTracks} isVisible={visibleTracksCount < currentTopTracks.items.length} />
+            {visibleTracksCount < currentTopTracks.items.length && (
+              <div className="flex justify-center mt-6">
+                <button
+                  onClick={loadMoreTracks}
+                  className="bg-zinc-800 hover:bg-zinc-700 text-white px-6 py-2 rounded-full text-sm transition-colors"
+                >
+                  Load More
+                </button>
+              </div>
+            )}
           </>
         ) : (
           <p className="text-center py-8 text-zinc-500">No top tracks found for this time period.</p>
@@ -391,10 +393,16 @@ function TopArtistsContent({
               ))}
             </ListContainer>
 
-            <LoadMoreButton
-              onClick={loadMoreArtists}
-              isVisible={visibleArtistsCount < currentTopArtists.items.length}
-            />
+            {visibleArtistsCount < currentTopArtists.items.length && (
+              <div className="flex justify-center mt-6">
+                <button
+                  onClick={loadMoreArtists}
+                  className="bg-zinc-800 hover:bg-zinc-700 text-white px-6 py-2 rounded-full text-sm transition-colors"
+                >
+                  Load More
+                </button>
+              </div>
+            )}
           </>
         ) : (
           <p className="text-center py-8 text-zinc-500">No top artists found for this time period.</p>
