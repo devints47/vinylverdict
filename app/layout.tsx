@@ -13,15 +13,15 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       {
-        url: "/music-snob-favicon.ico",
-        href: "/music-snob-favicon.ico",
+        url: "/favicon.png",
+        href: "/favicon.png",
       },
     ],
     apple: [
       {
-        url: "/music-snob-apple-icon.png",
+        url: "/favicon.png",
         sizes: "180x180",
-        href: "/music-snob-apple-icon.png",
+        href: "/favicon.png",
       },
     ],
   },
