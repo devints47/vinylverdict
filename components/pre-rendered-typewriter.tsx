@@ -17,29 +17,25 @@ export function PreRenderedTypewriter({
   className = "",
   onComplete,
 }: PreRenderedTypewriterProps) {
-  const [displayedChars, setDisplayedChars] = useState(0)
+  const [displayText, setDisplayText] = useState("")
   const [isComplete, setIsComplete] = useState(false)
-  const [renderedHTML, setRenderedHTML] = useState("")
-  const [plainText, setPlainText] = useState("")
+  const [renderedHTML, setRenderedHTML] = useState<{ [key: string]: string }>({})
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // Pre-render the markdown to HTML
+  // Pre-render the markdown to HTML for each character length
   useEffect(() => {
     if (!markdown) {
-      setRenderedHTML("")
-      setPlainText("")
+      setRenderedHTML({})
       return
     }
 
     // Create a temporary container
     const tempContainer = document.createElement("div")
-
-    // Use ReactDOM to render the markdown
     const ReactDOM = require("react-dom/client")
     const root = ReactDOM.createRoot(tempContainer)
 
-    // Render the markdown
+    // Pre-render the full markdown
     root.render(
       <ReactMarkdown
         rehypePlugins={[rehypeRaw]}
@@ -51,9 +47,9 @@ export function PreRenderedTypewriter({
 
     // Wait for rendering to complete
     setTimeout(() => {
-      // Get the rendered HTML and plain text
-      setRenderedHTML(tempContainer.innerHTML)
-      setPlainText(tempContainer.textContent || "")
+      // Get the rendered HTML
+      const fullHTML = tempContainer.innerHTML
+      setRenderedHTML({ full: fullHTML })
 
       // Clean up
       root.unmount()
@@ -62,26 +58,30 @@ export function PreRenderedTypewriter({
 
   // Handle the typewriter effect
   useEffect(() => {
-    if (!plainText) return
+    if (!markdown || !renderedHTML.full) return
 
-    setDisplayedChars(0)
+    setDisplayText("")
     setIsComplete(false)
 
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current)
     }
 
+    let currentIndex = 0
+    const plainText = markdown
+      .replace(/\*\*/g, "")
+      .replace(/\*/g, "")
+      .replace(/\[([^\]]+)\]$$([^)]+)$$/g, "$1")
+
     const animateText = () => {
-      setDisplayedChars((prev) => {
-        if (prev < plainText.length) {
-          timeoutRef.current = setTimeout(animateText, speed)
-          return prev + 1
-        } else {
-          setIsComplete(true)
-          if (onComplete) onComplete()
-          return prev
-        }
-      })
+      if (currentIndex < plainText.length) {
+        setDisplayText(plainText.substring(0, currentIndex + 1))
+        currentIndex++
+        timeoutRef.current = setTimeout(animateText, speed)
+      } else {
+        setIsComplete(true)
+        if (onComplete) onComplete()
+      }
     }
 
     timeoutRef.current = setTimeout(animateText, speed)
@@ -89,27 +89,29 @@ export function PreRenderedTypewriter({
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current)
     }
-  }, [plainText, speed, onComplete])
+  }, [markdown, renderedHTML.full, speed, onComplete])
 
   return (
     <div className={className} ref={containerRef}>
-      <div
-        className="prose prose-invert max-w-none text-zinc-300 prose-headings:text-purple-gradient prose-strong:text-white prose-em:text-zinc-400 prose-li:marker:text-purple-gradient"
-        dangerouslySetInnerHTML={{ __html: renderedHTML }}
-        style={{
-          WebkitMaskImage: `linear-gradient(to right, black ${(displayedChars / plainText.length) * 100}%, transparent ${(displayedChars / plainText.length) * 100}%)`,
-          maskImage: `linear-gradient(to right, black ${(displayedChars / plainText.length) * 100}%, transparent ${(displayedChars / plainText.length) * 100}%)`,
-        }}
-      />
-      {!isComplete && (
-        <span
-          className="inline-block w-2 h-4 bg-purple-500 animate-pulse"
-          style={{
-            verticalAlign: "middle",
-            marginLeft: "1px",
-          }}
-          aria-hidden="true"
+      {isComplete ? (
+        <div
+          className="prose prose-invert max-w-none text-zinc-300 prose-headings:text-purple-gradient prose-strong:text-white prose-em:text-zinc-400 prose-li:marker:text-purple-gradient"
+          dangerouslySetInnerHTML={{ __html: renderedHTML.full }}
         />
+      ) : (
+        <>
+          <div className="prose prose-invert max-w-none text-zinc-300 prose-headings:text-purple-gradient prose-strong:text-white prose-em:text-zinc-400 prose-li:marker:text-purple-gradient">
+            {displayText}
+            <span
+              className="inline-block w-2 h-4 bg-purple-500 animate-pulse"
+              style={{
+                verticalAlign: "middle",
+                marginLeft: "1px",
+              }}
+              aria-hidden="true"
+            />
+          </div>
+        </>
       )}
     </div>
   )
