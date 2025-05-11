@@ -307,10 +307,7 @@ function TopTracksContent({
             </ListContainer>
 
             {visibleTracksCount < currentTopTracks.items.length && (
-              <div
-                className="flex justify-center mt-6"
-                style={{ contentVisibility: "auto", containIntrinsicSize: "1px 200px" }}
-              >
+              <div className="flex justify-center mt-6">
                 <button
                   onClick={loadMoreTracks}
                   className="bg-zinc-800 hover:bg-zinc-700 text-white px-6 py-2 rounded-full text-sm transition-colors"
@@ -516,25 +513,6 @@ export default function DashboardPage() {
     setSelectedVinyl(design)
   }, [])
 
-  // Check authentication on mount
-  // useEffect(() => {
-  //   const checkAuth = async () => {
-  //     try {
-  //       // If not authenticated and not loading, redirect to login
-  //       if (!isAuthenticated && !isLoading) {
-  //         console.log("Not authenticated, redirecting to login")
-  //         router.push("/login")
-  //         return
-  //       }
-  //     } catch (err) {
-  //       console.error("Error checking auth:", err)
-  //       setError("Failed to check authentication status")
-  //     }
-  //   }
-
-  //   checkAuth()
-  // }, [isAuthenticated, isLoading, router])
-
   // Fetch user profile
   const fetchProfile = useCallback(async () => {
     try {
@@ -727,13 +705,6 @@ export default function DashboardPage() {
     [fetchProfile, fetchRecentlyPlayed, fetchAllTopTracks, fetchAllTopArtists, lastFetched],
   )
 
-  // Initial data fetch
-  // useEffect(() => {
-  //   if (isAuthenticated && !isLoading) {
-  //     fetchAllData()
-  //   }
-  // }, [isAuthenticated, isLoading, fetchAllData])
-
   // Handle tab change
   const handleTabChange = useCallback((value: string) => {
     setActiveTab(value)
@@ -783,11 +754,11 @@ export default function DashboardPage() {
     [artistInfo],
   )
 
-  // Authentication check and data fetching moved inside a single useEffect
+  // Authentication check and data fetching
   useEffect(() => {
-    let isMounted = true // Add a flag to track component mount status
+    let isMounted = true
 
-    const fetchData = async () => {
+    const checkAuthAndFetchData = async () => {
       try {
         // If not authenticated and not loading, redirect to login
         if (!isAuthenticated && !isLoading) {
@@ -796,22 +767,34 @@ export default function DashboardPage() {
           return
         }
 
-        // If authenticated and not loading, fetch all data
+        // If authenticated and not loading, fetch data
         if (isAuthenticated && !isLoading && isMounted) {
           await fetchAllData()
         }
       } catch (err) {
         console.error("Error during authentication/data fetching:", err)
-        setError("An error occurred during authentication or data fetching.")
+        if (isMounted) {
+          setError("An error occurred during authentication or data fetching.")
+        }
       }
     }
 
-    fetchData()
+    checkAuthAndFetchData()
 
     return () => {
-      isMounted = false // Set the flag to false when the component unmounts
+      isMounted = false
     }
   }, [isAuthenticated, isLoading, router, fetchAllData])
+
+  // Scroll event listener
+  useEffect(() => {
+    const handleScroll = () => {
+      // Scroll handling logic if needed
+    }
+
+    window.addEventListener("scroll", handleScroll, { passive: true })
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [])
 
   // Show loading state
   if (isLoading || isLoadingProfile) {
@@ -846,15 +829,6 @@ export default function DashboardPage() {
     />
   )
 
-  useEffect(() => {
-    const handleScroll = () => {
-      // Scroll handling logic
-    }
-
-    window.addEventListener("scroll", handleScroll, { passive: true })
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
-
   return (
     <div className="min-h-screen bg-black flex flex-col relative overflow-hidden">
       <TechGridBackground />
@@ -869,18 +843,7 @@ export default function DashboardPage() {
           {/* Left Column - Vinyl Collection (25% on desktop) */}
           <div className="w-full md:w-[25%]">
             <div className="sticky top-24">
-              <div
-                className="vinyl-container relative"
-                style={{
-                  width: "300px",
-                  height: "300px",
-                  contain: "layout",
-                  overflow: "visible",
-                  willChange: "transform",
-                }}
-              >
-                <VinylCollection onSelectVinyl={handleVinylSelect} />
-              </div>
+              <VinylCollection onSelectVinyl={handleVinylSelect} />
             </div>
           </div>
 
@@ -900,7 +863,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Right Column - Profile Card (25% on desktop) - Hidden on mobile as it's moved to the          {/* Right Column - Profile Card (25% on desktop) - Hidden on mobile as it's moved to the top */}
+          {/* Right Column - Profile Card (25% on desktop) - Hidden on mobile as it's moved to the top */}
           <div className="w-full md:w-[25%] md:self-start hidden md:block">{profileCard}</div>
         </div>
 

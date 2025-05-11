@@ -7,6 +7,7 @@ interface SnobifyLogoProps {
   className?: string
 }
 
+// Keep the original export for backward compatibility
 export function SnobifyLogo({ size = 40, className = "" }: SnobifyLogoProps) {
   const [isHovered, setIsHovered] = useState(false)
 
@@ -95,4 +96,10 @@ export function SnobifyLogo({ size = 40, className = "" }: SnobifyLogoProps) {
       </svg>
     </div>
   )
+}
+
+// Add the new component name as well
+export function SnobScoreLogo({ size = 40, className = "" }: SnobifyLogoProps) {
+  // Use the original component for now to maintain visual consistency
+  return <SnobifyLogo size={size} className={className} />
 }

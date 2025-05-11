@@ -1,43 +1,31 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Inter } from "next/font/google"
-import { AuthProvider } from "@/contexts/auth-context"
 import "./globals.css"
+import { AuthProvider } from "@/contexts/auth-context"
+import { ScrollToTop } from "@/components/scroll-to-top"
 
 const inter = Inter({ subsets: ["latin"] })
 
-// Update the metadata title
 export const metadata: Metadata = {
-  title: "SnobScore - Your Spotify Stats with a Side of Sass",
-  description: "View your Spotify listening statistics and get roasted by our music critics",
+  title: "SnobScore - Your Spotify Music Taste Analyzer",
+  description: "Analyze your Spotify listening habits and get a personalized music taste analysis",
   icons: {
-    icon: [
-      {
-        url: "/favicon.png",
-        href: "/favicon.png",
-      },
-    ],
-    apple: [
-      {
-        url: "/favicon.png",
-        sizes: "180x180",
-        href: "/favicon.png",
-      },
-    ],
+    icon: "/favicon.png",
   },
     generator: 'v0.dev'
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode
+}>) {
   return (
     <html lang="en">
-      <head>
-        <meta charSet="utf-8" />
-      </head>
-      <body className={`${inter.className} bg-black text-white`}>
+      <body className={inter.className}>
         <AuthProvider>{children}</AuthProvider>
-        <SpeedInsights />
+        <ScrollToTop />
       </body>
     </html>
   )
