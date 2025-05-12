@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
+import { useVinyl } from "@/contexts/vinyl-context"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { Loader2, RefreshCw, Users, Clock, ChevronDown, ChevronUp, Info } from "lucide-react"
@@ -468,12 +469,12 @@ function TopArtistsContent({
 
 export default function DashboardPage() {
   const { isAuthenticated, isLoading } = useAuth()
+  const { selectedVinyl, handleVinylSelect } = useVinyl()
   const router = useRouter()
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [isLoadingProfile, setIsLoadingProfile] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [debugInfo, setDebugInfo] = useState<string>("")
-  const [selectedVinyl, setSelectedVinyl] = useState<VinylDesign | null>(null)
 
   // State for Spotify data
   const [recentlyPlayed, setRecentlyPlayed] = useState<any>(null)
@@ -507,11 +508,6 @@ export default function DashboardPage() {
   // Get current data based on selected tab and time range
   const currentTopTracks = topTracks[timeRange]
   const currentTopArtists = topArtists[timeRange]
-
-  // Handle vinyl selection
-  const handleVinylSelect = useCallback((design: VinylDesign) => {
-    setSelectedVinyl(design)
-  }, [])
 
   // Fetch user profile
   const fetchProfile = useCallback(async () => {

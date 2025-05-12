@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { VinylRecord } from "./vinyl-record"
+import { useVinyl } from "@/contexts/vinyl-context"
 
 // Define vinyl design type for better type safety
 export interface VinylDesign {
@@ -22,6 +23,7 @@ export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: Vi
   const [activeIndex, setActiveIndex] = useState(0)
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [flipDirection, setFlipDirection] = useState<FlipDirection>("none")
+  const { selectedVinyl, setSelectedVinyl } = useVinyl()
 
   // Define our vinyl designs
   const vinylDesigns: VinylDesign[] = [
@@ -74,6 +76,16 @@ export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: Vi
     },
   ]
 
+  // Set initial active index based on the selected vinyl from context
+  useEffect(() => {
+    if (selectedVinyl) {
+      const index = vinylDesigns.findIndex((design) => design.id === selectedVinyl.id)
+      if (index !== -1 && index !== activeIndex) {
+        setActiveIndex(index)
+      }
+    }
+  }, [selectedVinyl, vinylDesigns])
+
   // Navigation functions
   const nextVinyl = () => {
     if (isTransitioning) return
@@ -84,8 +96,10 @@ export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: Vi
     // Delay the actual index change to allow for animation
     setTimeout(() => {
       setActiveIndex(newIndex)
+      const newVinyl = vinylDesigns[newIndex]
+      setSelectedVinyl(newVinyl)
       if (onSelectVinyl) {
-        onSelectVinyl(vinylDesigns[newIndex])
+        onSelectVinyl(newVinyl)
       }
     }, 250) // Half of the transition time
 
@@ -105,8 +119,10 @@ export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: Vi
     // Delay the actual index change to allow for animation
     setTimeout(() => {
       setActiveIndex(newIndex)
+      const newVinyl = vinylDesigns[newIndex]
+      setSelectedVinyl(newVinyl)
       if (onSelectVinyl) {
-        onSelectVinyl(vinylDesigns[newIndex])
+        onSelectVinyl(newVinyl)
       }
     }, 250) // Half of the transition time
 
@@ -128,8 +144,10 @@ export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: Vi
     // Delay the actual index change to allow for animation
     setTimeout(() => {
       setActiveIndex(index)
+      const newVinyl = vinylDesigns[index]
+      setSelectedVinyl(newVinyl)
       if (onSelectVinyl) {
-        onSelectVinyl(vinylDesigns[index])
+        onSelectVinyl(newVinyl)
       }
     }, 250) // Half of the transition time
 
@@ -143,7 +161,9 @@ export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: Vi
   // Call onSelectVinyl with the initial vinyl on first render
   useEffect(() => {
     if (onSelectVinyl && !isTransitioning) {
-      onSelectVinyl(vinylDesigns[activeIndex])
+      const currentVinyl = vinylDesigns[activeIndex]
+      onSelectVinyl(currentVinyl)
+      setSelectedVinyl(currentVinyl)
     }
   }, [activeIndex, onSelectVinyl, isTransitioning])
 

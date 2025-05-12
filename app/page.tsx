@@ -11,11 +11,13 @@ import { TechGridBackground } from "@/components/tech-grid-background"
 import { AlertCircle, BarChart3, Headphones, MessageSquare, Music, Zap, Share2 } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { useAuth } from "@/contexts/auth-context"
+import { useVinyl } from "@/contexts/vinyl-context"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
 
 export default function LandingPage() {
   const { isAuthenticated, error, isLoading } = useAuth()
+  const { selectedVinyl } = useVinyl()
   const router = useRouter()
 
   // We no longer automatically redirect authenticated users to the dashboard
