@@ -12,12 +12,17 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { useAuth } from "@/contexts/auth-context"
 import { useVinyl } from "@/contexts/vinyl-context"
 import { useRouter } from "next/navigation"
-import { useEffect } from "react"
+import { useEffect, useState, useRef } from "react"
 
 export default function LandingPage() {
   const { isAuthenticated, error, isLoading } = useAuth()
   const { selectedVinyl } = useVinyl()
   const router = useRouter()
+  const [currentDescription, setCurrentDescription] = useState("")
+  const [isFading, setIsFading] = useState(false)
+  const vinylRef = useRef<HTMLDivElement>(null)
+  const [vinylWidth, setVinylWidth] = useState(0)
+  const previousVinylRef = useRef<any>(null)
 
   // We no longer automatically redirect authenticated users to the dashboard
   // This allows them to view the landing page while logged in
@@ -27,6 +32,55 @@ export default function LandingPage() {
       console.log("User is authenticated, but staying on landing page")
     }
   }, [isAuthenticated, isLoading])
+
+  // Update description when vinyl changes with fade transition
+  useEffect(() => {
+    if (selectedVinyl) {
+      // Only trigger fade if this isn't the initial load or if the vinyl actually changed
+      if (previousVinylRef.current && previousVinylRef.current.id !== selectedVinyl.id) {
+        // Start fade out
+        setIsFading(true)
+
+        // After fade out completes, update the description and start fade in
+        const timer = setTimeout(() => {
+          setCurrentDescription(selectedVinyl.description)
+          setIsFading(false)
+        }, 300) // This should match the CSS transition duration
+
+        return () => clearTimeout(timer)
+      } else {
+        // Initial load, just set the description without animation
+        setCurrentDescription(selectedVinyl.description)
+      }
+
+      // Update the previous vinyl reference
+      previousVinylRef.current = selectedVinyl
+    }
+  }, [selectedVinyl])
+
+  // Measure vinyl width
+  useEffect(() => {
+    const updateVinylWidth = () => {
+      if (vinylRef.current) {
+        // Get the width of the vinyl container
+        const width = vinylRef.current.offsetWidth
+        setVinylWidth(width)
+      }
+    }
+
+    // Initial measurement
+    updateVinylWidth()
+
+    // Set up resize observer to update measurements when window resizes
+    const resizeObserver = new ResizeObserver(updateVinylWidth)
+    if (vinylRef.current) {
+      resizeObserver.observe(vinylRef.current)
+    }
+
+    return () => {
+      resizeObserver.disconnect()
+    }
+  }, [])
 
   // Handle scrolling to section based on hash in URL
   useEffect(() => {
@@ -89,12 +143,35 @@ export default function LandingPage() {
                 )}
               </div>
 
-              <div className="relative">
-                <VinylCollection />
-                <div className="mt-8">
-                  <AudioWave />
+              <div className="relative flex flex-col items-center">
+                {/* Vinyl Collection with ref */}
+                <div ref={vinylRef}>
+                  <VinylCollection />
+                </div>
+
+                {/* Description Box - With fade transition */}
+                <div
+                  className="mt-4 mb-6 bg-zinc-900/80 border border-zinc-800 rounded-lg p-3 backdrop-blur-sm"
+                  style={{
+                    width: vinylWidth > 0 ? `${vinylWidth * 2.0}px` : "100%",
+                    maxWidth: "100%", // Ensure it doesn't overflow on small screens
+                    minHeight: "60px", // Maintain consistent height during transitions
+                  }}
+                >
+                  <p
+                    className={`text-sm text-[#A1A1AA] transition-opacity duration-300 ease-in-out ${
+                      isFading ? "opacity-0" : "opacity-100"
+                    }`}
+                  >
+                    {currentDescription}
+                  </p>
                 </div>
               </div>
+            </div>
+
+            {/* Audio Wave - Moved below the hero content and centered */}
+            <div className="mt-8 max-w-4xl mx-auto">
+              <AudioWave />
             </div>
           </div>
         </div>
