@@ -19,10 +19,8 @@ export default function LandingPage() {
   const { selectedVinyl } = useVinyl()
   const router = useRouter()
   const [currentDescription, setCurrentDescription] = useState("")
-  const [isFading, setIsFading] = useState(false)
   const vinylRef = useRef<HTMLDivElement>(null)
   const [vinylWidth, setVinylWidth] = useState(0)
-  const previousVinylRef = useRef<any>(null)
 
   // We no longer automatically redirect authenticated users to the dashboard
   // This allows them to view the landing page while logged in
@@ -33,28 +31,10 @@ export default function LandingPage() {
     }
   }, [isAuthenticated, isLoading])
 
-  // Update description when vinyl changes with fade transition
+  // Update description when vinyl changes
   useEffect(() => {
     if (selectedVinyl) {
-      // Only trigger fade if this isn't the initial load or if the vinyl actually changed
-      if (previousVinylRef.current && previousVinylRef.current.id !== selectedVinyl.id) {
-        // Start fade out
-        setIsFading(true)
-
-        // After fade out completes, update the description and start fade in
-        const timer = setTimeout(() => {
-          setCurrentDescription(selectedVinyl.description)
-          setIsFading(false)
-        }, 300) // This should match the CSS transition duration
-
-        return () => clearTimeout(timer)
-      } else {
-        // Initial load, just set the description without animation
-        setCurrentDescription(selectedVinyl.description)
-      }
-
-      // Update the previous vinyl reference
-      previousVinylRef.current = selectedVinyl
+      setCurrentDescription(selectedVinyl.description)
     }
   }, [selectedVinyl])
 
@@ -149,22 +129,15 @@ export default function LandingPage() {
                   <VinylCollection />
                 </div>
 
-                {/* Description Box - With fade transition */}
+                {/* Description Box - Name removed from description */}
                 <div
                   className="mt-4 mb-6 bg-zinc-900/80 border border-zinc-800 rounded-lg p-3 backdrop-blur-sm"
                   style={{
                     width: vinylWidth > 0 ? `${vinylWidth * 2.0}px` : "100%",
                     maxWidth: "100%", // Ensure it doesn't overflow on small screens
-                    minHeight: "60px", // Maintain consistent height during transitions
                   }}
                 >
-                  <p
-                    className={`text-sm text-[#A1A1AA] transition-opacity duration-300 ease-in-out ${
-                      isFading ? "opacity-0" : "opacity-100"
-                    }`}
-                  >
-                    {currentDescription}
-                  </p>
+                  <p className="text-sm text-[#A1A1AA]">{currentDescription}</p>
                 </div>
               </div>
             </div>
@@ -272,7 +245,7 @@ export default function LandingPage() {
       </section>
 
       {/* Testimonials Section - WITH GRID */}
-      <section id="testimonials" className="relative py-20 px-4 bg-black overflow-hidden">
+      <section className="relative py-20 px-4 bg-black overflow-hidden">
         <TechGridBackground />
         <div className="container mx-auto relative z-10">
           <div className="text-center mb-16">
