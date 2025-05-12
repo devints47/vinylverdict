@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Loader2, AlertCircle } from "lucide-react"
@@ -21,16 +21,25 @@ interface RoastMeProps {
   selectedVinyl?: any // Add selected vinyl prop
 }
 
+// Interface for storing responses by assistant type
+interface ResponseStore {
+  content: string
+  isComplete: boolean
+}
+
 export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, selectedVinyl }: RoastMeProps) {
   const [isLoading, setIsLoading] = useState(false)
-  const [roast, setRoast] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [typewriterComplete, setTypewriterComplete] = useState(false)
   const [isFallback, setIsFallback] = useState(false)
-  const [mainContent, setMainContent] = useState<string>("")
 
-  // Determine the assistant type based on the selected vinyl
+  // Store responses for each assistant type
+  const [responseStore, setResponseStore] = useState<Record<string, ResponseStore>>({})
+
+  // Current assistant type
   const assistantType = selectedVinyl?.assistantType || "snob"
+
+  // Get current response from store based on assistant type
+  const currentResponse = responseStore[assistantType] || { content: "", isComplete: false }
 
   // Get the appropriate button text based on the active tab and assistant type
   const getButtonText = () => {
@@ -54,9 +63,6 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
     try {
       setIsLoading(true)
       setError(null)
-      setRoast(null)
-      setMainContent("")
-      setTypewriterComplete(false)
       setIsFallback(false)
 
       // Determine which data to use based on the active tab
@@ -89,7 +95,39 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
         setIsFallback(true)
       }
 
-      setRoast(response)
+      // Process the response to extract main content
+      let mainContent = response
+
+      // Use a standardized set of disclaimer patterns for all assistant types
+      const disclaimerPatterns = [
+        "*Note:",
+        "Note: ",
+        "This roast is a satirical critique",
+        "This validation is a celebration",
+        "This analysis is",
+      ]
+
+      let disclaimerIndex = -1
+
+      for (const pattern of disclaimerPatterns) {
+        const index = response.indexOf(pattern)
+        if (index !== -1 && (disclaimerIndex === -1 || index < disclaimerIndex)) {
+          disclaimerIndex = index
+        }
+      }
+
+      if (disclaimerIndex !== -1) {
+        mainContent = response.substring(0, disclaimerIndex).trim()
+      }
+
+      // Store the response for this assistant type
+      setResponseStore((prev) => ({
+        ...prev,
+        [assistantType]: {
+          content: mainContent,
+          isComplete: false,
+        },
+      }))
     } catch (err) {
       console.error("Error getting roast:", err)
       setError(`Failed to analyze your music taste. Our AI critic is taking a break. Please try again later.`)
@@ -98,39 +136,15 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
     }
   }
 
-  // Extract the main roast content when roast changes
-  useEffect(() => {
-    if (!roast) return
-
-    // Use a standardized set of disclaimer patterns for all assistant types
-    const disclaimerPatterns = [
-      "*Note:",
-      "Note: ",
-      "This roast is a satirical critique",
-      "This validation is a celebration",
-      "This analysis is",
-    ]
-
-    let disclaimerIndex = -1
-
-    for (const pattern of disclaimerPatterns) {
-      const index = roast.indexOf(pattern)
-      if (index !== -1 && (disclaimerIndex === -1 || index < disclaimerIndex)) {
-        disclaimerIndex = index
-      }
-    }
-
-    if (disclaimerIndex !== -1) {
-      setMainContent(roast.substring(0, disclaimerIndex).trim())
-    } else {
-      setMainContent(roast)
-    }
-  }, [roast])
-
-  // Get the appropriate card title based on the assistant type
-  const getCardTitle = () => {
-    // Use a standardized format for all assistant types
-    return assistantType === "worshipper" ? "Music Taste Validation" : "Music Taste Roast"
+  // Handle typewriter completion
+  const handleTypewriterComplete = () => {
+    setResponseStore((prev) => ({
+      ...prev,
+      [assistantType]: {
+        ...prev[assistantType],
+        isComplete: true,
+      },
+    }))
   }
 
   // Get the appropriate footer text based on the assistant type
@@ -187,15 +201,15 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
         </Alert>
       )}
 
-      {mainContent && (
+      {currentResponse.content && (
         <Card className="mt-6 card-holographic bg-gradient-to-r from-zinc-900 to-black max-w-3xl w-full">
           <CardContent className="pt-6 pb-2">
             <div className="markdown-content">
-              {!typewriterComplete ? (
+              {!currentResponse.isComplete ? (
                 <CursorTypewriter
-                  markdown={mainContent}
+                  markdown={currentResponse.content}
                   speed={20}
-                  onComplete={() => setTypewriterComplete(true)}
+                  onComplete={handleTypewriterComplete}
                   cursorChar="█"
                 />
               ) : (
@@ -203,7 +217,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
                   className="prose prose-invert max-w-none text-zinc-300 prose-headings:text-purple-gradient prose-strong:text-white prose-em:text-zinc-400 prose-li:marker:text-purple-gradient"
                   rehypePlugins={[rehypeRaw]}
                 >
-                  {mainContent}
+                  {currentResponse.content}
                 </ReactMarkdown>
               )}
             </div>
