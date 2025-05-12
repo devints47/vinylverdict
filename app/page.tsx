@@ -4,7 +4,6 @@ import { Navbar } from "@/components/navbar"
 import { SpotifyLoginButton } from "@/components/spotify-login-button"
 import { VinylCollection } from "@/components/vinyl-collection"
 import { AudioWave } from "@/components/audio-wave"
-import { FeatureCard } from "@/components/feature-card"
 import { Testimonial } from "@/components/testimonial"
 import { Footer } from "@/components/footer"
 import { TechGridBackground } from "@/components/tech-grid-background"
@@ -111,21 +110,50 @@ export default function LandingPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <FeatureCard
-                title="Instant Results"
-                description="Get your musical roast in seconds, no waiting around for your ego to be crushed."
-                icon={Zap}
-              />
-              <FeatureCard
-                title="Spotify Integration"
-                description="Securely connect your Spotify account to analyze your recently played tracks and top artists."
-                icon={Music}
-              />
-              <FeatureCard
-                title="Share Your Roast"
-                description="Brave enough to share your musical shame? Export and share your critique with friends."
-                icon={Share2}
-              />
+              {/* Custom Feature Card with Gradient - Instant Results */}
+              <div className="bg-gradient-to-r from-zinc-900/80 to-black/80 border border-zinc-800 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 backdrop-blur-sm h-full">
+                <div className="p-6">
+                  <div className="bg-bright-purple/10 w-12 h-12 rounded-full flex items-center justify-center mb-4">
+                    <Zap className="h-6 w-6 text-bright-purple" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2 text-white">Instant Results</h3>
+                </div>
+                <div className="px-6 pb-6">
+                  <p className="text-zinc-400 text-base">
+                    Get your musical roast in seconds, no waiting around for your ego to be crushed.
+                  </p>
+                </div>
+              </div>
+
+              {/* Custom Feature Card with Gradient - Spotify Integration */}
+              <div className="bg-gradient-to-r from-zinc-900/80 to-black/80 border border-zinc-800 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 backdrop-blur-sm h-full">
+                <div className="p-6">
+                  <div className="bg-bright-purple/10 w-12 h-12 rounded-full flex items-center justify-center mb-4">
+                    <Music className="h-6 w-6 text-bright-purple" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2 text-white">Spotify Integration</h3>
+                </div>
+                <div className="px-6 pb-6">
+                  <p className="text-zinc-400 text-base">
+                    Securely connect your Spotify account to analyze your recently played tracks and top artists.
+                  </p>
+                </div>
+              </div>
+
+              {/* Custom Feature Card with Gradient - Share Your Roast */}
+              <div className="bg-gradient-to-r from-zinc-900/80 to-black/80 border border-zinc-800 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 backdrop-blur-sm h-full">
+                <div className="p-6">
+                  <div className="bg-bright-purple/10 w-12 h-12 rounded-full flex items-center justify-center mb-4">
+                    <Share2 className="h-6 w-6 text-bright-purple" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2 text-white">Share Your Roast</h3>
+                </div>
+                <div className="px-6 pb-6">
+                  <p className="text-zinc-400 text-base">
+                    Brave enough to share your musical shame? Export and share your critique with friends.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

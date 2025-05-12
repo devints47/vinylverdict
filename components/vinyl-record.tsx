@@ -21,6 +21,7 @@ interface VinylRecordProps {
   rpm?: number // Added RPM prop with default of 33 1/3
   flipDirection?: FlipDirection
   isTransitioning?: boolean
+  onClick?: () => void // Add onClick handler prop
 }
 
 // Default design if none provided
@@ -40,6 +41,7 @@ const VinylRecord = memo(function VinylRecord({
   rpm = 33.33, // Standard LP speed
   flipDirection = "none",
   isTransitioning = false,
+  onClick, // Add onClick handler
 }: VinylRecordProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const animationRef = useRef<number>(0)
@@ -772,12 +774,14 @@ const VinylRecord = memo(function VinylRecord({
     <div className={`relative w-full h-full flex justify-center items-center ${className}`}>
       <canvas
         ref={canvasRef}
-        className="w-full h-full mx-auto shadow-2xl rounded-full"
+        className="w-full h-full mx-auto shadow-2xl rounded-full cursor-pointer" // Added cursor-pointer
         aria-hidden="true"
         style={{
           willChange: "transform",
           backfaceVisibility: "hidden",
         }}
+        onClick={onClick} // Add onClick handler to the canvas
+        title={onClick ? "Click to change record" : undefined} // Add title for accessibility
       />
     </div>
   )

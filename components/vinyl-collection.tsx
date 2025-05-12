@@ -200,6 +200,7 @@ export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: Vi
               key={vinylDesigns[activeIndex].id}
               flipDirection={flipDirection}
               isTransitioning={isTransitioning}
+              onClick={nextVinyl} // Add onClick handler to trigger the next vinyl
             />
           </div>
         </div>
