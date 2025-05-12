@@ -199,7 +199,10 @@ export function Footer() {
 
         <div className="mt-8 pt-8 border-t border-zinc-800 text-sm text-center">
           <p>© {new Date().getFullYear()} SnobScore. All rights reserved.</p>
-          <p className="mt-2">Not affiliated with Spotify. Spotify is a trademark of Spotify AB.</p>
+          <p className="mt-2">
+            This app is an independent tool using Spotify's Web API. It is not affiliated with Spotify. All critiques
+            are generated for entertainment purposes.
+          </p>
         </div>
       </div>
     </footer>

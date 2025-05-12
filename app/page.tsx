@@ -8,7 +8,7 @@ import { FeatureCard } from "@/components/feature-card"
 import { Testimonial } from "@/components/testimonial"
 import { Footer } from "@/components/footer"
 import { TechGridBackground } from "@/components/tech-grid-background"
-import { AlertCircle, BarChart3, Headphones, MessageSquare, Music, Zap, Share2 } from "lucide-react"
+import { AlertCircle, Music, Zap, Share2 } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { useAuth } from "@/contexts/auth-context"
 import { useVinyl } from "@/contexts/vinyl-context"
@@ -110,31 +110,16 @@ export default function LandingPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <FeatureCard
-                title="Brutally Honest Analysis"
-                description="Get a no-holds-barred critique of your music taste from our resident Music Snob with a PhD in pretentiousness."
-                icon={MessageSquare}
+                title="Instant Results"
+                description="Get your musical roast in seconds, no waiting around for your ego to be crushed."
+                icon={Zap}
               />
               <FeatureCard
                 title="Spotify Integration"
                 description="Securely connect your Spotify account to analyze your recently played tracks and top artists."
                 icon={Music}
-              />
-              <FeatureCard
-                title="Personalized Insights"
-                description="Discover patterns in your listening habits that reveal your true musical personality."
-                icon={BarChart3}
-              />
-              <FeatureCard
-                title="Time-Based Analysis"
-                description="See how your music taste has evolved (or devolved) over different time periods."
-                icon={Headphones}
-              />
-              <FeatureCard
-                title="Instant Results"
-                description="Get your musical roast in seconds, no waiting around for your ego to be crushed."
-                icon={Zap}
               />
               <FeatureCard
                 title="Share Your Roast"
