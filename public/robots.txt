@@ -1,0 +1,11 @@
+# www.robotstxt.org
+
+User-agent: *
+Allow: /
+
+# Disallow authentication and callback paths
+Disallow: /api/auth/
+Disallow: /callback/
+
+# Sitemap
+Sitemap: https://www.vinylverdict.fm/sitemap.xml
