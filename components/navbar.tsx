@@ -80,13 +80,15 @@ export function Navbar() {
               {/* Authentication buttons */}
               {isAuthenticated ? (
                 <div className="flex items-center gap-4">
-                  <Link
-                    href="/dashboard"
-                    className="text-zinc-400 hover:text-white transition-colors flex items-center gap-2"
-                  >
-                    <User size={18} />
-                    <span>Dashboard</span>
-                  </Link>
+                  {!pathname.startsWith("/dashboard") && (
+                    <Link
+                      href="/dashboard"
+                      className="text-zinc-400 hover:text-white transition-colors flex items-center gap-2"
+                    >
+                      <User size={18} />
+                      <span>Dashboard</span>
+                    </Link>
+                  )}
                   <button
                     onClick={logout}
                     className="relative overflow-hidden btn-gradient holographic-shimmer text-white font-bold py-2 px-6 text-base rounded-full transition-all duration-300 hover:scale-105 flex items-center gap-2 shadow-lg"
@@ -149,14 +151,16 @@ export function Navbar() {
               {/* Authentication buttons */}
               {isAuthenticated ? (
                 <>
-                  <Link
-                    href="/dashboard"
-                    className="text-zinc-400 hover:text-white transition-colors py-2 flex items-center gap-2"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <User size={18} />
-                    <span>Dashboard</span>
-                  </Link>
+                  {!pathname.startsWith("/dashboard") && (
+                    <Link
+                      href="/dashboard"
+                      className="text-zinc-400 hover:text-white transition-colors py-2 flex items-center gap-2"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <User size={18} />
+                      <span>Dashboard</span>
+                    </Link>
+                  )}
                   <button
                     className="relative overflow-hidden btn-gradient holographic-shimmer text-white font-bold py-2 px-6 text-base rounded-full transition-all duration-300 hover:scale-105 flex items-center gap-2 shadow-lg justify-start w-full"
                     onClick={() => {
