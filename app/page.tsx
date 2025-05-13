@@ -13,6 +13,7 @@ import { useAuth } from "@/contexts/auth-context"
 import { useVinyl } from "@/contexts/vinyl-context"
 import { useRouter } from "next/navigation"
 import { useEffect, useState, useRef } from "react"
+import { AnimatedDescription } from "@/components/animated-description"
 
 export default function LandingPage() {
   const { isAuthenticated, error, isLoading } = useAuth()
@@ -129,15 +130,18 @@ export default function LandingPage() {
                   <VinylCollection />
                 </div>
 
-                {/* Description Box - Name removed from description */}
+                {/* Animated Description Box */}
                 <div
-                  className="mt-4 mb-6 bg-zinc-900/80 border border-zinc-800 rounded-lg p-3 backdrop-blur-sm"
                   style={{
                     width: vinylWidth > 0 ? `${vinylWidth * 2.0}px` : "100%",
                     maxWidth: "100%", // Ensure it doesn't overflow on small screens
                   }}
                 >
-                  <p className="text-sm text-[#A1A1AA]">{currentDescription}</p>
+                  <AnimatedDescription
+                    description={currentDescription}
+                    labelColor={selectedVinyl?.labelColor || "purple"}
+                    className="mt-4 mb-6"
+                  />
                 </div>
               </div>
             </div>

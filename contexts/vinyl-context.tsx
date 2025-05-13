@@ -25,29 +25,18 @@ const DEFAULT_VINYL: VinylDesign = {
 export function VinylProvider({ children }: { children: ReactNode }) {
   const [selectedVinyl, setSelectedVinylState] = useState<VinylDesign | null>(null)
 
-  // Load the selected vinyl from localStorage on initial render
+  // Load the default vinyl on initial render
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const savedVinyl = localStorage.getItem("selectedVinyl")
-      if (savedVinyl) {
-        try {
-          setSelectedVinylState(JSON.parse(savedVinyl))
-        } catch (e) {
-          console.error("Error parsing saved vinyl:", e)
-          setSelectedVinylState(DEFAULT_VINYL)
-        }
-      } else {
-        setSelectedVinylState(DEFAULT_VINYL)
-      }
-    }
+    setSelectedVinylState(DEFAULT_VINYL)
   }, [])
 
   // Save the selected vinyl to localStorage whenever it changes
   const setSelectedVinyl = (vinyl: VinylDesign) => {
     setSelectedVinylState(vinyl)
-    if (typeof window !== "undefined") {
-      localStorage.setItem("selectedVinyl", JSON.stringify(vinyl))
-    }
+    // We're no longer saving to localStorage
+    // if (typeof window !== "undefined") {
+    //   localStorage.setItem("selectedVinyl", JSON.stringify(vinyl))
+    // }
   }
 
   return <VinylContext.Provider value={{ selectedVinyl, setSelectedVinyl }}>{children}</VinylContext.Provider>
