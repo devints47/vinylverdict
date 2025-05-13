@@ -66,7 +66,8 @@ export function Navbar() {
                     <span>Dashboard</span>
                   </Link>
                   <Button
-                    className="relative overflow-hidden btn-gradient holographic-shimmer text-white font-bold py-2 px-6 text-base rounded-full transition-all duration-300 hover:scale-105 flex items-center gap-2 shadow-lg"
+                    variant="ghost"
+                    className="text-zinc-400 hover:text-white flex items-center gap-2"
                     onClick={logout}
                   >
                     <LogOut size={18} />
@@ -137,7 +138,8 @@ export function Navbar() {
                     <span>Dashboard</span>
                   </Link>
                   <Button
-                    className="relative overflow-hidden btn-gradient holographic-shimmer text-white font-bold py-2 px-6 text-base rounded-full transition-all duration-300 hover:scale-105 flex items-center gap-2 shadow-lg justify-start w-full"
+                    variant="ghost"
+                    className="text-zinc-400 hover:text-white justify-start py-2 h-auto flex items-center gap-2"
                     onClick={() => {
                       logout()
                       setIsMenuOpen(false)

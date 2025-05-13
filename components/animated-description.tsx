@@ -19,42 +19,25 @@ const colorMap: Record<string, string> = {
 }
 
 export function AnimatedDescription({ description, labelColor, className = "" }: AnimatedDescriptionProps) {
-  // Track if we've had a description change after initial render
-  const [hasChanged, setHasChanged] = useState(false)
-  const [initialDescription] = useState(description)
   const [currentDescription, setCurrentDescription] = useState(description)
+  const [key, setKey] = useState(0)
+
+  // Update the description with animation when it changes
+  useEffect(() => {
+    if (description !== currentDescription) {
+      setKey((prev) => prev + 1)
+      setCurrentDescription(description)
+    }
+  }, [description, currentDescription])
 
   // Get the appropriate gradient class based on label color
   const gradientClass = colorMap[labelColor] || colorMap.purple
 
-  useEffect(() => {
-    // Skip if this is the initial description
-    if (description === initialDescription) {
-      return
-    }
-
-    // Mark that we've had a change and update the description
-    setHasChanged(true)
-    setCurrentDescription(description)
-  }, [description, initialDescription])
-
-  // If we haven't had a description change yet, render a static version
-  if (!hasChanged) {
-    return (
-      <div className={className}>
-        <div className={`bg-gradient-to-r ${gradientClass} border border-zinc-800 rounded-lg p-3 backdrop-blur-sm`}>
-          <p className="text-sm text-[#A1A1AA]">{currentDescription}</p>
-        </div>
-      </div>
-    )
-  }
-
-  // After we've had at least one change, use the animated version
   return (
     <div className={`relative ${className}`}>
       <AnimatePresence mode="wait">
         <motion.div
-          key={currentDescription}
+          key={key}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}

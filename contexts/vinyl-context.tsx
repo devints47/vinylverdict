@@ -6,7 +6,6 @@ import type { VinylDesign } from "@/components/vinyl-collection"
 interface VinylContextType {
   selectedVinyl: VinylDesign | null
   setSelectedVinyl: (vinyl: VinylDesign) => void
-  handleVinylSelect: (vinyl: VinylDesign) => void
 }
 
 const VinylContext = createContext<VinylContextType | undefined>(undefined)
@@ -23,55 +22,24 @@ const DEFAULT_VINYL: VinylDesign = {
   assistantType: "snob",
 }
 
-// Storage key for localStorage
-const STORAGE_KEY = "snobify_selected_vinyl"
-
 export function VinylProvider({ children }: { children: ReactNode }) {
   const [selectedVinyl, setSelectedVinylState] = useState<VinylDesign | null>(null)
 
-  // Load the selected vinyl from localStorage on initial render
+  // Load the default vinyl on initial render
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      try {
-        // Try to get the saved vinyl from localStorage
-        const savedVinyl = localStorage.getItem(STORAGE_KEY)
-
-        if (savedVinyl) {
-          // If we have a saved vinyl, parse and use it
-          const parsedVinyl = JSON.parse(savedVinyl)
-          setSelectedVinylState(parsedVinyl)
-        } else {
-          // Otherwise use the default vinyl
-          setSelectedVinylState(DEFAULT_VINYL)
-        }
-      } catch (error) {
-        // If there's any error (e.g., invalid JSON), use the default vinyl
-        console.error("Error loading saved vinyl:", error)
-        setSelectedVinylState(DEFAULT_VINYL)
-      }
-    }
+    setSelectedVinylState(DEFAULT_VINYL)
   }, [])
 
   // Save the selected vinyl to localStorage whenever it changes
   const setSelectedVinyl = (vinyl: VinylDesign) => {
     setSelectedVinylState(vinyl)
-
-    // Save to localStorage for persistence across page navigations
-    if (typeof window !== "undefined") {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(vinyl))
-    }
+    // We're no longer saving to localStorage
+    // if (typeof window !== "undefined") {
+    //   localStorage.setItem("selectedVinyl", JSON.stringify(vinyl))
+    // }
   }
 
-  // Handler for vinyl selection (used in components)
-  const handleVinylSelect = (vinyl: VinylDesign) => {
-    setSelectedVinyl(vinyl)
-  }
-
-  return (
-    <VinylContext.Provider value={{ selectedVinyl, setSelectedVinyl, handleVinylSelect }}>
-      {children}
-    </VinylContext.Provider>
-  )
+  return <VinylContext.Provider value={{ selectedVinyl, setSelectedVinyl }}>{children}</VinylContext.Provider>
 }
 
 export function useVinyl() {
