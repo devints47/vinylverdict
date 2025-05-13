@@ -19,7 +19,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <head>
+        {/* Chrome-friendly favicon implementation */}
+        <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/vinyl-favicon.png" type="image/png" />
+        <link rel="apple-touch-icon" href="/vinyl-favicon.png" />
       </head>
       <body className={`${inter.className} bg-black text-white`}>
         <AuthProvider>
