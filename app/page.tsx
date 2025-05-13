@@ -253,7 +253,7 @@ export default function LandingPage() {
       </section>
 
       {/* Testimonials Section - WITH GRID */}
-      <section className="relative py-20 px-4 bg-black overflow-hidden">
+      <section id="testimonials" className="relative py-20 px-4 bg-black overflow-hidden">
         <TechGridBackground />
         <div className="container mx-auto relative z-10">
           <div className="text-center mb-16">
@@ -263,7 +263,7 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <Testimonial
-              quote="I never knew my obsession with 80s power ballads made me so basic. Thanks for the existential crisis, SnobScore!"
+              quote="I never knew my obsession with 80s power ballads made me so basic. Thanks for the existential crisis, VinylVerdict!"
               name="Alex Johnson"
               title="Reformed Music Listener"
               avatar="/diverse-group.png"
@@ -275,7 +275,7 @@ export default function LandingPage() {
               avatar="/person-with-glasses.png"
             />
             <Testimonial
-              quote="I showed my SnobScore roast to my friends and now they won't let me control the playlist anymore. 10/10 would recommend."
+              quote="I showed my VinylVerdict roast to my friends and now they won't let me control the playlist anymore. 10/10 would recommend."
               name="Jamie Smith"
               title="Former DJ"
               avatar="/person-with-headphones.png"

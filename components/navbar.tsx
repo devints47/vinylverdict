@@ -1,14 +1,15 @@
 "use client"
 
+import type React from "react"
+
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { SpotifyLoginButton } from "./spotify-login-button"
-import { Home, LogOut, Menu, User, X } from "lucide-react"
+import { LogOut, Menu, User, X } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { VinylLogo } from "./vinyl-logo"
-import { PolicyNavLink } from "./policy-nav-link"
 
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -18,6 +19,27 @@ export function Navbar() {
   // Don't show navbar on callback page
   if (pathname === "/callback") {
     return null
+  }
+
+  const scrollToTop = (e: React.MouseEvent) => {
+    e.preventDefault()
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }
+
+  const scrollToSection = (e: React.MouseEvent, sectionId: string) => {
+    e.preventDefault()
+    const section = document.getElementById(sectionId)
+    if (section) {
+      // Get the navbar height to offset the scroll position
+      const navbar = document.querySelector("header")
+      const navbarHeight = navbar ? navbar.clientHeight : 0
+
+      const sectionPosition = section.getBoundingClientRect().top + window.pageYOffset
+      window.scrollTo({
+        top: sectionPosition - navbarHeight,
+        behavior: "smooth",
+      })
+    }
   }
 
   return (
@@ -38,26 +60,26 @@ export function Navbar() {
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-8">
-              {!isAuthenticated && pathname === "/" && (
-                <>
-                  <PolicyNavLink href="#features" className="text-zinc-400 hover:text-white transition-colors">
-                    Features
-                  </PolicyNavLink>
-                  <PolicyNavLink href="#how-it-works" className="text-zinc-400 hover:text-white transition-colors">
-                    How It Works
-                  </PolicyNavLink>
-                  <PolicyNavLink href="#testimonials" className="text-zinc-400 hover:text-white transition-colors">
-                    Testimonials
-                  </PolicyNavLink>
-                </>
-              )}
+              {/* Navigation links - shown for all users */}
+              <button onClick={scrollToTop} className="text-zinc-400 hover:text-white transition-colors">
+                Home
+              </button>
+              <button
+                onClick={(e) => scrollToSection(e, "features")}
+                className="text-zinc-400 hover:text-white transition-colors"
+              >
+                How It Works
+              </button>
+              <button
+                onClick={(e) => scrollToSection(e, "testimonials")}
+                className="text-zinc-400 hover:text-white transition-colors"
+              >
+                Testimonials
+              </button>
 
+              {/* Authentication buttons */}
               {isAuthenticated ? (
                 <div className="flex items-center gap-4">
-                  <Link href="/" className="text-zinc-400 hover:text-white transition-colors flex items-center gap-2">
-                    <Home size={18} />
-                    <span>Home</span>
-                  </Link>
                   <Link
                     href="/dashboard"
                     className="text-zinc-400 hover:text-white transition-colors flex items-center gap-2"
@@ -92,42 +114,38 @@ export function Navbar() {
           {/* Mobile Navigation */}
           {isMenuOpen && (
             <nav className="md:hidden pt-4 pb-2 flex flex-col gap-4">
-              {!isAuthenticated && pathname === "/" && (
-                <>
-                  <PolicyNavLink
-                    href="#features"
-                    className="text-zinc-400 hover:text-white transition-colors py-2"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Features
-                  </PolicyNavLink>
-                  <PolicyNavLink
-                    href="#how-it-works"
-                    className="text-zinc-400 hover:text-white transition-colors py-2"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    How It Works
-                  </PolicyNavLink>
-                  <PolicyNavLink
-                    href="#testimonials"
-                    className="text-zinc-400 hover:text-white transition-colors py-2"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Testimonials
-                  </PolicyNavLink>
-                </>
-              )}
+              {/* Navigation links - shown for all users */}
+              <button
+                className="text-zinc-400 hover:text-white transition-colors py-2 text-left"
+                onClick={(e) => {
+                  scrollToTop(e)
+                  setIsMenuOpen(false)
+                }}
+              >
+                Home
+              </button>
+              <button
+                className="text-zinc-400 hover:text-white transition-colors py-2 text-left"
+                onClick={(e) => {
+                  scrollToSection(e, "features")
+                  setIsMenuOpen(false)
+                }}
+              >
+                How It Works
+              </button>
+              <button
+                className="text-zinc-400 hover:text-white transition-colors py-2 text-left"
+                onClick={(e) => {
+                  scrollToSection(e, "testimonials")
+                  setIsMenuOpen(false)
+                }}
+              >
+                Testimonials
+              </button>
 
+              {/* Authentication buttons */}
               {isAuthenticated ? (
                 <>
-                  <Link
-                    href="/"
-                    className="text-zinc-400 hover:text-white transition-colors py-2 flex items-center gap-2"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <Home size={18} />
-                    <span>Home</span>
-                  </Link>
                   <Link
                     href="/dashboard"
                     className="text-zinc-400 hover:text-white transition-colors py-2 flex items-center gap-2"

@@ -13,7 +13,13 @@ export const metadata: Metadata = {
   description:
     "Connect your Spotify account and get a brutally honest critique of your music taste from our resident Music Snob.",
   icons: {
-    icon: "/vinyl-favicon.png",
+    icon: [
+      { url: "/vinyl-favicon.png" },
+      { url: "/vinyl-favicon.png", sizes: "32x32" },
+      { url: "/vinyl-favicon.png", sizes: "16x16" },
+    ],
+    apple: { url: "/vinyl-favicon.png" },
+    shortcut: { url: "/vinyl-favicon.png" },
   },
     generator: 'v0.dev'
 }
