@@ -18,7 +18,7 @@ export function Footer() {
             </p>
           </div>
 
-          <div className="grid grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-3 gap-6 mb-8">
             <div>
               <h3 className="font-bold text-white mb-3">Links</h3>
               <ul className="space-y-2">
@@ -80,22 +80,6 @@ export function Footer() {
                   </a>
                 </li>
               </ul>
-            </div>
-
-            <div>
-              <h3 className="font-bold text-white mb-3">API</h3>
-              <div className="flex flex-col items-center">
-                <span className="text-sm mb-1">Built Using the</span>
-                <a
-                  href="https://developer.spotify.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:opacity-80 transition-opacity"
-                >
-                  <img src="/spotify_full_logo.svg" alt="Spotify" className="h-7 mb-1" />
-                </a>
-                <span className="text-sm">Web API</span>
-              </div>
             </div>
           </div>
         </div>

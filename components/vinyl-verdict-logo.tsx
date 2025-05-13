@@ -2,13 +2,12 @@
 
 import { useState } from "react"
 
-interface SnobifyLogoProps {
+interface VinylVerdictLogoProps {
   size?: number
   className?: string
 }
 
-// Keep the original export for backward compatibility
-export function SnobifyLogo({ size = 40, className = "" }: SnobifyLogoProps) {
+export function VinylVerdictLogo({ size = 40, className = "" }: VinylVerdictLogoProps) {
   const [isHovered, setIsHovered] = useState(false)
 
   return (
@@ -98,8 +97,11 @@ export function SnobifyLogo({ size = 40, className = "" }: SnobifyLogoProps) {
   )
 }
 
-// Add the new component name as well
-export function SnobScoreLogo({ size = 40, className = "" }: SnobifyLogoProps) {
-  // Use the original component for now to maintain visual consistency
-  return <SnobifyLogo size={size} className={className} />
+// For backward compatibility
+export function SnobifyLogo({ size = 40, className = "" }: VinylVerdictLogoProps) {
+  return <VinylVerdictLogo size={size} className={className} />
+}
+
+export function SnobScoreLogo({ size = 40, className = "" }: VinylVerdictLogoProps) {
+  return <VinylVerdictLogo size={size} className={className} />
 }

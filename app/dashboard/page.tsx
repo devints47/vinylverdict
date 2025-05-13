@@ -20,6 +20,7 @@ import { AudioWave } from "@/components/audio-wave"
 import type { TimeRange } from "@/lib/spotify-api"
 import { formatDate, getArtists } from "@/lib/spotify-api"
 import { ListContainer } from "@/components/list-container"
+import { VinylVerdictLogo } from "@/components/vinyl-verdict-logo"
 
 interface UserProfile {
   display_name: string
@@ -800,7 +801,7 @@ export default function DashboardPage() {
         <Navbar />
         <div className="flex-1 flex items-center justify-center relative z-10">
           <div className="flex flex-col items-center">
-            <Loader2 className="h-12 w-12 text-bright-purple animate-spin mb-4" />
+            <VinylVerdictLogo size={50} className="mb-4" />
             <h1 className="text-xl font-bold text-white mb-2">Loading your profile</h1>
             <p className="text-zinc-400">Please wait while we fetch your data...</p>
             {debugInfo && (

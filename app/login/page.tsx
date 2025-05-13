@@ -8,7 +8,7 @@ import { VinylRecord } from "@/components/vinyl-record"
 import Link from "next/link"
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
-import { SnobifyLogo } from "@/components/snobify-logo"
+import { VinylVerdictLogo } from "@/components/vinyl-verdict-logo"
 
 export default function LoginPage() {
   const { isAuthenticated, error, isLoading } = useAuth()
@@ -25,7 +25,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gradient-to-b from-black to-zinc-900 flex flex-col">
       <header className="p-4 flex justify-between items-center">
         <Link href="/" className="flex items-center gap-2">
-          <SnobifyLogo size={32} />
+          <VinylVerdictLogo size={32} />
           <span className="font-bold text-xl text-white">VinylVerdict</span>
         </Link>
       </header>
@@ -33,6 +33,7 @@ export default function LoginPage() {
       <main className="flex-1 flex items-center justify-center p-4">
         <div className="max-w-md w-full">
           <div className="text-center mb-8">
+            <VinylVerdictLogo size={80} className="mb-6" />
             <h1 className="text-3xl font-bold mb-4">Welcome Back</h1>
             <p className="text-zinc-400">
               Connect with your music streaming account to continue your journey of self-discovery (and mild

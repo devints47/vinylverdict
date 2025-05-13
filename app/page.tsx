@@ -14,6 +14,7 @@ import { useVinyl } from "@/contexts/vinyl-context"
 import { useRouter } from "next/navigation"
 import { useEffect, useState, useRef } from "react"
 import { AnimatedDescription } from "@/components/animated-description"
+import { VinylVerdictLogo } from "@/components/vinyl-verdict-logo"
 
 export default function LandingPage() {
   const { isAuthenticated, error, isLoading } = useAuth()
@@ -98,7 +99,7 @@ export default function LandingPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div>
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-                  <span className="text-purple-gradient">VinylVerdict:</span> Your Personal Music Taste Critic
+                  <span className="text-purple-gradient">VinylVerdict -</span> Your Personal Music Taste Critic
                 </h1>
                 <p className="text-xl text-zinc-400 mb-8 max-w-lg">
                   Connect your Spotify account and choose from one of our resident Music Snobs to analyze your listening
@@ -157,7 +158,10 @@ export default function LandingPage() {
         <div id="features" className="py-20 px-4 bg-black/30">
           <div className="container mx-auto relative z-10">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4 text-purple-gradient">Why You Need a Music Snob</h2>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4 text-purple-gradient flex items-center justify-center gap-3">
+                Why You Need a Music Snob
+                <VinylVerdictLogo size={40} className="inline-block" />
+              </h2>
               <p className="text-xl text-zinc-400 max-w-2xl mx-auto">
                 Because sometimes you need someone to tell you that your playlist is basic.
               </p>
