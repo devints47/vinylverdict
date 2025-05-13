@@ -65,14 +65,13 @@ export function Navbar() {
                     <User size={18} />
                     <span>Dashboard</span>
                   </Link>
-                  <Button
-                    variant="ghost"
-                    className="text-zinc-400 hover:text-white flex items-center gap-2"
+                  <button
                     onClick={logout}
+                    className="relative overflow-hidden btn-gradient holographic-shimmer text-white font-bold py-2 px-6 text-base rounded-full transition-all duration-300 hover:scale-105 flex items-center gap-2 shadow-lg"
                   >
                     <LogOut size={18} />
                     <span>Logout</span>
-                  </Button>
+                  </button>
                 </div>
               ) : (
                 <SpotifyLoginButton text="Log in" className="py-2 px-6 text-base" />
@@ -137,9 +136,8 @@ export function Navbar() {
                     <User size={18} />
                     <span>Dashboard</span>
                   </Link>
-                  <Button
-                    variant="ghost"
-                    className="text-zinc-400 hover:text-white justify-start py-2 h-auto flex items-center gap-2"
+                  <button
+                    className="relative overflow-hidden btn-gradient holographic-shimmer text-white font-bold py-2 px-6 text-base rounded-full transition-all duration-300 hover:scale-105 flex items-center gap-2 shadow-lg justify-start w-full"
                     onClick={() => {
                       logout()
                       setIsMenuOpen(false)
@@ -147,7 +145,7 @@ export function Navbar() {
                   >
                     <LogOut size={18} />
                     <span>Logout</span>
-                  </Button>
+                  </button>
                 </>
               ) : (
                 <div className="pt-2">
