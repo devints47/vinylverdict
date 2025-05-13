@@ -21,11 +21,6 @@ export function Navbar() {
     return null
   }
 
-  const scrollToTop = (e: React.MouseEvent) => {
-    e.preventDefault()
-    window.scrollTo({ top: 0, behavior: "smooth" })
-  }
-
   const scrollToSection = (e: React.MouseEvent, sectionId: string) => {
     e.preventDefault()
     const section = document.getElementById(sectionId)
@@ -60,22 +55,27 @@ export function Navbar() {
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-8">
-              {/* Navigation links - shown for all users */}
-              <button onClick={scrollToTop} className="text-zinc-400 hover:text-white transition-colors">
+              {/* Navigation links - conditionally shown based on path */}
+              <Link href="/" className="text-zinc-400 hover:text-white transition-colors">
                 Home
-              </button>
-              <button
-                onClick={(e) => scrollToSection(e, "features")}
-                className="text-zinc-400 hover:text-white transition-colors"
-              >
-                How It Works
-              </button>
-              <button
-                onClick={(e) => scrollToSection(e, "testimonials")}
-                className="text-zinc-400 hover:text-white transition-colors"
-              >
-                Testimonials
-              </button>
+              </Link>
+
+              {!pathname.startsWith("/dashboard") && (
+                <>
+                  <button
+                    onClick={(e) => scrollToSection(e, "features")}
+                    className="text-zinc-400 hover:text-white transition-colors"
+                  >
+                    How It Works
+                  </button>
+                  <button
+                    onClick={(e) => scrollToSection(e, "testimonials")}
+                    className="text-zinc-400 hover:text-white transition-colors"
+                  >
+                    Testimonials
+                  </button>
+                </>
+              )}
 
               {/* Authentication buttons */}
               {isAuthenticated ? (
@@ -114,34 +114,37 @@ export function Navbar() {
           {/* Mobile Navigation */}
           {isMenuOpen && (
             <nav className="md:hidden pt-4 pb-2 flex flex-col gap-4">
-              {/* Navigation links - shown for all users */}
-              <button
+              {/* Navigation links - conditionally shown based on path */}
+              <Link
+                href="/"
                 className="text-zinc-400 hover:text-white transition-colors py-2 text-left"
-                onClick={(e) => {
-                  scrollToTop(e)
-                  setIsMenuOpen(false)
-                }}
+                onClick={() => setIsMenuOpen(false)}
               >
                 Home
-              </button>
-              <button
-                className="text-zinc-400 hover:text-white transition-colors py-2 text-left"
-                onClick={(e) => {
-                  scrollToSection(e, "features")
-                  setIsMenuOpen(false)
-                }}
-              >
-                How It Works
-              </button>
-              <button
-                className="text-zinc-400 hover:text-white transition-colors py-2 text-left"
-                onClick={(e) => {
-                  scrollToSection(e, "testimonials")
-                  setIsMenuOpen(false)
-                }}
-              >
-                Testimonials
-              </button>
+              </Link>
+
+              {!pathname.startsWith("/dashboard") && (
+                <>
+                  <button
+                    className="text-zinc-400 hover:text-white transition-colors py-2 text-left"
+                    onClick={(e) => {
+                      scrollToSection(e, "features")
+                      setIsMenuOpen(false)
+                    }}
+                  >
+                    How It Works
+                  </button>
+                  <button
+                    className="text-zinc-400 hover:text-white transition-colors py-2 text-left"
+                    onClick={(e) => {
+                      scrollToSection(e, "testimonials")
+                      setIsMenuOpen(false)
+                    }}
+                  >
+                    Testimonials
+                  </button>
+                </>
+              )}
 
               {/* Authentication buttons */}
               {isAuthenticated ? (
