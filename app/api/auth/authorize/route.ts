@@ -55,8 +55,13 @@ export async function GET(request: NextRequest) {
     const authUrl = `${AUTH_ENDPOINT}?${args}`
     console.log("Auth URL generated:", authUrl)
 
-    // Return the authorization URL to the client
-    return NextResponse.json({ authUrl })
+    // Return the authorization URL and the code verifier/state for client-side fallback
+    return NextResponse.json({
+      authUrl,
+      // Include these values for client-side fallback (for Safari iOS)
+      codeVerifier,
+      state,
+    })
   } catch (error) {
     console.error("Error generating authorization URL:", error)
     return NextResponse.json({ error: "Failed to generate authorization URL" }, { status: 500 })

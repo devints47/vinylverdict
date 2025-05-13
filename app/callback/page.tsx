@@ -55,12 +55,32 @@ export default function CallbackPage() {
           throw new Error("Missing state parameter in URL - authorization flow may have been interrupted")
         }
 
+        // Get fallback code verifier from localStorage (for Safari iOS)
+        let fallbackVerifier = null
+        try {
+          fallbackVerifier = localStorage.getItem("spotify_code_verifier_fallback")
+          const fallbackState = localStorage.getItem("spotify_auth_state_fallback")
+
+          if (fallbackVerifier) {
+            addLog("Found fallback code verifier in localStorage")
+
+            // Verify state using the fallback
+            if (fallbackState && fallbackState !== state) {
+              addLog("State mismatch with fallback state - possible CSRF attack")
+              throw new Error("State mismatch - authorization flow may have been tampered with")
+            }
+          }
+        } catch (storageError) {
+          addLog("Could not access localStorage for fallback values")
+          // Continue without fallback - we'll try with cookies first
+        }
+
         setStatus("Exchanging code for tokens...")
         addLog("Starting token exchange")
 
         try {
-          // Exchange the code for tokens
-          const success = await exchangeCodeForTokens(code)
+          // Exchange the code for tokens, passing the fallback verifier if available
+          const success = await exchangeCodeForTokens(code, fallbackVerifier)
 
           if (!success) {
             addLog("Token exchange failed")
@@ -68,6 +88,14 @@ export default function CallbackPage() {
           }
 
           addLog("Token exchange successful")
+
+          // Clean up localStorage fallbacks
+          try {
+            localStorage.removeItem("spotify_code_verifier_fallback")
+            localStorage.removeItem("spotify_auth_state_fallback")
+          } catch (e) {
+            // Ignore localStorage errors
+          }
 
           setStatus("Redirecting to dashboard...")
           // Add a small delay before redirecting

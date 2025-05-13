@@ -36,7 +36,20 @@ export async function redirectToSpotifyAuthorize() {
       throw new Error(`Failed to get authorization URL: ${error.error || response.statusText}`)
     }
 
-    const { authUrl } = await response.json()
+    const { authUrl, codeVerifier, state } = await response.json()
+
+    // Store code verifier and state in localStorage as a fallback for Safari iOS
+    // This addresses the issue where Safari might drop cookies during redirects
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("spotify_code_verifier_fallback", codeVerifier)
+        localStorage.setItem("spotify_auth_state_fallback", state)
+        console.log("Stored auth fallback values in localStorage")
+      } catch (storageError) {
+        console.warn("Could not store auth fallback in localStorage:", storageError)
+        // Continue even if localStorage fails - we'll still have cookies for most browsers
+      }
+    }
 
     // Redirect to Spotify's authorization page
     window.location.href = authUrl
@@ -49,16 +62,25 @@ export async function redirectToSpotifyAuthorize() {
 /**
  * Exchange authorization code for tokens (server-side)
  */
-export async function exchangeCodeForTokens(code: string): Promise<boolean> {
+export async function exchangeCodeForTokens(code: string, fallbackVerifier?: string): Promise<boolean> {
   try {
     console.log("Exchanging code for tokens...")
+
+    const payload: { code: string; codeVerifier?: string } = { code }
+
+    // If a fallback verifier is provided, include it in the request
+    // This allows the server to use it if the cookie is missing
+    if (fallbackVerifier) {
+      payload.codeVerifier = fallbackVerifier
+      console.log("Using fallback code verifier")
+    }
 
     const response = await fetch("/api/auth/token", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ code }),
+      body: JSON.stringify(payload),
     })
 
     if (!response.ok) {
@@ -127,6 +149,16 @@ export async function checkAuthentication(): Promise<boolean> {
  */
 export async function logout(): Promise<boolean> {
   try {
+    // Clear any localStorage fallback values
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.removeItem("spotify_code_verifier_fallback")
+        localStorage.removeItem("spotify_auth_state_fallback")
+      } catch (e) {
+        // Ignore localStorage errors
+      }
+    }
+
     const response = await fetch("/api/auth/logout", {
       method: "POST",
     })
