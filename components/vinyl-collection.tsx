@@ -32,7 +32,7 @@ export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: Vi
       name: "Music Snob",
       labelColor: "purple",
       faceType: "snob",
-      labelText: "SNOBSCORE • PREMIUM VINYL • AUDIOPHILE EDITION •",
+      labelText: "VINYLVERDICT • PREMIUM VINYL • AUDIOPHILE EDITION •",
       description:
         "The most discerning and judgmental of our critics. Music Snob has strong opinions about everything from production quality to lyrical depth. Prepare for a thorough dissection of your musical choices with zero mercy.",
       assistantType: "snob", // This is the Music Snob assistant

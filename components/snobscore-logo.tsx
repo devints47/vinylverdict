@@ -98,8 +98,12 @@ export function SnobifyLogo({ size = 40, className = "" }: SnobifyLogoProps) {
   )
 }
 
-// Add the new component name as well
-export function SnobScoreLogo({ size = 40, className = "" }: SnobifyLogoProps) {
+export function VinylVerdictLogo({ size = 40, className = "" }: SnobifyLogoProps) {
   // Use the original component for now to maintain visual consistency
   return <SnobifyLogo size={size} className={className} />
+}
+
+// Keep the old function name for backward compatibility
+export function SnobScoreLogo({ size = 40, className = "" }: SnobifyLogoProps) {
+  return <VinylVerdictLogo size={size} className={className} />
 }

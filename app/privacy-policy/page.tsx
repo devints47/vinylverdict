@@ -22,14 +22,14 @@ export default function PrivacyPolicyPage() {
 
                 <h2 className="text-2xl font-bold mt-8 mb-4 text-purple-gradient">Introduction</h2>
                 <p>
-                  Welcome to SnobScore ("we," "our," or "us"). We respect your privacy and are committed to protecting
-                  your personal data. This privacy policy explains how we collect, use, and safeguard your information
-                  when you use our service.
+                  Welcome to VinylVerdict ("we," "our," or "us"). We respect your privacy and are committed to
+                  protecting your personal data. This privacy policy explains how we collect, use, and safeguard your
+                  information when you use our service.
                 </p>
 
                 <h2 className="text-2xl font-bold mt-8 mb-4 text-purple-gradient">Spotify Integration</h2>
                 <p>
-                  Snobcore.ME is a third-party application that connects to Spotify's API. We adhere to Spotify's
+                  VinylVerdict.fm is a third-party application that connects to Spotify's API. We adhere to Spotify's
                   Developer Terms of Service and User Data requirements. Our application:
                 </p>
                 <ul className="list-disc pl-6 space-y-2 my-4">
@@ -95,9 +95,9 @@ export default function PrivacyPolicyPage() {
                 <p>To exercise these rights, please contact us using the information provided below.</p>
 
                 <h2 className="text-2xl font-bold mt-8 mb-4 text-purple-gradient">Revoking Access</h2>
-                <p>You can revoke Snobcore.ME's access to your Spotify account at any time by:</p>
+                <p>You can revoke VinylVerdict.fm's access to your Spotify account at any time by:</p>
                 <ol className="list-decimal pl-6 space-y-2 my-4">
-                  <li>Logging out of Snobcore.ME using the logout button</li>
+                  <li>Logging out of VinylVerdict.fm using the logout button</li>
                   <li>
                     Visiting your{" "}
                     <a
@@ -108,7 +108,7 @@ export default function PrivacyPolicyPage() {
                     >
                       Spotify Account Apps page
                     </a>{" "}
-                    and removing access for Snobcore.ME
+                    and removing access for VinylVerdict.fm
                   </li>
                 </ol>
 
@@ -127,7 +127,7 @@ export default function PrivacyPolicyPage() {
 
                 <h2 className="text-2xl font-bold mt-8 mb-4 text-purple-gradient">Contact Us</h2>
                 <p>If you have any questions about this privacy policy or our data practices, please contact us at:</p>
-                <p className="pl-4 border-l-4 border-bright-purple/30 my-4">Email: privacy@snobscore.me</p>
+                <p className="pl-4 border-l-4 border-bright-purple/30 my-4">Email: privacy@vinylverdict.fm</p>
               </div>
             </div>
 

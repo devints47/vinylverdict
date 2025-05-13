@@ -11,7 +11,7 @@ export function Footer() {
           <div className="mb-8">
             <Link href="/" className="flex items-center gap-1 mb-4 hover:opacity-90 transition-opacity">
               <VinylLogo size={48} />
-              <span className="font-bold text-2xl text-purple-gradient tracking-tight">SnobScore</span>
+              <span className="font-bold text-2xl text-purple-gradient tracking-tight">VinylVerdict</span>
             </Link>
             <p className="text-sm">
               Your personal music taste critic, powered by our resident Music Snob and your Spotify listening history.
@@ -106,7 +106,7 @@ export function Footer() {
           <div className="w-[22%] pr-4">
             <Link href="/" className="flex items-center gap-1 mb-4 hover:opacity-90 transition-opacity">
               <VinylLogo size={48} />
-              <span className="font-bold text-2xl text-purple-gradient tracking-tight">SnobScore</span>
+              <span className="font-bold text-2xl text-purple-gradient tracking-tight">VinylVerdict</span>
             </Link>
             <p className="text-sm">
               Your personal music taste critic, powered by our resident Music Snob and your Spotify listening history.
@@ -198,7 +198,7 @@ export function Footer() {
         </div>
 
         <div className="mt-8 pt-8 border-t border-zinc-800 text-sm text-center">
-          <p>© {new Date().getFullYear()} SnobScore. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} VinylVerdict. All rights reserved.</p>
           <p className="mt-2">
             This app is an independent tool using Spotify's Web API. It is not affiliated with Spotify. All critiques
             are generated for entertainment purposes.

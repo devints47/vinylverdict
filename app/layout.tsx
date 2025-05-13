@@ -9,7 +9,7 @@ import { ScrollToTop } from "@/components/scroll-to-top"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "SnobScore - Your Spotify Music Taste Analyzer",
+  title: "VinylVerdict - Your Spotify Music Taste Analyzer",
   description:
     "Connect your Spotify account and get a brutally honest critique of your music taste from our resident Music Snob.",
   icons: {

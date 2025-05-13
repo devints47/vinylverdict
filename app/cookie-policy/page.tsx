@@ -22,9 +22,9 @@ export default function CookiePolicyPage() {
 
                 <h2 className="text-2xl font-bold mt-8 mb-4 text-purple-gradient">Introduction</h2>
                 <p>
-                  This Cookie Policy explains how SnobScore ("we," "our," or "us") uses cookies and similar technologies
-                  to recognize you when you visit our website. It explains what these technologies are and why we use
-                  them, as well as your rights to control our use of them.
+                  This Cookie Policy explains how VinylVerdict ("we," "our," or "us") uses cookies and similar
+                  technologies to recognize you when you visit our website. It explains what these technologies are and
+                  why we use them, as well as your rights to control our use of them.
                 </p>
 
                 <h2 className="text-2xl font-bold mt-8 mb-4 text-purple-gradient">What Are Cookies?</h2>
@@ -59,8 +59,8 @@ export default function CookiePolicyPage() {
 
                 <h2 className="text-2xl font-bold mt-8 mb-4 text-purple-gradient">Spotify Authentication Cookies</h2>
                 <p>
-                  Snobcore.ME uses secure HTTP-only cookies to store authentication tokens received from Spotify. These
-                  cookies are essential for the functioning of our service and allow us to:
+                  VinylVerdict.FM uses secure HTTP-only cookies to store authentication tokens received from Spotify.
+                  These cookies are essential for the functioning of our service and allow us to:
                 </p>
                 <ul className="list-disc pl-6 space-y-2 my-4">
                   <li>Maintain your authenticated session with Spotify</li>
@@ -126,7 +126,7 @@ export default function CookiePolicyPage() {
                 <p>
                   Please note that essential cookies, including authentication cookies, cannot be disabled as they are
                   necessary for the functioning of our service. If you wish to stop the use of these cookies, you can
-                  log out of Snobcore.ME, which will clear the authentication cookies from your browser.
+                  log out of VinylVerdict.FM, which will clear the authentication cookies from your browser.
                 </p>
 
                 <h2 className="text-2xl font-bold mt-8 mb-4 text-purple-gradient">Cookie Lifespan</h2>
@@ -168,7 +168,7 @@ export default function CookiePolicyPage() {
 
                 <h2 className="text-2xl font-bold mt-8 mb-4 text-purple-gradient">Contact Us</h2>
                 <p>If you have any questions about our use of cookies or this Cookie Policy, please contact us at:</p>
-                <p className="pl-4 border-l-4 border-bright-purple/30 my-4">Email: privacy@snobscore.me</p>
+                <p className="pl-4 border-l-4 border-bright-purple/30 my-4">Email: privacy@vinylverdict.fm</p>
               </div>
             </div>
 

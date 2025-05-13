@@ -98,7 +98,7 @@ export default function LandingPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div>
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-                  Meet Your <span className="text-purple-gradient">Personal</span> Music Taste Critic
+                  <span className="text-purple-gradient">VinylVerdict:</span> Your Personal Music Taste Critic
                 </h1>
                 <p className="text-xl text-zinc-400 mb-8 max-w-lg">
                   Connect your Spotify account and choose from one of our resident Music Snobs to analyze your listening

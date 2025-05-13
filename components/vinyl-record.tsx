@@ -30,7 +30,7 @@ const DEFAULT_DESIGN: VinylDesign = {
   name: "The Critic",
   labelColor: "purple",
   faceType: "snob",
-  labelText: "SNOBSCORE • PREMIUM VINYL • AUDIOPHILE EDITION •",
+  labelText: "VINYLVERDICT • PREMIUM VINYL • AUDIOPHILE EDITION •",
 }
 
 // Memoize the VinylRecord component to prevent unnecessary re-renders

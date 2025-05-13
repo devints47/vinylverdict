@@ -22,15 +22,15 @@ export default function TermsOfServicePage() {
 
                 <h2 className="text-2xl font-bold mt-8 mb-4 text-purple-gradient">Introduction</h2>
                 <p>
-                  Welcome to SnobScore. These Terms of Service ("Terms") govern your use of our website and services. By
-                  accessing or using SnobScore, you agree to be bound by these Terms. If you disagree with any part of
-                  the Terms, you may not access the service.
+                  Welcome to VinylVerdict. These Terms of Service ("Terms") govern your use of our website and services.
+                  By accessing or using VinylVerdict, you agree to be bound by these Terms. If you disagree with any
+                  part of the Terms, you may not access the service.
                 </p>
 
                 <h2 className="text-2xl font-bold mt-8 mb-4 text-purple-gradient">Spotify Integration</h2>
                 <p>
-                  Snobcore.ME is a third-party application that integrates with Spotify's API. Our use of Spotify's API
-                  and your Spotify data is governed by{" "}
+                  VinylVerdict.fm is a third-party application that integrates with Spotify's API. Our use of Spotify's
+                  API and your Spotify data is governed by{" "}
                   <a
                     href="https://developer.spotify.com/terms"
                     className="text-bright-purple hover:underline"
@@ -39,11 +39,11 @@ export default function TermsOfServicePage() {
                   >
                     Spotify's Developer Terms of Service
                   </a>
-                  . By using Snobcore.ME, you also agree to Spotify's Terms of Use and Privacy Policy.
+                  . By using VinylVerdict.fm, you also agree to Spotify's Terms of Use and Privacy Policy.
                 </p>
                 <p>In accordance with Spotify's requirements:</p>
                 <ul className="list-disc pl-6 space-y-2 my-4">
-                  <li>We clearly identify that Snobcore.ME is powered by Spotify</li>
+                  <li>We clearly identify that VinylVerdict.fm is powered by Spotify</li>
                   <li>We do not modify or filter the metadata returned by Spotify's API</li>
                   <li>We provide attribution to Spotify and the relevant artists</li>
                   <li>We do not transfer Spotify content to third parties without explicit permission</li>
@@ -53,17 +53,17 @@ export default function TermsOfServicePage() {
 
                 <h2 className="text-2xl font-bold mt-8 mb-4 text-purple-gradient">User Accounts and Authorization</h2>
                 <p>
-                  To use Snobcore.ME, you must authorize our application to access your Spotify account data. You are
-                  responsible for maintaining the confidentiality of your Spotify account credentials and for all
+                  To use VinylVerdict.fm, you must authorize our application to access your Spotify account data. You
+                  are responsible for maintaining the confidentiality of your Spotify account credentials and for all
                   activities that occur under your account.
                 </p>
                 <p>
-                  You may revoke Snobcore.ME's access to your Spotify account at any time through your Spotify account
-                  settings or by logging out of Snobcore.ME.
+                  You may revoke VinylVerdict.fm's access to your Spotify account at any time through your Spotify
+                  account settings or by logging out of VinylVerdict.fm.
                 </p>
 
                 <h2 className="text-2xl font-bold mt-8 mb-4 text-purple-gradient">Acceptable Use</h2>
-                <p>When using Snobcore.ME, you agree not to:</p>
+                <p>When using VinylVerdict.fm, you agree not to:</p>
                 <ul className="list-disc pl-6 space-y-2 my-4">
                   <li>Use the service in any way that violates any applicable laws or regulations</li>
                   <li>Attempt to gain unauthorized access to any part of the service</li>
@@ -78,9 +78,9 @@ export default function TermsOfServicePage() {
 
                 <h2 className="text-2xl font-bold mt-8 mb-4 text-purple-gradient">Intellectual Property</h2>
                 <p>
-                  Snobcore.ME and its original content, features, and functionality are owned by Snobcore.ME and are
-                  protected by international copyright, trademark, patent, trade secret, and other intellectual property
-                  laws.
+                  VinylVerdict.fm and its original content, features, and functionality are owned by VinylVerdict.fm and
+                  are protected by international copyright, trademark, patent, trade secret, and other intellectual
+                  property laws.
                 </p>
                 <p>
                   The Spotify name, logo, and related marks are trademarks of Spotify AB and are used with permission.
@@ -98,16 +98,17 @@ export default function TermsOfServicePage() {
 
                 <h2 className="text-2xl font-bold mt-8 mb-4 text-purple-gradient">Disclaimer of Warranties</h2>
                 <p>
-                  Snobcore.ME is provided "as is" and "as available" without any warranties of any kind, either express
-                  or implied. We do not guarantee that the service will be uninterrupted, timely, secure, or error-free.
+                  VinylVerdict.fm is provided "as is" and "as available" without any warranties of any kind, either
+                  express or implied. We do not guarantee that the service will be uninterrupted, timely, secure, or
+                  error-free.
                 </p>
 
                 <h2 className="text-2xl font-bold mt-8 mb-4 text-purple-gradient">Limitation of Liability</h2>
                 <p>
-                  In no event shall Snobcore.ME, its directors, employees, partners, agents, suppliers, or affiliates be
-                  liable for any indirect, incidental, special, consequential, or punitive damages, including without
-                  limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from your
-                  access to or use of or inability to access or use the service.
+                  In no event shall VinylVerdict.fm, its directors, employees, partners, agents, suppliers, or
+                  affiliates be liable for any indirect, incidental, special, consequential, or punitive damages,
+                  including without limitation, loss of profits, data, use, goodwill, or other intangible losses,
+                  resulting from your access to or use of or inability to access or use the service.
                 </p>
 
                 <h2 className="text-2xl font-bold mt-8 mb-4 text-purple-gradient">Changes to Terms</h2>
@@ -125,7 +126,7 @@ export default function TermsOfServicePage() {
 
                 <h2 className="text-2xl font-bold mt-8 mb-4 text-purple-gradient">Contact Us</h2>
                 <p>If you have any questions about these Terms, please contact us at:</p>
-                <p className="pl-4 border-l-4 border-bright-purple/30 my-4">Email: terms@snobscore.me</p>
+                <p className="pl-4 border-l-4 border-bright-purple/30 my-4">Email: terms@vinylverdict.fm</p>
               </div>
             </div>
 
