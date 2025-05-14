@@ -1,7 +1,6 @@
 "use client"
 
-import React from "react"
-
+import React, { useEffect, useRef } from "react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
@@ -29,10 +28,14 @@ interface ResponseStore {
   isComplete: boolean
 }
 
+// Regex to detect emojis
+const emojiRegex = /(\p{Emoji}+)/gu
+
 export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, selectedVinyl }: RoastMeProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isFallback, setIsFallback] = useState(false)
+  const markdownRef = useRef<HTMLDivElement>(null)
 
   // Store responses for each assistant type
   const [responseStore, setResponseStore] = useState<Record<string, ResponseStore>>({})
@@ -171,16 +174,55 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
     return assistantType === "worshipper" ? "✨" : "🔥"
   }
 
-  // Custom components for ReactMarkdown to preserve emoji colors
+  // Process headings to separate emojis from text
+  useEffect(() => {
+    if (!markdownRef.current || !currentResponse.isComplete) return
+
+    // Find all heading elements
+    const headings = markdownRef.current.querySelectorAll("h1, h2, h3, h4, h5, h6")
+
+    headings.forEach((heading) => {
+      // Get the current text content
+      const text = heading.textContent || ""
+
+      // Skip if already processed
+      if (heading.querySelector(".heading-text") || heading.querySelector(".emoji")) return
+
+      // Clear the heading
+      heading.innerHTML = ""
+
+      // Split text by emoji
+      const parts = text.split(emojiRegex)
+
+      parts.forEach((part) => {
+        if (!part) return
+
+        // Check if this part is an emoji
+        if (emojiRegex.test(part)) {
+          const emojiSpan = document.createElement("span")
+          emojiSpan.className = "emoji"
+          emojiSpan.textContent = part
+          heading.appendChild(emojiSpan)
+        } else {
+          const textSpan = document.createElement("span")
+          textSpan.className = "heading-text"
+          textSpan.textContent = part
+          heading.appendChild(textSpan)
+        }
+      })
+    })
+  }, [currentResponse.isComplete])
+
+  // Custom components for ReactMarkdown
   const components = {
     h1: ({ node, ...props }) => {
       // Process children to wrap text (but not emojis) in styled spans
       const children = React.Children.toArray(props.children).map((child) => {
         if (typeof child === "string") {
           // Use regex to find emojis
-          return child.split(/(\p{Emoji}+)/gu).map((part, i) => {
+          return child.split(emojiRegex).map((part, i) => {
             // Check if this part is an emoji
-            if (/\p{Emoji}/u.test(part)) {
+            if (emojiRegex.test(part)) {
               return (
                 <span key={i} className="emoji">
                   {part}
@@ -189,7 +231,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
             }
             // Regular text gets the gradient
             return (
-              <span key={i} className="text-purple-gradient">
+              <span key={i} className="heading-text">
                 {part}
               </span>
             )
@@ -205,9 +247,9 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
       const children = React.Children.toArray(props.children).map((child) => {
         if (typeof child === "string") {
           // Use regex to find emojis
-          return child.split(/(\p{Emoji}+)/gu).map((part, i) => {
+          return child.split(emojiRegex).map((part, i) => {
             // Check if this part is an emoji
-            if (/\p{Emoji}/u.test(part)) {
+            if (emojiRegex.test(part)) {
               return (
                 <span key={i} className="emoji">
                   {part}
@@ -216,7 +258,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
             }
             // Regular text gets the gradient
             return (
-              <span key={i} className="text-purple-gradient">
+              <span key={i} className="heading-text">
                 {part}
               </span>
             )
@@ -232,9 +274,9 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
       const children = React.Children.toArray(props.children).map((child) => {
         if (typeof child === "string") {
           // Use regex to find emojis
-          return child.split(/(\p{Emoji}+)/gu).map((part, i) => {
+          return child.split(emojiRegex).map((part, i) => {
             // Check if this part is an emoji
-            if (/\p{Emoji}/u.test(part)) {
+            if (emojiRegex.test(part)) {
               return (
                 <span key={i} className="emoji">
                   {part}
@@ -243,7 +285,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
             }
             // Regular text gets the gradient
             return (
-              <span key={i} className="text-purple-gradient">
+              <span key={i} className="heading-text">
                 {part}
               </span>
             )
@@ -253,6 +295,78 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
       })
 
       return <h3 {...props}>{children}</h3>
+    },
+    h4: ({ node, ...props }) => {
+      // Same pattern for h4
+      const children = React.Children.toArray(props.children).map((child) => {
+        if (typeof child === "string") {
+          return child.split(emojiRegex).map((part, i) => {
+            if (emojiRegex.test(part)) {
+              return (
+                <span key={i} className="emoji">
+                  {part}
+                </span>
+              )
+            }
+            return (
+              <span key={i} className="heading-text">
+                {part}
+              </span>
+            )
+          })
+        }
+        return child
+      })
+
+      return <h4 {...props}>{children}</h4>
+    },
+    h5: ({ node, ...props }) => {
+      // Same pattern for h5
+      const children = React.Children.toArray(props.children).map((child) => {
+        if (typeof child === "string") {
+          return child.split(emojiRegex).map((part, i) => {
+            if (emojiRegex.test(part)) {
+              return (
+                <span key={i} className="emoji">
+                  {part}
+                </span>
+              )
+            }
+            return (
+              <span key={i} className="heading-text">
+                {part}
+              </span>
+            )
+          })
+        }
+        return child
+      })
+
+      return <h5 {...props}>{children}</h5>
+    },
+    h6: ({ node, ...props }) => {
+      // Same pattern for h6
+      const children = React.Children.toArray(props.children).map((child) => {
+        if (typeof child === "string") {
+          return child.split(emojiRegex).map((part, i) => {
+            if (emojiRegex.test(part)) {
+              return (
+                <span key={i} className="emoji">
+                  {part}
+                </span>
+              )
+            }
+            return (
+              <span key={i} className="heading-text">
+                {part}
+              </span>
+            )
+          })
+        }
+        return child
+      })
+
+      return <h6 {...props}>{children}</h6>
     },
   }
 
@@ -291,7 +405,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
       {currentResponse.content && (
         <Card className="mt-6 card-holographic bg-gradient-to-r from-zinc-900 to-black max-w-3xl w-full">
           <CardContent className="pt-6 pb-2">
-            <div className="markdown-content">
+            <div className="markdown-content" ref={markdownRef}>
               {!currentResponse.isComplete ? (
                 <CursorTypewriter
                   markdown={currentResponse.content}
