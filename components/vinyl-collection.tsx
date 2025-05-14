@@ -183,7 +183,7 @@ export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: Vi
         >
           {/* Vinyl sizing wrapper with 3D perspective */}
           <div
-            className="w-full h-full perspective-1000"
+            className="w-full h-full perspective-1000 group" // Added group class for hover targeting
             style={{
               transformStyle: "preserve-3d",
               transform:
@@ -200,7 +200,8 @@ export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: Vi
               key={vinylDesigns[activeIndex].id}
               flipDirection={flipDirection}
               isTransitioning={isTransitioning}
-              onClick={nextVinyl} // Add onClick handler to trigger the next vinyl
+              onClick={nextVinyl}
+              className="transition-all duration-300 group-hover:scale-[1.02]" // Added subtle scale effect on hover
             />
           </div>
         </div>

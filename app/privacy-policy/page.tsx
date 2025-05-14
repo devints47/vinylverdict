@@ -74,9 +74,6 @@ export default function PrivacyPolicyPage() {
                   <li>
                     <strong>Spotify API</strong>: To access your music listening data
                   </li>
-                  <li>
-                    <strong>OpenAI API</strong>: To generate personalized "roasts" based on your music taste
-                  </li>
                 </ul>
                 <p>
                   Each of these services has their own privacy policies governing how they handle your data. We

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { createRoastPrompt } from "@/lib/format-utils"
+import { createRoastData } from "@/lib/format-utils"
 import { checkOpenAIAssistants } from "@/lib/env-check"
 
 // OpenAI API constants
@@ -40,7 +40,7 @@ async function createThread() {
 }
 
 // Add a message to a thread
-async function addMessage(threadId: string, content: string) {
+async function addMessage(threadId: string, content: any) {
   try {
     const response = await fetch(`${API_BASE_URL}/threads/${threadId}/messages`, {
       method: "POST",
@@ -51,7 +51,7 @@ async function addMessage(threadId: string, content: string) {
       },
       body: JSON.stringify({
         role: "user",
-        content,
+        content: JSON.stringify(content),
       }),
     })
 
@@ -200,17 +200,14 @@ function generateFallbackResponse(data: any, viewType: string, assistantType = "
         const artists = [...new Set(data.map((track: any) => track.artist.split(",")[0].trim()))].slice(0, 3)
         response += artists.join(", ") + " - what incredible choices! "
         response +=
-          'Your top track "' + data[0].title + '" shows your commitment to quality music that deserves to be on repeat!'
+          'Your top track "' + data[0].song + '" shows your commitment to quality music that deserves to be on repeat!'
       } else {
         response += "You're clearly very selective about what you listen to - quality over quantity!"
       }
     } else if (viewType === "top artists") {
       response += "Your artist selection reveals your sophisticated musical palette! "
       if (data && data.length > 0) {
-        response += "Especially your appreciation for " + data[0].name + ". "
-        if (data[0].genres && data[0].genres.length > 0) {
-          response += data[0].genres.join(", ") + " - truly the mark of someone with refined taste!"
-        }
+        response += "Especially your appreciation for " + data[0].artist + ". "
       } else {
         response += "You're clearly exploring the vast landscape of musical genius!"
       }
@@ -228,7 +225,7 @@ function generateFallbackResponse(data: any, viewType: string, assistantType = "
         response += "Interesting choices... I guess someone has to listen to them! 😉\n\n"
         response +=
           'Your top track is "' +
-          data[0].title +
+          data[0].song +
           "\" - clearly you're not afraid to repeat the same song over and over again."
       } else {
         response +=
@@ -237,10 +234,7 @@ function generateFallbackResponse(data: any, viewType: string, assistantType = "
     } else if (viewType === "top artists") {
       response += "Your artist selection is... unique. "
       if (data && data.length > 0) {
-        response += "Especially your apparent love for " + data[0].name + ". "
-        if (data[0].genres && data[0].genres.length > 0) {
-          response += "I see you're into " + data[0].genres.join(", ") + ". Bold choice for someone in this century!"
-        }
+        response += "Especially your apparent love for " + data[0].artist + ". "
       } else {
         response += "Actually, it seems like you don't have favorite artists. Commitment issues?"
       }
@@ -290,15 +284,15 @@ export async function POST(request: Request) {
       )
     }
 
-    // Create the prompt using the helper function
-    const prompt = createRoastPrompt(data, viewType)
+    // Create the data object using the helper function
+    const messageData = createRoastData(data, viewType)
 
     try {
       // Create a new thread
       const thread = await createThread()
 
       // Add the message to the thread
-      await addMessage(thread.id, prompt)
+      await addMessage(thread.id, messageData)
 
       // Run the assistant
       const run = await runAssistant(thread.id, assistantId)

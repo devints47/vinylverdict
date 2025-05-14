@@ -771,17 +771,24 @@ const VinylRecord = memo(function VinylRecord({
   }, [design, size, rpm, flipDirection, isTransitioning])
 
   return (
-    <div className={`relative w-full h-full flex justify-center items-center ${className}`}>
+    <div className={`relative w-full h-full flex justify-center items-center group ${className}`}>
+      {/* Invisible expanded hitbox for hover detection */}
+      <div
+        className="absolute inset-0 z-10 rounded-full cursor-pointer"
+        style={{ padding: "10px" }}
+        onClick={onClick}
+      />
+
       <canvas
         ref={canvasRef}
-        className="w-full h-full mx-auto shadow-2xl rounded-full cursor-pointer" // Added cursor-pointer
+        className="w-full h-full mx-auto shadow-2xl rounded-full cursor-pointer transition-all duration-300 group-hover:shadow-[0_0_25px_5px_rgba(168,85,247,0.7)]"
         aria-hidden="true"
         style={{
           willChange: "transform",
           backfaceVisibility: "hidden",
         }}
-        onClick={onClick} // Add onClick handler to the canvas
-        title={onClick ? "Click to change record" : undefined} // Add title for accessibility
+        onClick={onClick}
+        title={onClick ? "Click to change record" : undefined}
       />
     </div>
   )
