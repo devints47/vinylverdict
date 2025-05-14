@@ -37,8 +37,20 @@ export function formatRecentlyPlayedData(recentItems: any) {
 }
 
 // Create a data object for the OpenAI API
-export function createRoastData(data: any, viewType: string) {
+export function createRoastData(data: any, viewType: string, timeRange?: string) {
+  // Format the timeframe based on viewType and timeRange
+  let timeframe = ""
+
+  if (viewType === "recently played") {
+    timeframe = "Recently played"
+  } else if (viewType === "top tracks") {
+    timeframe = `Top Tracks - ${timeRange || "All Time"}`
+  } else if (viewType === "top artists") {
+    timeframe = `Top Artists - ${timeRange || "All Time"}`
+  }
+
   return {
     listening_history: data,
+    timeframe: timeframe,
   }
 }

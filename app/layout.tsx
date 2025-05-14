@@ -75,6 +75,17 @@ export const metadata: Metadata = {
   verification: {
     google: "verification_token",
   },
+  icons: {
+    icon: [{ url: "/vinyl-favicon.png" }, { url: "/vinyl-favicon.png", type: "image/png" }],
+    shortcut: ["/vinyl-favicon.png"],
+    apple: [{ url: "/vinyl-favicon.png" }, { url: "/vinyl-favicon.png", sizes: "180x180", type: "image/png" }],
+    other: [
+      {
+        rel: "apple-touch-icon-precomposed",
+        url: "/vinyl-favicon.png",
+      },
+    ],
+  },
     generator: 'v0.dev'
 }
 
@@ -83,9 +94,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <head>
         {/* Chrome-friendly favicon implementation */}
-        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/vinyl-favicon.png" sizes="any" />
         <link rel="icon" href="/vinyl-favicon.png" type="image/png" />
         <link rel="apple-touch-icon" href="/vinyl-favicon.png" />
+
+        {/* Explicitly add favicon.ico reference to prevent 404 */}
+        <link rel="shortcut icon" href="/vinyl-favicon.png" />
 
         {/* Preconnect to important domains */}
         <link rel="preconnect" href="https://api.spotify.com" />
