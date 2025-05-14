@@ -1,5 +1,7 @@
 "use client"
 
+import React from "react"
+
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
@@ -169,6 +171,91 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
     return assistantType === "worshipper" ? "✨" : "🔥"
   }
 
+  // Custom components for ReactMarkdown to preserve emoji colors
+  const components = {
+    h1: ({ node, ...props }) => {
+      // Process children to wrap text (but not emojis) in styled spans
+      const children = React.Children.toArray(props.children).map((child) => {
+        if (typeof child === "string") {
+          // Use regex to find emojis
+          return child.split(/(\p{Emoji}+)/gu).map((part, i) => {
+            // Check if this part is an emoji
+            if (/\p{Emoji}/u.test(part)) {
+              return (
+                <span key={i} className="emoji">
+                  {part}
+                </span>
+              )
+            }
+            // Regular text gets the gradient
+            return (
+              <span key={i} className="text-purple-gradient">
+                {part}
+              </span>
+            )
+          })
+        }
+        return child
+      })
+
+      return <h1 {...props}>{children}</h1>
+    },
+    h2: ({ node, ...props }) => {
+      // Process children to wrap text (but not emojis) in styled spans
+      const children = React.Children.toArray(props.children).map((child) => {
+        if (typeof child === "string") {
+          // Use regex to find emojis
+          return child.split(/(\p{Emoji}+)/gu).map((part, i) => {
+            // Check if this part is an emoji
+            if (/\p{Emoji}/u.test(part)) {
+              return (
+                <span key={i} className="emoji">
+                  {part}
+                </span>
+              )
+            }
+            // Regular text gets the gradient
+            return (
+              <span key={i} className="text-purple-gradient">
+                {part}
+              </span>
+            )
+          })
+        }
+        return child
+      })
+
+      return <h2 {...props}>{children}</h2>
+    },
+    h3: ({ node, ...props }) => {
+      // Process children to wrap text (but not emojis) in styled spans
+      const children = React.Children.toArray(props.children).map((child) => {
+        if (typeof child === "string") {
+          // Use regex to find emojis
+          return child.split(/(\p{Emoji}+)/gu).map((part, i) => {
+            // Check if this part is an emoji
+            if (/\p{Emoji}/u.test(part)) {
+              return (
+                <span key={i} className="emoji">
+                  {part}
+                </span>
+              )
+            }
+            // Regular text gets the gradient
+            return (
+              <span key={i} className="text-purple-gradient">
+                {part}
+              </span>
+            )
+          })
+        }
+        return child
+      })
+
+      return <h3 {...props}>{children}</h3>
+    },
+  }
+
   return (
     <div className="mb-8 flex flex-col items-center sticky top-0 z-10 w-full">
       <div className="flex justify-center w-full">
@@ -214,8 +301,9 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
                 />
               ) : (
                 <ReactMarkdown
-                  className="prose prose-invert max-w-none text-zinc-300 prose-headings:text-purple-gradient prose-strong:text-white prose-em:text-zinc-400 prose-li:marker:text-purple-gradient"
+                  className="prose prose-invert max-w-none text-zinc-300 prose-strong:text-white prose-em:text-zinc-400 prose-li:marker:text-purple-gradient"
                   rehypePlugins={[rehypeRaw]}
+                  components={components}
                 >
                   {currentResponse.content}
                 </ReactMarkdown>
