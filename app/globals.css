@@ -198,7 +198,6 @@ html {
   @apply text-zinc-300;
 }
 
-/* Remove the gradient from headings by default */
 .markdown-content h1,
 .markdown-content h2,
 .markdown-content h3,
@@ -206,16 +205,6 @@ html {
 .markdown-content h5,
 .markdown-content h6 {
   @apply font-bold mb-4;
-  /* Remove the gradient styling from here */
-}
-
-/* Apply gradient only to the text parts of headings */
-.markdown-content h1 .heading-text,
-.markdown-content h2 .heading-text,
-.markdown-content h3 .heading-text,
-.markdown-content h4 .heading-text,
-.markdown-content h5 .heading-text,
-.markdown-content h6 .heading-text {
   background: linear-gradient(
     135deg,
     var(--purple-gradient-start),
@@ -229,15 +218,6 @@ html {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-}
-
-/* Ensure emojis display with their true colors */
-.markdown-content .emoji {
-  -webkit-background-clip: initial;
-  -webkit-text-fill-color: initial;
-  background-clip: initial;
-  color: initial;
-  font-style: normal;
 }
 
 .markdown-content h1 {

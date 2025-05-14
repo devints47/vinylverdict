@@ -12,129 +12,82 @@ interface CursorTypewriterProps {
   cursorChar?: string
 }
 
-// Regex to detect emojis
-const emojiRegex = /(\p{Emoji}+)/gu
-
 export function CursorTypewriter({
   markdown,
   speed = 20,
   className = "",
   onComplete,
-  cursorChar = "|",
+  cursorChar = "█",
 }: CursorTypewriterProps) {
-  const [displayText, setDisplayText] = useState("")
+  const [displayPosition, setDisplayPosition] = useState(0)
   const [isComplete, setIsComplete] = useState(false)
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
 
-  // Process the markdown to wrap emojis in spans
-  const processMarkdown = (text: string) => {
-    // For headings, we need to process them specially
-    const processedLines = text.split("\n").map((line) => {
-      // Check if this is a heading line (starts with # symbols)
-      if (/^#{1,6}\s/.test(line)) {
-        // Split the line into heading marker and content
-        const [marker, ...rest] = line.split(/(?<=^#{1,6})\s/)
-        const content = rest.join(" ")
-
-        // Process the content to wrap emojis
-        const processedContent = content
-          .split(emojiRegex)
-          .map((part, i) => {
-            if (emojiRegex.test(part)) {
-              return `<span class="emoji">${part}</span>`
-            }
-            return `<span class="heading-text">${part}</span>`
-          })
-          .join("")
-
-        // Reconstruct the line
-        return `${marker} ${processedContent}`
-      }
-
-      return line
-    })
-
-    return processedLines.join("\n")
-  }
-
-  // Effect to handle the typewriter animation
+  // Handle the typewriter effect
   useEffect(() => {
-    if (!markdown) return
-
-    setDisplayText("")
-    setIsComplete(false)
+    if (!markdown) {
+      setDisplayPosition(0)
+      setIsComplete(false)
+      return
+    }
 
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current)
     }
 
-    let currentLength = 0
-    const processedMarkdown = processMarkdown(markdown)
+    setDisplayPosition(0)
+    setIsComplete(false)
 
-    const revealNextChar = () => {
-      if (currentLength < processedMarkdown.length) {
-        currentLength++
-        setDisplayText(processedMarkdown.substring(0, currentLength))
-        timeoutRef.current = setTimeout(revealNextChar, speed)
-      } else {
-        setIsComplete(true)
-        if (onComplete) onComplete()
-      }
+    const totalLength = markdown.length
+
+    const animateText = () => {
+      setDisplayPosition((prev) => {
+        if (prev < totalLength) {
+          timeoutRef.current = setTimeout(animateText, speed)
+          return prev + 1
+        } else {
+          setIsComplete(true)
+          if (onComplete) onComplete()
+          return prev
+        }
+      })
     }
 
-    timeoutRef.current = setTimeout(revealNextChar, speed)
+    timeoutRef.current = setTimeout(animateText, speed)
 
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current)
     }
   }, [markdown, speed, onComplete])
 
-  // Effect to process DOM after rendering to ensure emojis display correctly
-  useEffect(() => {
-    if (!containerRef.current) return
+  // Create the text with only the typed characters visible plus cursor
+  const getTextWithCursor = () => {
+    if (isComplete) {
+      return markdown
+    }
 
-    // Find all heading elements
-    const headings = containerRef.current.querySelectorAll("h1, h2, h3, h4, h5, h6")
+    // Get only the text that has been "typed" so far
+    const visibleText = markdown.substring(0, displayPosition)
 
-    // Process each heading to ensure emojis display correctly
-    headings.forEach((heading) => {
-      // Skip if already processed
-      if (heading.getAttribute("data-processed") === "true") return
-
-      // Mark as processed
-      heading.setAttribute("data-processed", "true")
-
-      // Ensure emoji spans have the correct styling
-      const emojiSpans = heading.querySelectorAll(".emoji")
-      emojiSpans.forEach((span) => {
-        if (span instanceof HTMLElement) {
-          span.style.webkitBackgroundClip = "initial"
-          span.style.webkitTextFillColor = "initial"
-          span.style.backgroundClip = "initial"
-          span.style.color = "initial"
-        }
-      })
-    })
-  }, [displayText])
+    // Add the cursor at the end of the visible text
+    return visibleText + `<span class="terminal-cursor">${cursorChar}</span>`
+  }
 
   return (
-    <div ref={containerRef} className={className}>
-      <ReactMarkdown rehypePlugins={[rehypeRaw]} className="prose prose-invert max-w-none">
-        {displayText}
+    <div className={className}>
+      <style jsx global>{`
+        .terminal-cursor {
+          color: #a855f7; /* Tailwind purple-500 */
+          display: inline-block;
+          transform: scaleX(0.9); /* Make the cursor 10% narrower */
+        }
+      `}</style>
+      <ReactMarkdown
+        className="prose prose-invert max-w-none text-zinc-300 prose-headings:text-purple-gradient prose-strong:text-white prose-em:text-zinc-400 prose-li:marker:text-purple-gradient"
+        rehypePlugins={[rehypeRaw]}
+      >
+        {getTextWithCursor()}
       </ReactMarkdown>
-      {!isComplete && (
-        <span
-          className="inline-block w-2 h-4 bg-purple-500 animate-pulse"
-          style={{
-            verticalAlign: "middle",
-            marginLeft: "1px",
-          }}
-          aria-hidden="true"
-        >
-          {cursorChar}
-        </span>
-      )}
     </div>
   )
 }
