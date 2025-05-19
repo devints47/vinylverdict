@@ -54,7 +54,8 @@ export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: Vi
       faceType: "cool",
       labelText: "INDIE • ALTERNATIVE • UNDERGROUND • EXCLUSIVE •",
       description:
-        "A walking encyclopedia of music history and cultural context. The Historian will analyze your taste through the lens of musical movements, influences, and the artists' place in the greater musical canon.",
+        "An ancient keeper of musical secrets who unveils the mysterious and forgotten lore behind your listening habits. The Historian analyzes your taste through an esoteric lens, revealing hidden connections and mythical knowledge about your musical journey.",
+      assistantType: "historian", // Added assistantType for The Historian
     },
     {
       id: "pop-hits",

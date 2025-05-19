@@ -27,10 +27,21 @@ export async function getRoast(data: any, viewType: string, assistantType = "sno
     }
 
     // Get the appropriate disclaimer text based on assistant type
-    const disclaimerText =
-      assistantType === "worshipper"
-        ? "This validation is a celebration of your personal listening habits. It's all in good fun and meant to highlight the positive aspects of your music taste."
-        : "This roast is a satirical critique of your personal listening habits. It's all in good fun and not intended to insult any artists or fans."
+    let disclaimerText
+    switch (assistantType) {
+      case "worshipper":
+        disclaimerText =
+          "This validation is a celebration of your personal listening habits. It's all in good fun and meant to highlight the positive aspects of your music taste."
+        break
+      case "historian":
+        disclaimerText =
+          "This analysis examines your music in its historical and cultural context. It's meant to be educational and thought-provoking, not judgmental."
+        break
+      case "snob":
+      default:
+        disclaimerText =
+          "This roast is a satirical critique of your personal listening habits. It's all in good fun and not intended to insult any artists or fans."
+    }
 
     // Use a standardized disclaimer format for all assistant types
     const disclaimer = `\n\n<div class='text-xs text-center text-zinc-500 mt-4'>${disclaimerText}</div>`

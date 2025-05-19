@@ -6,6 +6,7 @@ import { checkOpenAIAssistants } from "@/lib/env-check"
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY
 const MUSIC_SNOB_ASSISTANT_ID = process.env.OPENAI_MUSIC_SNOB_ID
 const TASTE_VALIDATOR_ASSISTANT_ID = process.env.OPENAI_TASTE_VALIDATOR_ID
+const HISTORIAN_ASSISTANT_ID = process.env.OPENAI_HISTORIAN_ID // Added Historian assistant ID
 const API_BASE_URL = "https://api.openai.com/v1"
 
 // Check if we have valid assistant IDs
@@ -179,6 +180,12 @@ function generateFallbackResponse(data: any, viewType: string, assistantType = "
       noteText:
         "The Taste Validator is currently composing a symphony inspired by your impeccable taste. This is just a preview of their admiration.",
     },
+    historian: {
+      name: "The Historian",
+      title: "Historical Analysis",
+      noteText:
+        "The Historian is currently researching obscure musical archives. This analysis was compiled from their preliminary notes.",
+    },
   }[assistantType]
 
   // Get the assistant info (defaulting to snob if type is unknown)
@@ -214,6 +221,30 @@ function generateFallbackResponse(data: any, viewType: string, assistantType = "
     } else {
       response +=
         "Your recent listening history shows a beautiful journey through sound! Each track you've chosen reflects a thoughtful approach to music appreciation."
+    }
+  } else if (assistantType === "historian") {
+    if (viewType === "top tracks") {
+      response += "Your listening history presents an interesting musical narrative. "
+      if (data && data.length > 0) {
+        const artists = [...new Set(data.map((track: any) => track.artist.split(",")[0].trim()))].slice(0, 3)
+        response += "Artists like " + artists.join(", ") + " represent distinct chapters in music's evolving story. "
+        response +=
+          'Your preference for "' + data[0].song + '" places you within a specific cultural moment worth examining.'
+      } else {
+        response +=
+          "Though sparse, even minimal listening patterns can reveal much about one's relationship to musical traditions."
+      }
+    } else if (viewType === "top artists") {
+      response += "Your artist preferences offer a fascinating window into musical lineage and influence. "
+      if (data && data.length > 0) {
+        response +=
+          data[0].artist + " in particular represents a significant node in the network of musical development. "
+      } else {
+        response += "The absence of clear favorites suggests perhaps a more exploratory approach to musical discovery."
+      }
+    } else {
+      response +=
+        "Your recent listening choices trace an interesting path through contemporary musical currents, revealing subtle patterns of taste formation and cultural engagement."
     }
   } else {
     // Music Snob content
@@ -266,9 +297,17 @@ export async function POST(request: Request) {
     const { data, viewType, assistantType = "snob" } = await request.json()
 
     // Determine which assistant ID to use
-    let assistantId = MUSIC_SNOB_ASSISTANT_ID
-    if (assistantType === "worshipper") {
-      assistantId = TASTE_VALIDATOR_ASSISTANT_ID
+    let assistantId
+    switch (assistantType) {
+      case "worshipper":
+        assistantId = TASTE_VALIDATOR_ASSISTANT_ID
+        break
+      case "historian":
+        assistantId = HISTORIAN_ASSISTANT_ID
+        break
+      case "snob":
+      default:
+        assistantId = MUSIC_SNOB_ASSISTANT_ID
     }
 
     // Check if Assistant ID exists
@@ -277,7 +316,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           roast:
-            "# Where's The Music Snob?\n\nOur resident music personality seems to have gone missing. The management is currently trying to locate them, probably checking local record stores and coffee shops.",
+            "# Where's The Music Personality?\n\nOur resident music personality seems to have gone missing. The management is currently trying to locate them, probably checking local record stores and coffee shops.",
           error: `OpenAI Assistant ID is missing for type: ${assistantType}`,
         },
         { status: 200 },
@@ -340,7 +379,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         roast:
-          "# The Music Snob Is Speechless\n\nYour taste in music has rendered our resident critic temporarily unable to form coherent sentences. Either your taste is truly beyond critique, or it's so bad they're still processing it.",
+          "# The Music Personality Is Speechless\n\nYour taste in music has rendered our resident critic temporarily unable to form coherent sentences. Either your taste is truly beyond critique, or it's so bad they're still processing it.",
         error: "Failed to generate roast",
       },
       { status: 200 },

@@ -46,7 +46,18 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
   // Get the appropriate button text based on the active tab and assistant type
   const getButtonText = () => {
     // Use a consistent action verb format based on assistant type
-    const actionVerb = assistantType === "worshipper" ? "Validate" : "Roast"
+    let actionVerb
+    switch (assistantType) {
+      case "worshipper":
+        actionVerb = "Validate"
+        break
+      case "historian":
+        actionVerb = "Analyze"
+        break
+      case "snob":
+      default:
+        actionVerb = "Roast"
+    }
 
     // Use a consistent format for all tabs
     switch (activeTab) {
@@ -107,6 +118,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
         "This roast is a satirical critique",
         "This validation is a celebration",
         "This analysis is",
+        "This analysis examines",
       ]
 
       let disclaimerIndex = -1
@@ -151,24 +163,44 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
 
   // Get the appropriate footer text based on the assistant type
   const getFooterText = () => {
-    // Use the same format for both assistant types, just change the content
-    return assistantType === "worshipper"
-      ? "This validation is a celebration of your personal listening habits. It's all in good fun and meant to highlight the positive aspects of your music taste."
-      : "This roast is a satirical critique of your personal listening habits. It's all in good fun and not intended to insult any artists or fans."
+    // Use the same format for all assistant types, just change the content
+    switch (assistantType) {
+      case "worshipper":
+        return "This validation is a celebration of your personal listening habits. It's all in good fun and meant to highlight the positive aspects of your music taste."
+      case "historian":
+        return "This analysis examines your music in its historical and cultural context. It's meant to be educational and thought-provoking, not judgmental."
+      case "snob":
+      default:
+        return "This roast is a satirical critique of your personal listening habits. It's all in good fun and not intended to insult any artists or fans."
+    }
   }
 
   // Get loading text based on assistant type
   const getLoadingText = () => {
     // Use a standardized format for loading text
-    return assistantType === "worshipper"
-      ? "The Taste Validator Is Appreciating..."
-      : "The Music Snob Is Judging You..."
+    switch (assistantType) {
+      case "worshipper":
+        return "The Taste Validator Is Appreciating..."
+      case "historian":
+        return "The Historian Is Researching..."
+      case "snob":
+      default:
+        return "The Music Snob Is Judging You..."
+    }
   }
 
   // Get emoji based on assistant type
   const getEmoji = () => {
     // Use a standardized format for emojis
-    return assistantType === "worshipper" ? "✨" : "🔥"
+    switch (assistantType) {
+      case "worshipper":
+        return "✨"
+      case "historian":
+        return "📚"
+      case "snob":
+      default:
+        return "🔥"
+    }
   }
 
   // Custom components for ReactMarkdown to preserve emoji colors
