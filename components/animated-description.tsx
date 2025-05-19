@@ -1,7 +1,7 @@
 "use client"
 
-import { motion, AnimatePresence } from "framer-motion"
-import { useEffect, useState } from "react"
+import { motion } from "framer-motion"
+import { useEffect, useState, useRef } from "react"
 
 interface AnimatedDescriptionProps {
   description: string
@@ -20,33 +20,51 @@ const colorMap: Record<string, string> = {
 
 export function AnimatedDescription({ description, labelColor, className = "" }: AnimatedDescriptionProps) {
   const [currentDescription, setCurrentDescription] = useState(description)
-  const [key, setKey] = useState(0)
-
-  // Update the description with animation when it changes
-  useEffect(() => {
-    if (description !== currentDescription) {
-      setKey((prev) => prev + 1)
-      setCurrentDescription(description)
-    }
-  }, [description, currentDescription])
+  const [shouldAnimate, setShouldAnimate] = useState(false)
+  const firstUpdate = useRef(true)
 
   // Get the appropriate gradient class based on label color
   const gradientClass = colorMap[labelColor] || colorMap.purple
 
+  // Update the description when it changes
+  useEffect(() => {
+    // Skip animation on first render/mount
+    if (firstUpdate.current) {
+      firstUpdate.current = false
+      setCurrentDescription(description)
+      return
+    }
+
+    // Only animate after the first description change
+    if (description !== currentDescription) {
+      setShouldAnimate(true)
+      setCurrentDescription(description)
+    }
+  }, [description, currentDescription])
+
+  // For the first render, return a static div with no animation
+  if (!shouldAnimate) {
+    return (
+      <div className={`relative ${className}`}>
+        <div className={`bg-gradient-to-r ${gradientClass} border border-zinc-800 rounded-lg p-3 backdrop-blur-sm`}>
+          <p className="text-sm text-[#A1A1AA]">{currentDescription}</p>
+        </div>
+      </div>
+    )
+  }
+
+  // For subsequent renders, use motion for animation
   return (
     <div className={`relative ${className}`}>
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={key}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.5 }}
-          className={`bg-gradient-to-r ${gradientClass} border border-zinc-800 rounded-lg p-3 backdrop-blur-sm`}
-        >
-          <p className="text-sm text-[#A1A1AA]">{currentDescription}</p>
-        </motion.div>
-      </AnimatePresence>
+      <motion.div
+        key={currentDescription}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className={`bg-gradient-to-r ${gradientClass} border border-zinc-800 rounded-lg p-3 backdrop-blur-sm`}
+      >
+        <p className="text-sm text-[#A1A1AA]">{currentDescription}</p>
+      </motion.div>
     </div>
   )
 }

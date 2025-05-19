@@ -131,17 +131,19 @@ export default function LandingPage() {
                   <VinylCollection />
                 </div>
 
-                {/* Animated Description Box */}
+                {/* Animated Description Box with fixed height container */}
                 <div
                   style={{
                     width: vinylWidth > 0 ? `${vinylWidth * 2.0}px` : "100%",
                     maxWidth: "100%", // Ensure it doesn't overflow on small screens
+                    minHeight: "100px", // Add minimum height to reserve space
                   }}
+                  className="mt-4 mb-6"
                 >
                   <AnimatedDescription
                     description={currentDescription}
                     labelColor={selectedVinyl?.labelColor || "purple"}
-                    className="mt-4 mb-6"
+                    className="h-full"
                   />
                 </div>
               </div>

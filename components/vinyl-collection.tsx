@@ -77,15 +77,15 @@ export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: Vi
     },
   ]
 
-  // Set initial active index based on the selected vinyl from context
+  // Set the initial vinyl immediately on mount
   useEffect(() => {
-    if (selectedVinyl) {
-      const index = vinylDesigns.findIndex((design) => design.id === selectedVinyl.id)
-      if (index !== -1 && index !== activeIndex) {
-        setActiveIndex(index)
-      }
+    // Set the initial vinyl immediately
+    const initialVinyl = vinylDesigns[activeIndex]
+    setSelectedVinyl(initialVinyl)
+    if (onSelectVinyl) {
+      onSelectVinyl(initialVinyl)
     }
-  }, [selectedVinyl, vinylDesigns])
+  }, []) // Empty dependency array ensures this only runs once on mount
 
   // Navigation functions
   const nextVinyl = () => {
@@ -158,15 +158,6 @@ export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: Vi
       setFlipDirection("none")
     }, 500)
   }
-
-  // Call onSelectVinyl with the initial vinyl on first render
-  useEffect(() => {
-    if (onSelectVinyl && !isTransitioning) {
-      const currentVinyl = vinylDesigns[activeIndex]
-      onSelectVinyl(currentVinyl)
-      setSelectedVinyl(currentVinyl)
-    }
-  }, [activeIndex, onSelectVinyl, isTransitioning])
 
   return (
     <div className="flex flex-col items-center">
