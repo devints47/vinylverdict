@@ -95,7 +95,6 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
   color: transparent;
-  display: inline;
 }
 
 .border-purple-gradient {
@@ -194,48 +193,9 @@ html {
   animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* Add this CSS class to preserve emoji appearance */
-/* Add this somewhere appropriate in your globals.css file: */
-
-.emoji-preserve {
-  display: inline-block;
-  font-style: normal;
-  background: none;
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: initial;
-  color: initial;
-  text-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
-  font-size: 1.2em;
-  vertical-align: middle;
-  margin: 0 0.1em;
-}
-
 /* Enhanced Markdown Styling */
 .markdown-content {
   @apply text-zinc-300;
-}
-
-/* Ensure the markdown content has proper styling */
-.markdown-content h1,
-.markdown-content h2,
-.markdown-content h3 {
-  font-weight: bold;
-  line-height: 1.2;
-  margin-top: 1.5em;
-  margin-bottom: 0.5em;
-}
-
-.markdown-content h1 {
-  font-size: 2rem;
-}
-
-.markdown-content h2 {
-  font-size: 1.5rem;
-}
-
-.markdown-content h3 {
-  font-size: 1.25rem;
 }
 
 .markdown-content h1,
@@ -433,7 +393,6 @@ html {
   transform: rotate(30deg);
   animation: shimmer 6s linear infinite;
   pointer-events: none;
-  z-index: 1;
 }
 
 /* Add these styles to the end of the file to support the tab styling */

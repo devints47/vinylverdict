@@ -203,9 +203,6 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
     }
   }
 
-  // Update the custom components for ReactMarkdown to better handle emojis
-  // Replace the existing components object with this improved version:
-
   // Custom components for ReactMarkdown to preserve emoji colors
   const components = {
     h1: ({ node, ...props }) => {
@@ -217,7 +214,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
             // Check if this part is an emoji
             if (/\p{Emoji}/u.test(part)) {
               return (
-                <span key={i} className="emoji-preserve">
+                <span key={i} className="emoji">
                   {part}
                 </span>
               )
@@ -244,7 +241,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
             // Check if this part is an emoji
             if (/\p{Emoji}/u.test(part)) {
               return (
-                <span key={i} className="emoji-preserve">
+                <span key={i} className="emoji">
                   {part}
                 </span>
               )
@@ -271,7 +268,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
             // Check if this part is an emoji
             if (/\p{Emoji}/u.test(part)) {
               return (
-                <span key={i} className="emoji-preserve">
+                <span key={i} className="emoji">
                   {part}
                 </span>
               )
@@ -288,29 +285,6 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
       })
 
       return <h3 {...props}>{children}</h3>
-    },
-    // Add support for paragraphs with emojis too
-    p: ({ node, ...props }) => {
-      // Process children to wrap text (but not emojis) in styled spans
-      const children = React.Children.toArray(props.children).map((child) => {
-        if (typeof child === "string") {
-          // Use regex to find emojis
-          return child.split(/(\p{Emoji}+)/gu).map((part, i) => {
-            // Check if this part is an emoji
-            if (/\p{Emoji}/u.test(part)) {
-              return (
-                <span key={i} className="emoji-preserve">
-                  {part}
-                </span>
-              )
-            }
-            return part
-          })
-        }
-        return child
-      })
-
-      return <p {...props}>{children}</p>
     },
   }
 
