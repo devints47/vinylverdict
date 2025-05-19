@@ -210,7 +210,7 @@ function RecentlyPlayedContent({
       <CardHeader className="relative">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
           <div className="flex items-center gap-6">
-            <div className="p-2">
+            <div className="p-2 flex-shrink-0">
               <a href="https://www.spotify.com" target="_blank" rel="noopener noreferrer" title="Visit Spotify">
                 <img
                   src="/spotify_logo_small.svg"
@@ -224,7 +224,9 @@ function RecentlyPlayedContent({
             </div>
             <div className="flex flex-col justify-center">
               <CardTitle className="text-2xl">Recently Played Tracks</CardTitle>
-              <CardDescription>Your listening history from the past few days</CardDescription>
+              <CardDescription className="min-h-[1.5rem]">
+                Your listening history from the past few days
+              </CardDescription>
             </div>
           </div>
           <div className="flex items-center text-zinc-400 bg-zinc-800/50 px-4 py-2 rounded-lg">
@@ -312,7 +314,7 @@ function TopTracksContent({
       <CardHeader className="relative">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
           <div className="flex items-center gap-6">
-            <div className="p-2">
+            <div className="p-2 flex-shrink-0">
               <a href="https://www.spotify.com" target="_blank" rel="noopener noreferrer" title="Visit Spotify">
                 <img
                   src="/spotify_logo_small.svg"
@@ -326,7 +328,7 @@ function TopTracksContent({
             </div>
             <div className="flex flex-col justify-center">
               <CardTitle className="text-2xl">Your Top Tracks</CardTitle>
-              <CardDescription>
+              <CardDescription className="min-h-[1.5rem]">
                 The songs you've listened to most over{" "}
                 {timeRange === "short_term"
                   ? "the last 4 weeks"
@@ -407,7 +409,7 @@ function TopArtistsContent({
       <CardHeader className="relative">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
           <div className="flex items-center gap-6">
-            <div className="p-2">
+            <div className="p-2 flex-shrink-0">
               <a href="https://www.spotify.com" target="_blank" rel="noopener noreferrer" title="Visit Spotify">
                 <img
                   src="/spotify_logo_small.svg"
@@ -421,7 +423,7 @@ function TopArtistsContent({
             </div>
             <div className="flex flex-col justify-center">
               <CardTitle className="text-2xl">Your Top Artists</CardTitle>
-              <CardDescription>
+              <CardDescription className="min-h-[1.5rem]">
                 The artists you've listened to most over{" "}
                 {timeRange === "short_term"
                   ? "the last 4 weeks"

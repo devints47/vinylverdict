@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+
 import { Music, User } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -25,19 +26,19 @@ export function MusicTabs({ activeTab, onTabChange, className }: MusicTabsProps)
         <TabButton
           isActive={activeTab === "recently-played"}
           onClick={() => onTabChange("recently-played")}
-          icon={<Music className="h-4 w-4" />}
+          icon={<Music className="h-5 w-5" />}
           label="Recently Played"
         />
         <TabButton
           isActive={activeTab === "top-tracks"}
           onClick={() => onTabChange("top-tracks")}
-          icon={<Music className="h-4 w-4" />}
+          icon={<Music className="h-5 w-5" />}
           label="Top Tracks"
         />
         <TabButton
           isActive={activeTab === "top-artists"}
           onClick={() => onTabChange("top-artists")}
-          icon={<User className="h-4 w-4" />}
+          icon={<User className="h-5 w-5" />}
           label="Top Artists"
         />
       </div>
@@ -81,7 +82,7 @@ function TabButton({ isActive, onClick, icon, label }: TabButtonProps) {
 
       {/* Content - always on top */}
       <div className="relative z-10 flex items-center justify-center gap-2">
-        {icon}
+        <div className="flex-shrink-0 w-6 h-6 flex items-center justify-center">{icon}</div>
         <span className="text-sm md:text-base">{label}</span>
       </div>
     </button>
