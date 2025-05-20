@@ -16,16 +16,27 @@ export function getOptimizedSpotifyImage(src: string, width = 300): string {
     return src
   }
 
-  // For local development or environments without image optimization
-  if (process.env.NODE_ENV === "development" || !process.env.NEXT_PUBLIC_VERCEL_URL) {
+  // If we're in development or don't have the necessary environment variables, return original
+  if (typeof window === "undefined" && !process.env.NEXT_PUBLIC_VERCEL_URL) {
     return src
   }
 
-  // Create a URL object to properly encode the source URL
-  const encodedSrc = encodeURIComponent(src)
+  try {
+    // Create a URL object to properly encode the source URL
+    const encodedSrc = encodeURIComponent(src)
 
-  // Use Next.js Image Optimization API
-  return `/_next/image?url=${encodedSrc}&w=${width}&q=75&f=webp`
+    // Use absolute URL if we have NEXT_PUBLIC_VERCEL_URL
+    if (process.env.NEXT_PUBLIC_VERCEL_URL) {
+      const protocol = process.env.NEXT_PUBLIC_VERCEL_URL.includes("localhost") ? "http" : "https"
+      return `${protocol}://${process.env.NEXT_PUBLIC_VERCEL_URL}/_next/image?url=${encodedSrc}&w=${width}&q=75&f=webp`
+    }
+
+    // Otherwise use relative URL (works in browser context)
+    return `/_next/image?url=${encodedSrc}&w=${width}&q=75&f=webp`
+  } catch (error) {
+    console.error("Error optimizing image:", error)
+    return src // Fallback to original URL
+  }
 }
 
 /**
