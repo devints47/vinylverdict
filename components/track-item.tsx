@@ -1,6 +1,7 @@
 "use client"
 
 import { formatDuration } from "@/lib/spotify-api"
+import { getOptimizedSpotifyImage } from "@/lib/image-optimization"
 import { useEffect, useState, memo } from "react"
 
 interface TrackItemProps {
@@ -44,6 +45,7 @@ const TrackItem = memo(function TrackItem({
   isRecentlyPlayed = false,
 }: TrackItemProps) {
   const [isMobile, setIsMobile] = useState(false)
+  const [imageUrl, setImageUrl] = useState<string>("")
 
   // Check if we're on mobile
   useEffect(() => {
@@ -70,6 +72,13 @@ const TrackItem = memo(function TrackItem({
     }
   }, [])
 
+  // Set optimized image URL
+  useEffect(() => {
+    const albumImageUrl = track.album.images[0]?.url || "/abstract-music-album.png"
+    const size = isMobile ? 56 : 64
+    setImageUrl(getOptimizedSpotifyImage(albumImageUrl, size))
+  }, [track.album.images, isMobile])
+
   // Extract genres from track or artists
   const genres = track.genres || track.artists.flatMap((artist) => artist.genres || []).slice(0, 2)
 
@@ -89,7 +98,7 @@ const TrackItem = memo(function TrackItem({
           className="block w-full h-full"
         >
           <img
-            src={track.album.images[0]?.url || "/placeholder.svg?height=64&width=64&query=album"}
+            src={imageUrl || "/placeholder.svg"}
             alt={track.album.name}
             className={`w-full h-full object-cover ${isMobile ? "rounded-[2px]" : "rounded-[4px]"}`}
             width={isMobile ? 56 : 64}

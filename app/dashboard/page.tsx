@@ -12,7 +12,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { TimeRangeSelector } from "@/components/time-range-selector"
 import { TrackItem } from "@/components/track-item"
 import { ArtistItem } from "@/components/artist-item"
-import { LoadingSkeleton } from "@/components/loading-skeleton"
 import { RoastMe } from "@/components/roast-me"
 import { TechGridBackground } from "@/components/tech-grid-background"
 import { VinylCollection, type VinylDesign } from "@/components/vinyl-collection"
@@ -21,6 +20,7 @@ import type { TimeRange } from "@/lib/spotify-api"
 import { formatDate, getArtists } from "@/lib/spotify-api"
 import { ListContainer } from "@/components/list-container"
 import { VinylVerdictLogo } from "@/components/vinyl-verdict-logo"
+import { ContentLoading } from "@/components/content-loading"
 
 interface UserProfile {
   display_name: string
@@ -241,7 +241,7 @@ function RecentlyPlayedContent({
       <div className="h-px w-full bg-gradient-to-r from-zinc-800 via-bright-purple/20 to-zinc-800"></div>
       <CardContent>
         {isLoadingRecent || isRefreshing ? (
-          <LoadingSkeleton count={10} type="track" />
+          <ContentLoading message="Loading your recently played tracks..." />
         ) : recentlyPlayed?.items?.length > 0 ? (
           <>
             <ListContainer>
@@ -347,7 +347,7 @@ function TopTracksContent({
       <div className="h-px w-full bg-gradient-to-r from-zinc-800 via-bright-purple/20 to-zinc-800"></div>
       <CardContent>
         {isLoadingTracks || isRefreshing ? (
-          <LoadingSkeleton count={10} type="track" />
+          <ContentLoading message="Loading your top tracks..." />
         ) : currentTopTracks?.items?.length > 0 ? (
           <>
             <ListContainer>
@@ -442,7 +442,7 @@ function TopArtistsContent({
       <div className="h-px w-full bg-gradient-to-r from-zinc-800 via-bright-purple/20 to-zinc-800"></div>
       <CardContent>
         {isLoadingArtists || isRefreshing ? (
-          <LoadingSkeleton count={10} type="artist" />
+          <ContentLoading message="Loading your top artists..." />
         ) : currentTopArtists?.items?.length > 0 ? (
           <>
             <ListContainer>

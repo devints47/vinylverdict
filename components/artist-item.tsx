@@ -1,5 +1,6 @@
 "use client"
 
+import { getOptimizedSpotifyImage } from "@/lib/image-optimization"
 import { useEffect, useState, memo } from "react"
 
 interface ArtistItemProps {
@@ -23,6 +24,7 @@ interface ArtistItemProps {
 // Memoize the ArtistItem component to prevent unnecessary re-renders
 const ArtistItem = memo(function ArtistItem({ artist, index }: ArtistItemProps) {
   const [isMobile, setIsMobile] = useState(false)
+  const [imageUrl, setImageUrl] = useState<string>("")
 
   // Check if we're on mobile
   useEffect(() => {
@@ -49,6 +51,13 @@ const ArtistItem = memo(function ArtistItem({ artist, index }: ArtistItemProps) 
     }
   }, [])
 
+  // Set optimized image URL
+  useEffect(() => {
+    const artistImageUrl = artist.images[0]?.url || "/diverse-artists-studio.png"
+    const size = isMobile ? 56 : 64
+    setImageUrl(getOptimizedSpotifyImage(artistImageUrl, size))
+  }, [artist.images, isMobile])
+
   // Format follower count with commas
   const formatFollowers = (count: number): string => {
     return count.toLocaleString()
@@ -70,7 +79,7 @@ const ArtistItem = memo(function ArtistItem({ artist, index }: ArtistItemProps) 
           className="block w-full h-full"
         >
           <img
-            src={artist.images[0]?.url || "/placeholder.svg?height=64&width=64&query=artist"}
+            src={imageUrl || "/placeholder.svg"}
             alt={artist.name}
             className={`w-full h-full object-cover ${isMobile ? "rounded-[2px]" : "rounded-[4px]"}`}
             width={isMobile ? 56 : 64}
