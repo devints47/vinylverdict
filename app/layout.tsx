@@ -5,6 +5,9 @@ import { Inter } from "next/font/google"
 import { AuthProvider } from "@/contexts/auth-context"
 import { VinylProvider } from "@/contexts/vinyl-context"
 import { ScrollToTop } from "@/components/scroll-to-top"
+import { SpeedInsights } from "@vercel/speed-insights/next"
+import { Analytics } from "@vercel/analytics/react"
+import { Suspense } from "react"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -129,12 +132,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className={`${inter.className} bg-black text-white`}>
-        <AuthProvider>
-          <VinylProvider>
-            {children}
-            <ScrollToTop />
-          </VinylProvider>
-        </AuthProvider>
+        <Suspense fallback={<div>Loading...</div>}>
+          <AuthProvider>
+            <VinylProvider>
+              {children}
+              <ScrollToTop />
+              <SpeedInsights />
+              <Analytics />
+            </VinylProvider>
+          </AuthProvider>
+        </Suspense>
       </body>
     </html>
   )
