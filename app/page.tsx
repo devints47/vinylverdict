@@ -99,20 +99,20 @@ export default function LandingPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div>
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-                  <span className="text-purple-gradient">VinylVerdict</span> - Your Personal Music Taste Critic
+                  <span className="text-purple-gradient">VinylVerdict</span> - Your Music Taste Analyzer
                 </h1>
                 <p className="text-xl text-zinc-400 mb-8 max-w-lg">
-                  Connect your Spotify account and choose from one of our resident Music Snobs to analyze your listening
-                  habits with brutal honesty and witty commentary.
+                  Connect your Spotify account and choose from multiple unique personalities to analyze your listening
+                  habits with distinct perspectives, from brutal honesty to historical insights.
                 </p>
 
                 {/* Button container - completely restructured for proper mobile centering */}
                 <div className="w-full flex flex-col items-center sm:items-start gap-4">
                   <div className="w-full flex justify-center sm:justify-start">
-                    <SpotifyLoginButton text="Face Judgement" showHoverEffect={true} />
+                    <SpotifyLoginButton text="Analyze My Music" showHoverEffect={true} />
                   </div>
                   <p className="text-sm text-zinc-500 text-center sm:text-left">
-                    No judgment. (Just kidding, lots of judgment.)
+                    From recently played to all-time favorites. (Prepare for judgment.)
                   </p>
                 </div>
 
@@ -136,14 +136,12 @@ export default function LandingPage() {
                   style={{
                     width: vinylWidth > 0 ? `${vinylWidth * 2.0}px` : "100%",
                     maxWidth: "100%", // Ensure it doesn't overflow on small screens
-                    minHeight: "100px", // Add minimum height to reserve space
                   }}
                   className="mt-4 mb-6"
                 >
                   <AnimatedDescription
                     description={currentDescription}
                     labelColor={selectedVinyl?.labelColor || "purple"}
-                    className="h-full"
                   />
                 </div>
               </div>
@@ -161,11 +159,11 @@ export default function LandingPage() {
           <div className="container mx-auto relative z-10">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold mb-4 text-purple-gradient flex items-center justify-center gap-3">
-                Why You Need a Music Snob
+                Choose Your Music Analyst
                 <VinylVerdictLogo size={40} className="inline-block" />
               </h2>
               <p className="text-xl text-zinc-400 max-w-2xl mx-auto">
-                Because sometimes you need someone to tell you that your playlist is basic.
+                Because different perspectives reveal different truths about your musical journey.
               </p>
             </div>
 
@@ -176,11 +174,12 @@ export default function LandingPage() {
                   <div className="bg-bright-purple/10 w-12 h-12 rounded-full flex items-center justify-center mb-4">
                     <Zap className="h-6 w-6 text-bright-purple" />
                   </div>
-                  <h3 className="text-xl font-bold mb-2 text-white">Instant Results</h3>
+                  <h3 className="text-xl font-bold mb-2 text-white">Multiple Personalities</h3>
                 </div>
                 <div className="px-6 pb-6">
                   <p className="text-zinc-400 text-base">
-                    Get your musical roast in seconds, no waiting around for your ego to be crushed.
+                    From critical Music Snob to mystical Historian, each personality offers a unique take on your music
+                    taste.
                   </p>
                 </div>
               </div>
@@ -191,11 +190,12 @@ export default function LandingPage() {
                   <div className="bg-bright-purple/10 w-12 h-12 rounded-full flex items-center justify-center mb-4">
                     <Music className="h-6 w-6 text-bright-purple" />
                   </div>
-                  <h3 className="text-xl font-bold mb-2 text-white">Spotify Integration</h3>
+                  <h3 className="text-xl font-bold mb-2 text-white">Complete Spotify Analysis</h3>
                 </div>
                 <div className="px-6 pb-6">
                   <p className="text-zinc-400 text-base">
-                    Securely connect your Spotify account to analyze your recently played tracks and top artists.
+                    Toggle between recently played tracks and your all-time favorites to get a comprehensive view of
+                    your music taste.
                   </p>
                 </div>
               </div>
@@ -206,11 +206,12 @@ export default function LandingPage() {
                   <div className="bg-bright-purple/10 w-12 h-12 rounded-full flex items-center justify-center mb-4">
                     <Share2 className="h-6 w-6 text-bright-purple" />
                   </div>
-                  <h3 className="text-xl font-bold mb-2 text-white">Share Your Roast</h3>
+                  <h3 className="text-xl font-bold mb-2 text-white">Share Your Analysis</h3>
                 </div>
                 <div className="px-6 pb-6">
                   <p className="text-zinc-400 text-base">
-                    Brave enough to share your musical shame? Export and share your critique with friends.
+                    Brave enough to share your musical profile? Export and share your personalized analysis with
+                    friends.
                   </p>
                 </div>
               </div>
@@ -219,7 +220,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Built Using Spotify Web API Section - WITH GRID */}
+      {/* Built Using Spotify Web API Section */}
       <section className="relative py-12 px-4 bg-black overflow-hidden">
         <TechGridBackground />
         <div className="container mx-auto relative z-10">
@@ -254,13 +255,13 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Testimonials Section - WITH GRID */}
+      {/* Testimonials Section */}
       <section id="testimonials" className="relative py-20 px-4 bg-black overflow-hidden">
         <TechGridBackground />
         <div className="container mx-auto relative z-10">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4 text-purple-gradient">What Users Are Saying</h2>
-            <p className="text-xl text-zinc-400 max-w-2xl mx-auto">People who have faced the music (critic)</p>
+            <p className="text-xl text-zinc-400 max-w-2xl mx-auto">People who have explored their musical identities</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -268,7 +269,7 @@ export default function LandingPage() {
               quote="I never knew my obsession with 80s power ballads made me so basic. Thanks for the existential crisis, VinylVerdict!"
               name="Alex Johnson"
               title="Reformed Music Listener"
-              avatar="/diverse-group.png"
+              avatar="/person-with-headphones-2.png"
             />
             <Testimonial
               quote="The Music Snob told me my taste was 'aggressively mediocre with hints of trying too hard.' Harsh but fair."
@@ -280,61 +281,25 @@ export default function LandingPage() {
               quote="I showed my VinylVerdict roast to my friends and now they won't let me control the playlist anymore. 10/10 would recommend."
               name="Jamie Smith"
               title="Former DJ"
-              avatar="/person-with-headphones.png"
+              avatar="/dj-portrait.png"
             />
           </div>
         </div>
       </section>
 
-      {/* How It Works Section - NO GRID - HIDDEN FOR NOW */}
-      <section id="how-it-works" className="hidden py-20 px-4">
-        <div className="container mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-purple-gradient">How It Works</h2>
-            <p className="text-xl text-zinc-400 max-w-2xl mx-auto">
-              Three simple steps to musical self-awareness (or self-loathing)
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            <div className="text-center">
-              <div className="w-16 h-16 rounded-full bg-bright-purple/20 flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl font-bold text-purple-gradient">1</span>
-              </div>
-              <h3 className="text-xl font-bold mb-2">Connect Account</h3>
-              <p className="text-zinc-400">Securely log in with your music streaming account.</p>
-            </div>
-
-            <div className="text-center">
-              <div className="w-16 h-16 rounded-full bg-bright-purple/20 flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl font-bold text-purple-gradient">2</span>
-              </div>
-              <h3 className="text-xl font-bold mb-2">View Your Stats</h3>
-              <p className="text-zinc-400">See your recently played tracks and top artists/songs.</p>
-            </div>
-
-            <div className="text-center">
-              <div className="w-16 h-16 rounded-full bg-bright-purple/20 flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl font-bold text-purple-gradient">3</span>
-              </div>
-              <h3 className="text-xl font-bold mb-2">Get Roasted</h3>
-              <p className="text-zinc-400">Receive a witty critique from our resident Music Snob.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section - WITH GRID */}
+      {/* CTA Section */}
       <section className="relative py-20 px-4 bg-black overflow-hidden cta-section">
         <TechGridBackground />
         <div className="container mx-auto max-w-4xl relative z-10">
           <div className="bg-gradient-to-r from-zinc-900/80 to-black/80 p-8 md:p-12 rounded-2xl border border-zinc-800 text-center backdrop-blur-sm">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-purple-gradient">Ready to Face the Music?</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-purple-gradient">
+              Ready to Discover Your Music Identity?
+            </h2>
             <p className="text-xl text-zinc-400 mb-8 max-w-2xl mx-auto">
-              Connect your account and discover what your playlist says about you. If you dare.
+              Connect your account and explore your listening habits through multiple perspectives. Choose your analyst.
             </p>
             <div className="flex justify-center">
-              <SpotifyLoginButton text="I'm Ready" />
+              <SpotifyLoginButton text="Get Started" />
             </div>
           </div>
         </div>

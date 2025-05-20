@@ -9,9 +9,6 @@ interface TestimonialProps {
 }
 
 export function Testimonial({ quote, name, title, avatar }: TestimonialProps) {
-  // Ensure we have a valid image source or use a placeholder
-  const imageSrc = avatar && avatar.trim() !== "" ? avatar : "/diverse-group.png"
-
   return (
     <Card className="border-none shadow-lg bg-zinc-900 text-white h-full flex flex-col">
       <CardContent className="pt-6 pb-2 flex-grow">
@@ -21,8 +18,8 @@ export function Testimonial({ quote, name, title, avatar }: TestimonialProps) {
         </div>
       </CardContent>
       <CardFooter className="flex items-center gap-4 pt-2 mt-auto">
-        <Avatar>
-          <AvatarImage src={imageSrc || "/placeholder.svg"} alt={name} />
+        <Avatar className="h-10 w-10 border-2 border-spotify-green overflow-hidden">
+          <AvatarImage src={avatar || "/placeholder.svg"} alt={name} className="object-cover" />
           <AvatarFallback>{name.charAt(0)}</AvatarFallback>
         </Avatar>
         <div>
