@@ -293,13 +293,13 @@ export default function LandingPage() {
         <div className="container mx-auto max-w-4xl relative z-10">
           <div className="bg-gradient-to-r from-zinc-900/80 to-black/80 p-8 md:p-12 rounded-2xl border border-zinc-800 text-center backdrop-blur-sm">
             <h2 className="text-3xl md:text-4xl font-bold mb-4 text-purple-gradient">
-              Ready to Discover Your Music Identity?
+              Ready to Face the Music?
             </h2>
             <p className="text-xl text-zinc-400 mb-8 max-w-2xl mx-auto">
               Connect your account and explore your listening habits through multiple perspectives. Choose your analyst.
             </p>
             <div className="flex justify-center">
-              <SpotifyLoginButton text="Get Started" />
+              <SpotifyLoginButton text="I'm Ready" />
             </div>
           </div>
         </div>
