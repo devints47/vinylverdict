@@ -2,7 +2,7 @@
 
 import React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Loader2, AlertCircle } from "lucide-react"
@@ -29,6 +29,9 @@ interface ResponseStore {
   isComplete: boolean
 }
 
+// Create a session storage key
+const SESSION_STORAGE_KEY = "vinylVerdict_responses"
+
 export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, selectedVinyl }: RoastMeProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -42,6 +45,33 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
 
   // Get current response from store based on assistant type
   const currentResponse = responseStore[assistantType] || { content: "", isComplete: false }
+
+  // Load saved responses from session storage on initial render
+  useEffect(() => {
+    // Only run in browser environment
+    if (typeof window !== "undefined") {
+      try {
+        const savedResponses = sessionStorage.getItem(SESSION_STORAGE_KEY)
+        if (savedResponses) {
+          setResponseStore(JSON.parse(savedResponses))
+        }
+      } catch (err) {
+        console.error("Error loading saved responses:", err)
+      }
+    }
+  }, [])
+
+  // Save responses to session storage whenever they change
+  useEffect(() => {
+    // Only run in browser environment and if we have responses
+    if (typeof window !== "undefined" && Object.keys(responseStore).length > 0) {
+      try {
+        sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(responseStore))
+      } catch (err) {
+        console.error("Error saving responses:", err)
+      }
+    }
+  }, [responseStore])
 
   // Get the appropriate button text based on the active tab and assistant type
   const getButtonText = () => {
@@ -327,7 +357,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
               {!currentResponse.isComplete ? (
                 <CursorTypewriter
                   markdown={currentResponse.content}
-                  speed={20}
+                  speed={40}
                   onComplete={handleTypewriterComplete}
                   cursorChar="█"
                 />
