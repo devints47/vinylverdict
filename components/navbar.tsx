@@ -4,16 +4,14 @@ import type React from "react"
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { SpotifyLoginButton } from "./spotify-login-button"
-import { LogOut, Menu, User, X } from "lucide-react"
-import { useAuth } from "@/contexts/auth-context"
+import { Menu, X } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { VinylLogo } from "./vinyl-logo"
+import { AuthButtonWrapper } from "./auth-button-wrapper"
 
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const { isAuthenticated, logout } = useAuth()
   const pathname = usePathname()
 
   // Don't show navbar on callback page
@@ -78,28 +76,7 @@ export function Navbar() {
               )}
 
               {/* Authentication buttons */}
-              {isAuthenticated ? (
-                <div className="flex items-center gap-4">
-                  {!pathname.startsWith("/dashboard") && (
-                    <Link
-                      href="/dashboard"
-                      className="text-zinc-400 hover:text-white transition-colors flex items-center gap-2"
-                    >
-                      <User size={18} />
-                      <span>Dashboard</span>
-                    </Link>
-                  )}
-                  <button
-                    onClick={logout}
-                    className="relative overflow-hidden btn-gradient holographic-shimmer text-white font-bold py-2 px-6 text-base rounded-full transition-all duration-300 hover:scale-105 flex items-center gap-2 shadow-lg"
-                  >
-                    <LogOut size={18} />
-                    <span>Logout</span>
-                  </button>
-                </div>
-              ) : (
-                <SpotifyLoginButton text="Log in" className="py-2 px-6 text-base" />
-              )}
+              <AuthButtonWrapper />
             </nav>
 
             {/* Mobile Menu Button */}
@@ -148,35 +125,10 @@ export function Navbar() {
                 </>
               )}
 
-              {/* Authentication buttons */}
-              {isAuthenticated ? (
-                <>
-                  {!pathname.startsWith("/dashboard") && (
-                    <Link
-                      href="/dashboard"
-                      className="text-zinc-400 hover:text-white transition-colors py-2 flex items-center gap-2"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      <User size={18} />
-                      <span>Dashboard</span>
-                    </Link>
-                  )}
-                  <button
-                    className="relative overflow-hidden btn-gradient holographic-shimmer text-white font-bold py-2 px-6 text-base rounded-full transition-all duration-300 hover:scale-105 flex items-center gap-2 shadow-lg justify-start w-full"
-                    onClick={() => {
-                      logout()
-                      setIsMenuOpen(false)
-                    }}
-                  >
-                    <LogOut size={18} />
-                    <span>Logout</span>
-                  </button>
-                </>
-              ) : (
-                <div className="pt-2">
-                  <SpotifyLoginButton text="Log in" />
-                </div>
-              )}
+              {/* Authentication buttons for mobile */}
+              <div className="pt-2">
+                <AuthButtonWrapper />
+              </div>
             </nav>
           )}
         </div>
