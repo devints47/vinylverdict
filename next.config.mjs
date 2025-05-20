@@ -9,9 +9,9 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    domains: ['i.scdn.co', 'mosaic.scdn.co', 'platform-lookaside.fbsbx.com'],
-    unoptimized: true,
-    formats: ['image/avif', 'image/webp'],
+    domains: ['i.scdn.co', 'mosaic.scdn.co', 'platform-lookaside.fbsbx.com', 'image-cdn.spotify.com'],
+    formats: ['image/webp'],
+    unoptimized: false, // Explicitly enable optimization
   },
   env: {
     NEXT_PUBLIC_SPOTIFY_CLIENT_ID: process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID,
