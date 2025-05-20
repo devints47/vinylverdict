@@ -10,8 +10,7 @@ const nextConfig = {
   },
   images: {
     domains: ['i.scdn.co', 'mosaic.scdn.co', 'platform-lookaside.fbsbx.com', 'image-cdn.spotify.com'],
-    formats: ['image/webp'],
-    unoptimized: false, // Explicitly enable optimization
+    unoptimized: true, // Disable Next.js image optimization since we're using Spotify's sizing
   },
   env: {
     NEXT_PUBLIC_SPOTIFY_CLIENT_ID: process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID,
