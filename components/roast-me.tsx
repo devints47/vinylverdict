@@ -528,18 +528,21 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
   // Determine if we should show the share button
   const showShareButton = currentResponse.content && currentResponse.isComplete
 
+  // Determine if the primary button should be disabled
+  const isPrimaryButtonDisabled = currentResponse.content && !currentResponse.isComplete
+
   return (
     <div ref={containerRef} className="mb-8 flex flex-col items-center w-full" style={roastSectionStyle}>
       <div className="flex justify-center w-full">
         <Button
           onClick={handleRoastMe}
-          disabled={false} // Never disable the button so users can cancel
+          disabled={isPrimaryButtonDisabled} // Disable button while typewriting
           className={`btn-gradient holographic-shimmer text-white font-bold py-4 px-8 text-lg rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl max-w-md ${
-            isLoading ? "bg-purple-600 hover:bg-purple-700" : ""
+            isLoading || isPrimaryButtonDisabled ? "bg-purple-600 hover:bg-purple-700 opacity-90" : ""
           }`}
           size="lg"
         >
-          {isLoading ? (
+          {isLoading || isPrimaryButtonDisabled ? (
             <>
               <Loader2 className="h-5 w-5 animate-spin mr-2" />
               {getLoadingText()}
@@ -571,18 +574,9 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
           <CardFooter className="flex flex-col gap-4">
             <p className="text-sm text-zinc-500 italic">{getFooterText()}</p>
 
-            {/* Share button and secondary roast button */}
+            {/* Share button */}
             {showShareButton && (
-              <div className="flex flex-wrap justify-center gap-4 w-full mt-2">
-                <Button
-                  onClick={handleRoastMe}
-                  className="btn-gradient holographic-shimmer text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl"
-                >
-                  <span className="text-lg">{getEmoji()}</span>
-                  <span>{getButtonText()}</span>
-                  <span className="text-lg">{getEmoji()}</span>
-                </Button>
-
+              <div className="flex justify-center w-full mt-2">
                 <Button
                   onClick={() => {
                     // This will be implemented later
@@ -597,6 +591,21 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
             )}
           </CardFooter>
         </Card>
+      )}
+
+      {/* Secondary roast button below the roast card */}
+      {showShareButton && (
+        <div className="mt-6 flex justify-center w-full">
+          <Button
+            onClick={handleRoastMe}
+            className="btn-gradient holographic-shimmer text-white font-bold py-4 px-8 text-lg rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl max-w-md"
+            size="lg"
+          >
+            <span className="text-xl">{getEmoji()}</span>
+            <span>{getButtonText()}</span>
+            <span className="text-xl">{getEmoji()}</span>
+          </Button>
+        </div>
       )}
     </div>
   )
