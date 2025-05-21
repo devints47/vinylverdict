@@ -53,6 +53,9 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
   // Get current response from store based on assistant type
   const currentResponse = responseStore[assistantType] || { content: "", isComplete: false }
 
+  // Reference to the typewriter component to maintain its state
+  const typewriterRef = useRef<{ reset: () => void } | null>(null)
+
   // Load saved responses from session storage on initial render
   useEffect(() => {
     // Only run in browser environment
@@ -167,14 +170,21 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
       activeRequestRef.current[assistantType] = { id: requestId, cancel }
 
       // Clear any existing response for this assistant type
-      setResponseStore((prev) => ({
-        ...prev,
-        [assistantType]: {
-          content: "",
-          isComplete: false,
-          requestId,
-        },
-      }))
+      setResponseStore((prev) => {
+        // Create a new object to ensure React detects the change
+        const newStore = { ...prev }
+
+        // If there's an existing response for this assistant type, mark it as complete
+        // to prevent the typewriter from continuing
+        if (newStore[assistantType]) {
+          newStore[assistantType] = {
+            ...newStore[assistantType],
+            isComplete: true,
+          }
+        }
+
+        return newStore
+      })
 
       // Update the last active tab reference
       lastActiveTabRef.current = activeTab
@@ -407,6 +417,32 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
     zIndex: 10,
   }
 
+  // Memoize the typewriter component to prevent re-rendering when tabs change
+  const typewriterComponent = React.useMemo(() => {
+    if (!currentResponse.content) return null
+
+    if (!currentResponse.isComplete) {
+      return (
+        <CursorTypewriter
+          markdown={currentResponse.content}
+          speed={7}
+          onComplete={handleTypewriterComplete}
+          cursorChar="█"
+        />
+      )
+    }
+
+    return (
+      <ReactMarkdown
+        className="prose prose-invert max-w-none text-zinc-300 prose-strong:text-white prose-em:text-zinc-400 prose-li:marker:text-purple-gradient animate-fadeIn"
+        rehypePlugins={[rehypeRaw]}
+        components={components}
+      >
+        {currentResponse.content}
+      </ReactMarkdown>
+    )
+  }, [currentResponse.content, currentResponse.isComplete, currentResponse.requestId])
+
   return (
     <div className="mb-8 flex flex-col items-center w-full" style={roastSectionStyle}>
       <div className="flex justify-center w-full">
@@ -444,25 +480,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
       {currentResponse.content && (
         <Card className="mt-6 card-holographic bg-gradient-to-r from-zinc-900 to-black max-w-3xl w-full">
           <CardContent className="pt-6 pb-2">
-            <div className="markdown-content text-sm sm:text-base md:text-lg">
-              {!currentResponse.isComplete ? (
-                <CursorTypewriter
-                  markdown={currentResponse.content}
-                  speed={7} // Doubled speed from 15ms to 7ms
-                  onComplete={handleTypewriterComplete}
-                  cursorChar="█"
-                  key={currentResponse.requestId || "default"} // Force re-render when requestId changes
-                />
-              ) : (
-                <ReactMarkdown
-                  className="prose prose-invert max-w-none text-zinc-300 prose-strong:text-white prose-em:text-zinc-400 prose-li:marker:text-purple-gradient animate-fadeIn"
-                  rehypePlugins={[rehypeRaw]}
-                  components={components}
-                >
-                  {currentResponse.content}
-                </ReactMarkdown>
-              )}
-            </div>
+            <div className="markdown-content text-sm sm:text-base md:text-lg">{typewriterComponent}</div>
           </CardContent>
 
           <CardFooter className="pt-4 pb-4 text-sm text-zinc-500 italic">{getFooterText()}</CardFooter>
