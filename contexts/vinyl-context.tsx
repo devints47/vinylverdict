@@ -3,8 +3,8 @@
 import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
 
-// Define the assistant type interface
-export interface AssistantConfig {
+// Define the vinyl design interface
+export interface VinylDesign {
   id: string
   name: string
   description: string
@@ -12,18 +12,19 @@ export interface AssistantConfig {
   assistantType: string
 }
 
-// Create the context with a default value
+// Define the context type
 interface VinylContextType {
-  selectedVinyl: AssistantConfig | null
-  setSelectedVinyl: (vinyl: AssistantConfig) => void
-  vinylOptions: AssistantConfig[]
+  selectedVinyl: VinylDesign | null
+  vinylOptions: VinylDesign[]
+  handleVinylSelect: (vinyl: VinylDesign) => void
   isLoading: boolean
 }
 
+// Create the context with a default value
 const VinylContext = createContext<VinylContextType>({
   selectedVinyl: null,
-  setSelectedVinyl: () => {},
   vinylOptions: [],
+  handleVinylSelect: () => {},
   isLoading: true,
 })
 
@@ -33,8 +34,8 @@ const STORAGE_KEY = "vinylVerdict_selectedVinyl"
 // Provider component
 export function VinylProvider({ children }: { children: React.ReactNode }) {
   // State for vinyl options and selected vinyl
-  const [vinylOptions, setVinylOptions] = useState<AssistantConfig[]>([])
-  const [selectedVinyl, setSelectedVinylState] = useState<AssistantConfig | null>(null)
+  const [vinylOptions, setVinylOptions] = useState<VinylDesign[]>([])
+  const [selectedVinyl, setSelectedVinyl] = useState<VinylDesign | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   // Fetch assistant configurations from the server
@@ -52,16 +53,16 @@ export function VinylProvider({ children }: { children: React.ReactNode }) {
         if (typeof window !== "undefined") {
           const savedVinylId = localStorage.getItem(STORAGE_KEY)
           if (savedVinylId) {
-            const savedVinyl = data.assistants.find((vinyl: AssistantConfig) => vinyl.id === savedVinylId)
+            const savedVinyl = data.assistants.find((vinyl: VinylDesign) => vinyl.id === savedVinylId)
             if (savedVinyl) {
-              setSelectedVinylState(savedVinyl)
+              setSelectedVinyl(savedVinyl)
             } else {
               // If saved vinyl not found, use the first option
-              setSelectedVinylState(data.assistants[0])
+              setSelectedVinyl(data.assistants[0])
             }
           } else {
             // If no saved vinyl, use the first option
-            setSelectedVinylState(data.assistants[0])
+            setSelectedVinyl(data.assistants[0])
           }
         }
 
@@ -76,12 +77,12 @@ export function VinylProvider({ children }: { children: React.ReactNode }) {
     fetchAssistantConfigs()
   }, [])
 
-  // Custom setter that also saves to localStorage
-  const setSelectedVinyl = (vinyl: AssistantConfig) => {
-    setSelectedVinylState(vinyl)
+  // Custom handler that also saves to localStorage
+  const handleVinylSelect = (vinyl: VinylDesign) => {
+    setSelectedVinyl(vinyl)
 
     // Save to localStorage
-    if (typeof window !== "undefined" && vinyl) {
+    if (typeof window !== "undefined") {
       try {
         localStorage.setItem(STORAGE_KEY, vinyl.id)
       } catch (err) {
@@ -91,7 +92,7 @@ export function VinylProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <VinylContext.Provider value={{ selectedVinyl, setSelectedVinyl, vinylOptions, isLoading }}>
+    <VinylContext.Provider value={{ selectedVinyl, vinylOptions, handleVinylSelect, isLoading }}>
       {children}
     </VinylContext.Provider>
   )
