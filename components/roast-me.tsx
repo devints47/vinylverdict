@@ -141,14 +141,6 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
         actionVerb = "Roast"
     }
 
-    // Check if there's an active request for this assistant type
-    const isActiveRequest = activeRequestRef.current[assistantType] !== undefined
-
-    // If there's an active request, show "Cancel" instead
-    if (isActiveRequest && isLoading) {
-      return `Cancel ${actionVerb}`
-    }
-
     // Use a consistent format for all tabs
     switch (activeTab) {
       case "top-tracks":
@@ -172,6 +164,20 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
       case "snob":
       default:
         return "Share My Roast"
+    }
+  }
+
+  // Get loading text based on assistant type
+  const getLoadingText = () => {
+    // Use a standardized format for loading text
+    switch (assistantType) {
+      case "worshipper":
+        return "The Taste Validator Is Appreciating..."
+      case "historian":
+        return "The Historian Is Researching..."
+      case "snob":
+      default:
+        return "The Music Snob Is Judging You..."
     }
   }
 
@@ -343,20 +349,6 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
       case "snob":
       default:
         return "This roast is a satirical critique of your personal listening habits. It's all in good fun and not intended to insult any artists or fans."
-    }
-  }
-
-  // Get loading text based on assistant type
-  const getLoadingText = () => {
-    // Use a standardized format for loading text
-    switch (assistantType) {
-      case "worshipper":
-        return "The Taste Validator Is Appreciating..."
-      case "historian":
-        return "The Historian Is Researching..."
-      case "snob":
-      default:
-        return "The Music Snob Is Judging You..."
     }
   }
 
@@ -533,8 +525,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
     return () => clearInterval(cleanupInterval)
   }, [])
 
-  // Determine if we should show the main roast button or not
-  const showRoastButton = !isLoading || !currentResponse.content
+  // Determine if we should show the share button
   const showShareButton = currentResponse.content && currentResponse.isComplete
 
   return (
@@ -544,14 +535,14 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
           onClick={handleRoastMe}
           disabled={false} // Never disable the button so users can cancel
           className={`btn-gradient holographic-shimmer text-white font-bold py-4 px-8 text-lg rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl max-w-md ${
-            activeRequestRef.current[assistantType] ? "bg-red-600 hover:bg-red-700" : ""
+            isLoading ? "bg-purple-600 hover:bg-purple-700" : ""
           }`}
           size="lg"
         >
           {isLoading ? (
             <>
-              <Loader2 className="h-5 w-5 animate-spin" />
-              <span>{activeRequestRef.current[assistantType] ? "Cancel" : getLoadingText()}</span>
+              <Loader2 className="h-5 w-5 animate-spin mr-2" />
+              {getLoadingText()}
             </>
           ) : (
             <>
@@ -571,13 +562,6 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
         </Alert>
       )}
 
-      {isLoading && !currentResponse.content && (
-        <div className="mt-6 flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
-          <span className="ml-2 text-lg text-zinc-300">{getLoadingText()}</span>
-        </div>
-      )}
-
       {currentResponse.content && (
         <Card className="mt-6 card-holographic bg-gradient-to-r from-zinc-900 to-black max-w-3xl w-full">
           <CardContent className="pt-6 pb-2">
@@ -587,9 +571,18 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
           <CardFooter className="flex flex-col gap-4">
             <p className="text-sm text-zinc-500 italic">{getFooterText()}</p>
 
-            {/* Share button only */}
+            {/* Share button and secondary roast button */}
             {showShareButton && (
-              <div className="flex justify-center w-full mt-2">
+              <div className="flex flex-wrap justify-center gap-4 w-full mt-2">
+                <Button
+                  onClick={handleRoastMe}
+                  className="btn-gradient holographic-shimmer text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl"
+                >
+                  <span className="text-lg">{getEmoji()}</span>
+                  <span>{getButtonText()}</span>
+                  <span className="text-lg">{getEmoji()}</span>
+                </Button>
+
                 <Button
                   onClick={() => {
                     // This will be implemented later
