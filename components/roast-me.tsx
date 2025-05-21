@@ -357,7 +357,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
               {!currentResponse.isComplete ? (
                 <CursorTypewriter
                   markdown={currentResponse.content}
-                  speed={40}
+                  speed={100}
                   onComplete={handleTypewriterComplete}
                   cursorChar="█"
                 />
