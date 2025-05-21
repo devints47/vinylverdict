@@ -77,13 +77,31 @@ export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: Vi
     },
   ]
 
-  // Set the initial vinyl immediately on mount
+  // Set the initial active index based on the selected vinyl from context
   useEffect(() => {
-    // Set the initial vinyl immediately
-    const initialVinyl = vinylDesigns[activeIndex]
-    setSelectedVinyl(initialVinyl)
-    if (onSelectVinyl) {
-      onSelectVinyl(initialVinyl)
+    if (selectedVinyl) {
+      const index = vinylDesigns.findIndex(
+        (design) => design.assistantType === selectedVinyl.assistantType || design.id === selectedVinyl.id,
+      )
+
+      if (index !== -1) {
+        setActiveIndex(index)
+      }
+    }
+  }, [selectedVinyl])
+
+  // Set the initial vinyl on mount
+  useEffect(() => {
+    // Only set if not already set from localStorage
+    if (!selectedVinyl || !selectedVinyl.assistantType) {
+      const initialVinyl = vinylDesigns[activeIndex]
+      setSelectedVinyl(initialVinyl)
+      if (onSelectVinyl) {
+        onSelectVinyl(initialVinyl)
+      }
+    } else if (onSelectVinyl) {
+      // If we already have a selected vinyl from localStorage, still call onSelectVinyl
+      onSelectVinyl(selectedVinyl)
     }
   }, []) // Empty dependency array ensures this only runs once on mount
 

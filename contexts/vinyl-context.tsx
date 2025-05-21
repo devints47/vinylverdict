@@ -8,7 +8,8 @@ export const vinylOptions = [
   {
     id: "snob",
     name: "Music Snob",
-    description: "A pretentious critic who will roast your music taste",
+    description:
+      "The most discerning and judgmental of our critics. Music Snob has strong opinions about everything from production quality to lyrical depth. Prepare for a thorough dissection of your musical choices with zero mercy.",
     color: "from-red-500 to-orange-500",
     assistantType: "snob",
   },
@@ -54,7 +55,14 @@ export function VinylProvider({ children }: { children: React.ReactNode }) {
       try {
         const savedVinylId = localStorage.getItem(STORAGE_KEY)
         if (savedVinylId) {
-          const savedVinyl = vinylOptions.find((vinyl) => vinyl.id === savedVinylId)
+          // First try to find by assistantType (more reliable)
+          let savedVinyl = vinylOptions.find((vinyl) => vinyl.assistantType === savedVinylId)
+
+          // If not found, try by id (backward compatibility)
+          if (!savedVinyl) {
+            savedVinyl = vinylOptions.find((vinyl) => vinyl.id === savedVinylId)
+          }
+
           if (savedVinyl) {
             setSelectedVinylState(savedVinyl)
           }
@@ -69,10 +77,10 @@ export function VinylProvider({ children }: { children: React.ReactNode }) {
   const setSelectedVinyl = (vinyl: (typeof vinylOptions)[0]) => {
     setSelectedVinylState(vinyl)
 
-    // Save to localStorage
-    if (typeof window !== "undefined") {
+    // Save to localStorage - use assistantType as it's more reliable
+    if (typeof window !== "undefined" && vinyl.assistantType) {
       try {
-        localStorage.setItem(STORAGE_KEY, vinyl.id)
+        localStorage.setItem(STORAGE_KEY, vinyl.assistantType)
       } catch (err) {
         console.error("Error saving vinyl selection:", err)
       }

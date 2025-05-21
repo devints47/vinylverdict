@@ -1,167 +1,27 @@
-import { NextResponse } from "next/server"
-import { createRoastData } from "@/lib/format-utils"
-import { checkOpenAIAssistants } from "@/lib/env-check"
+import { type NextRequest, NextResponse } from "next/server"
+import OpenAI from "openai"
+import { checkAuth } from "@/lib/env-check"
 
 // OpenAI API constants
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY
-const MUSIC_SNOB_ASSISTANT_ID = process.env.OPENAI_MUSIC_SNOB_ID
-const TASTE_VALIDATOR_ASSISTANT_ID = process.env.OPENAI_TASTE_VALIDATOR_ID
-const HISTORIAN_ASSISTANT_ID = process.env.OPENAI_HISTORIAN_ID
 const API_BASE_URL = "https://api.openai.com/v1"
 
-// Check if we have valid assistant IDs
-const hasValidAssistants = checkOpenAIAssistants()
+// Create OpenAI client
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+})
 
-// Create a new thread
-async function createThread() {
-  try {
-    console.log("Creating thread with API key:", OPENAI_API_KEY ? "API key exists" : "API key missing")
-
-    const response = await fetch(`${API_BASE_URL}/threads`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
-        "OpenAI-Beta": "assistants=v2",
-      },
-      body: JSON.stringify({}),
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      console.error("Thread creation response:", response.status, errorData)
-      throw new Error(`Failed to create thread: ${response.status} ${JSON.stringify(errorData)}`)
-    }
-
-    return await response.json()
-  } catch (error) {
-    console.error("Error creating thread:", error)
-    throw error
+// Map assistant types to their IDs
+function getAssistantId(assistantType: string): string | null {
+  switch (assistantType) {
+    case "snob":
+      return process.env.OPENAI_MUSIC_SNOB_ID || null
+    case "worshipper":
+      return process.env.OPENAI_TASTE_VALIDATOR_ID || null
+    case "historian":
+      return process.env.OPENAI_HISTORIAN_ID || null
+    default:
+      return null
   }
-}
-
-// Add a message to a thread
-async function addMessage(threadId: string, content: any) {
-  try {
-    const response = await fetch(`${API_BASE_URL}/threads/${threadId}/messages`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
-        "OpenAI-Beta": "assistants=v2",
-      },
-      body: JSON.stringify({
-        role: "user",
-        content: JSON.stringify(content),
-      }),
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(`Failed to add message: ${response.status} ${JSON.stringify(errorData)}`)
-    }
-
-    return await response.json()
-  } catch (error) {
-    console.error("Error adding message:", error)
-    throw error
-  }
-}
-
-// Run the assistant on a thread
-async function runAssistant(threadId: string, assistantId: string) {
-  try {
-    const response = await fetch(`${API_BASE_URL}/threads/${threadId}/runs`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
-        "OpenAI-Beta": "assistants=v2",
-      },
-      body: JSON.stringify({
-        assistant_id: assistantId,
-      }),
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(`Failed to run assistant: ${response.status} ${JSON.stringify(errorData)}`)
-    }
-
-    return await response.json()
-  } catch (error) {
-    console.error("Error running assistant:", error)
-    throw error
-  }
-}
-
-// Check the status of a run
-async function checkRunStatus(threadId: string, runId: string) {
-  try {
-    const response = await fetch(`${API_BASE_URL}/threads/${threadId}/runs/${runId}`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
-        "OpenAI-Beta": "assistants=v2",
-      },
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(`Failed to check run status: ${response.status} ${JSON.stringify(errorData)}`)
-    }
-
-    return await response.json()
-  } catch (error) {
-    console.error("Error checking run status:", error)
-    throw error
-  }
-}
-
-// Get messages from a thread
-async function getMessages(threadId: string) {
-  try {
-    const response = await fetch(`${API_BASE_URL}/threads/${threadId}/messages`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
-        "OpenAI-Beta": "assistants=v2",
-      },
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(`Failed to get messages: ${response.status} ${JSON.stringify(errorData)}`)
-    }
-
-    return await response.json()
-  } catch (error) {
-    console.error("Error getting messages:", error)
-    throw error
-  }
-}
-
-// Helper function to wait for a run to complete
-async function waitForRunCompletion(threadId: string, runId: string, maxAttempts = 60, delayMs = 1000) {
-  let attempts = 0
-
-  while (attempts < maxAttempts) {
-    const runStatus = await checkRunStatus(threadId, runId)
-
-    if (runStatus.status === "completed") {
-      return runStatus
-    }
-
-    if (runStatus.status === "failed" || runStatus.status === "cancelled") {
-      throw new Error(`Run ${runStatus.status}: ${runStatus.last_error?.message || "Unknown error"}`)
-    }
-
-    // Wait before checking again
-    await new Promise((resolve) => setTimeout(resolve, delayMs))
-    attempts++
-  }
-
-  throw new Error("Timed out waiting for run to complete")
 }
 
 // Fallback to a simple response if the OpenAI API fails
@@ -279,110 +139,49 @@ function generateFallbackResponse(data: any, viewType: string, assistantType = "
   return response + `\n\n*Note: ${noteText}*`
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    // Check if API key exists
-    if (!OPENAI_API_KEY) {
-      console.error("OpenAI API key is missing")
-      return NextResponse.json(
-        {
-          roast:
-            "# Hmm, That's Awkward\n\nThe Music Snob seems to have dozed off while analyzing your questionable taste. Please try again later or play something better to wake them up.",
-          error: "OpenAI API key is missing",
-        },
-        { status: 200 },
-      )
+    // Check authentication
+    const authResult = await checkAuth()
+    if (!authResult.isAuthenticated) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { data, viewType, assistantType = "snob" } = await request.json()
+    // Parse request body
+    const body = await request.json()
+    const { data, viewType, assistantType = "snob" } = body
 
-    // Determine which assistant ID to use
-    let assistantId
-    switch (assistantType) {
-      case "worshipper":
-        assistantId = TASTE_VALIDATOR_ASSISTANT_ID
-        break
-      case "historian":
-        assistantId = HISTORIAN_ASSISTANT_ID
-        break
-      case "snob":
-      default:
-        assistantId = MUSIC_SNOB_ASSISTANT_ID
-    }
+    // Get the assistant ID based on the type
+    const assistantId = getAssistantId(assistantType)
 
-    // Check if Assistant ID exists
     if (!assistantId) {
-      console.error(`OpenAI Assistant ID is missing for type: ${assistantType}`)
       return NextResponse.json(
-        {
-          roast:
-            "# Where's The Music Personality?\n\nOur resident music personality seems to have gone missing. The management is currently trying to locate them, probably checking local record stores and coffee shops.",
-          error: `OpenAI Assistant ID is missing for type: ${assistantType}`,
-        },
-        { status: 200 },
+        { error: `Assistant type "${assistantType}" not found or not configured` },
+        { status: 400 },
       )
     }
 
-    // Create the data object using the helper function
-    const messageData = createRoastData(data, viewType)
+    // Create a thread
+    const thread = await openai.beta.threads.create()
 
-    try {
-      // Create a new thread
-      const thread = await createThread()
+    // Add a message to the thread
+    await openai.beta.threads.messages.create(thread.id, {
+      role: "user",
+      content: JSON.stringify(data),
+    })
 
-      // Add the message to the thread
-      await addMessage(thread.id, messageData)
+    // Run the assistant
+    const run = await openai.beta.threads.runs.create(thread.id, {
+      assistant_id: assistantId,
+    })
 
-      // Run the assistant
-      const run = await runAssistant(thread.id, assistantId)
-
-      // Wait for the run to complete
-      await waitForRunCompletion(thread.id, run.id)
-
-      // Get the messages
-      const messages = await getMessages(thread.id)
-
-      // Find the assistant's response (should be the last message)
-      const assistantMessages = messages.data.filter((msg: any) => msg.role === "assistant")
-
-      if (assistantMessages.length === 0) {
-        throw new Error("No response from assistant")
-      }
-
-      // Return the content of the last assistant message
-      const roastContent = assistantMessages[0].content[0].text.value
-
-      return NextResponse.json(
-        { roast: roastContent },
-        {
-          headers: {
-            "Cache-Control": "private, max-age=3600",
-          },
-        },
-      )
-    } catch (openaiError) {
-      console.error("OpenAI API error:", openaiError)
-
-      // Generate a fallback response instead of failing
-      const fallbackRoast = generateFallbackResponse(data, viewType, assistantType)
-
-      return NextResponse.json(
-        {
-          roast: fallbackRoast,
-          error: "OpenAI API error, using fallback",
-        },
-        { status: 200 },
-      )
-    }
+    // Return the thread and run IDs
+    return NextResponse.json({
+      threadId: thread.id,
+      runId: run.id,
+    })
   } catch (error) {
     console.error("Error in roast API:", error)
-    return NextResponse.json(
-      {
-        roast:
-          "# The Music Personality Is Speechless\n\nYour taste in music has rendered our resident critic temporarily unable to form coherent sentences. Either your taste is truly beyond critique, or it's so bad they're still processing it.",
-        error: "Failed to generate roast",
-      },
-      { status: 200 },
-    )
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
