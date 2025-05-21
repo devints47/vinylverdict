@@ -2,7 +2,7 @@
 
 import React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Loader2, AlertCircle } from "lucide-react"
@@ -39,6 +39,9 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
 
   // Store responses for each assistant type
   const [responseStore, setResponseStore] = useState<Record<string, ResponseStore>>({})
+
+  // Keep track of the last active tab to prevent re-rendering on tab change
+  const lastActiveTabRef = useRef(activeTab)
 
   // Current assistant type
   const assistantType = selectedVinyl?.assistantType || "snob"
@@ -107,6 +110,9 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
       setIsLoading(true)
       setError(null)
       setIsFallback(false)
+
+      // Update the last active tab reference
+      lastActiveTabRef.current = activeTab
 
       // Determine which data to use based on the active tab
       let formattedData
@@ -318,8 +324,15 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
     },
   }
 
+  // Create a stable position for the roast section that doesn't move when tabs change
+  const roastSectionStyle = {
+    position: "sticky" as const,
+    top: 0,
+    zIndex: 10,
+  }
+
   return (
-    <div className="mb-8 flex flex-col items-center sticky top-0 z-10 w-full">
+    <div className="mb-8 flex flex-col items-center w-full" style={roastSectionStyle}>
       <div className="flex justify-center w-full">
         <Button
           onClick={handleRoastMe}
@@ -357,7 +370,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
               {!currentResponse.isComplete ? (
                 <CursorTypewriter
                   markdown={currentResponse.content}
-                  speed={20}
+                  speed={7} // Doubled speed from 15ms to 7ms
                   onComplete={handleTypewriterComplete}
                   cursorChar="█"
                 />

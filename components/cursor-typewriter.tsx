@@ -14,7 +14,7 @@ interface CursorTypewriterProps {
 
 export function CursorTypewriter({
   markdown,
-  speed = 15, // Increased speed (lower number = faster typing)
+  speed = 7, // Doubled the speed from 15ms to 7ms
   className = "",
   onComplete,
   cursorChar = "█",
