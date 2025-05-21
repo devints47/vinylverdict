@@ -16,14 +16,16 @@ export const vinylOptions = [
   {
     id: "worshipper",
     name: "Taste Validator",
-    description: "A supportive fan who will validate your music choices",
+    description:
+      "The ultimate music enthusiast who sees the beauty in every genre and artist. Taste Validator celebrates your musical journey with genuine excitement and positivity, finding the artistic merit in even your most questionable choices.",
     color: "from-green-400 to-emerald-500",
     assistantType: "worshipper",
   },
   {
     id: "historian",
     name: "Music Historian",
-    description: "An academic who will analyze your music in historical context",
+    description:
+      "An ancient keeper of musical secrets who unveils the mysterious and forgotten lore behind your listening habits. The Historian analyzes your taste through an esoteric lens, revealing hidden connections and mythical knowledge about your musical journey.",
     color: "from-blue-400 to-indigo-500",
     assistantType: "historian",
   },
