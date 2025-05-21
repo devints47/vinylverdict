@@ -1,6 +1,48 @@
 // OpenAI service - client side
 // This file should NOT contain the API key
 
+// Function to poll for the run status
+async function pollRunStatus(threadId: string, runId: string, maxAttempts = 30, interval = 1000): Promise<string> {
+  let attempts = 0
+
+  while (attempts < maxAttempts) {
+    try {
+      const response = await fetch("/api/roast/status", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ threadId, runId }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const result = await response.json()
+
+      // If the run is completed, return the roast
+      if (result.status === "completed" && result.roast) {
+        return result.roast
+      }
+
+      // If the run failed, throw an error
+      if (result.status === "failed") {
+        throw new Error(result.error || "Run failed")
+      }
+
+      // If the run is still in progress, wait and try again
+      await new Promise((resolve) => setTimeout(resolve, interval))
+      attempts++
+    } catch (error) {
+      console.error("Error polling run status:", error)
+      throw error
+    }
+  }
+
+  throw new Error("Timed out waiting for response")
+}
+
 // Main function to get a roast based on user's music taste
 export async function getRoast(data: any, viewType: string, assistantType = "snob"): Promise<string> {
   try {
@@ -15,22 +57,23 @@ export async function getRoast(data: any, viewType: string, assistantType = "sno
       body: JSON.stringify({ data, viewType, assistantType }),
     })
 
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
     const result = await response.json()
 
     // Check if there was an error with the OpenAI API
     if (result.error) {
       console.warn(`OpenAI API error: ${result.error}`)
-      console.warn(`Error details: ${result.details || "No details provided"}`)
-
-      // If we have a fallback response, use it
-      if (result.fallback) {
-        console.log("Using fallback response")
-        return result.fallback
-      }
+      throw new Error(result.error)
     }
 
-    // If we have thread and run IDs, proceed as normal
+    // If we have thread and run IDs, poll for the completed response
     if (result.threadId && result.runId) {
+      console.log(`Polling for run status: thread=${result.threadId}, run=${result.runId}`)
+      const roastContent = await pollRunStatus(result.threadId, result.runId)
+
       // Get the appropriate disclaimer text based on assistant type
       let disclaimerText
       switch (assistantType) {
@@ -51,11 +94,11 @@ export async function getRoast(data: any, viewType: string, assistantType = "sno
       // Use a standardized disclaimer format for all assistant types
       const disclaimer = `\n\n<div class='text-xs text-center text-zinc-500 mt-4'>${disclaimerText}</div>`
 
-      return result.roast + disclaimer
+      return roastContent + disclaimer
     }
 
-    // If we don't have a fallback or thread/run IDs, return a generic error message
-    return "Failed to generate analysis. Our music personality is currently unavailable."
+    // If we don't have thread and run IDs, return an error
+    throw new Error("Missing thread or run IDs in response")
   } catch (error) {
     console.error("Error in getRoast:", error)
     return "Failed to generate analysis. Our music personality is currently unavailable."
