@@ -6,7 +6,7 @@ export function validateEnvironment() {
     "OPENAI_API_KEY",
     "OPENAI_MUSIC_SNOB_ID",
     "OPENAI_TASTE_VALIDATOR_ID",
-    "OPENAI_HISTORIAN_ID", // Added new Historian ID
+    "OPENAI_HISTORIAN_ID",
   ]
 
   const missingVars = requiredVars.filter((varName) => !process.env[varName])
@@ -24,7 +24,7 @@ export function checkOpenAIAssistants() {
   const assistantVars = {
     OPENAI_MUSIC_SNOB_ID: process.env.OPENAI_MUSIC_SNOB_ID,
     OPENAI_TASTE_VALIDATOR_ID: process.env.OPENAI_TASTE_VALIDATOR_ID,
-    OPENAI_HISTORIAN_ID: process.env.OPENAI_HISTORIAN_ID, // Added new Historian ID
+    OPENAI_HISTORIAN_ID: process.env.OPENAI_HISTORIAN_ID,
   }
 
   const missingAssistants = Object.entries(assistantVars)

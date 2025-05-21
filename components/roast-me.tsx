@@ -425,7 +425,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
       return (
         <CursorTypewriter
           markdown={currentResponse.content}
-          speed={7}
+          speed={12} // Slowed down from 7ms to 12ms
           onComplete={handleTypewriterComplete}
           cursorChar="█"
         />

@@ -14,7 +14,7 @@ interface CursorTypewriterProps {
 
 export function CursorTypewriter({
   markdown,
-  speed = 7, // Faster speed (7ms)
+  speed = 12, // Slowed down from 7ms to 12ms
   className = "",
   onComplete,
   cursorChar = "█",
@@ -102,13 +102,7 @@ export function CursorTypewriter({
         .terminal-cursor {
           color: #a855f7; /* Tailwind purple-500 */
           display: inline-block;
-          animation: blink 1s step-end infinite;
-          transform: scaleX(0.9); /* Make the cursor 10% narrower */
-        }
-        
-        @keyframes blink {
-          from, to { opacity: 1; }
-          50% { opacity: 0; }
+          /* Removed blinking animation */
         }
       `}</style>
       <ReactMarkdown
