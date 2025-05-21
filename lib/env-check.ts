@@ -38,3 +38,17 @@ export function checkOpenAIAssistants() {
 
   return true
 }
+
+// Check authentication environment variables
+export function checkAuth() {
+  const authVars = ["NEXT_PUBLIC_SPOTIFY_CLIENT_ID", "NEXT_PUBLIC_REDIRECT_URI"]
+
+  const missingAuthVars = authVars.filter((varName) => !process.env[varName])
+
+  if (missingAuthVars.length > 0) {
+    console.warn(`Missing authentication environment variables: ${missingAuthVars.join(", ")}`)
+    return false
+  }
+
+  return true
+}
