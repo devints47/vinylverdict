@@ -9,7 +9,7 @@ interface TypewriterTextProps {
   onComplete?: () => void
 }
 
-export function TypewriterText({ text, speed = 30, className = "", onComplete }: TypewriterTextProps) {
+export function TypewriterText({ text, speed = 15, className = "", onComplete }: TypewriterTextProps) {
   const [displayedText, setDisplayedText] = useState("")
   const [currentIndex, setCurrentIndex] = useState(0)
 
@@ -46,7 +46,7 @@ export function TypewriterText({ text, speed = 30, className = "", onComplete }:
   }, [text])
 
   return (
-    <div className={className}>
+    <div className={`text-sm sm:text-base md:text-lg ${className}`}>
       {displayedText}
       {currentIndex < text?.length && <span className="inline-block w-2 h-4 bg-spotify-green ml-1 animate-pulse" />}
     </div>

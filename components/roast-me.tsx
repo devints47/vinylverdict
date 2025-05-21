@@ -353,17 +353,17 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
       {currentResponse.content && (
         <Card className="mt-6 card-holographic bg-gradient-to-r from-zinc-900 to-black max-w-3xl w-full">
           <CardContent className="pt-6 pb-2">
-            <div className="markdown-content">
+            <div className="markdown-content text-sm sm:text-base md:text-lg">
               {!currentResponse.isComplete ? (
                 <CursorTypewriter
                   markdown={currentResponse.content}
-                  speed={100}
+                  speed={20}
                   onComplete={handleTypewriterComplete}
                   cursorChar="█"
                 />
               ) : (
                 <ReactMarkdown
-                  className="prose prose-invert max-w-none text-zinc-300 prose-strong:text-white prose-em:text-zinc-400 prose-li:marker:text-purple-gradient"
+                  className="prose prose-invert max-w-none text-zinc-300 prose-strong:text-white prose-em:text-zinc-400 prose-li:marker:text-purple-gradient animate-fadeIn"
                   rehypePlugins={[rehypeRaw]}
                   components={components}
                 >
