@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import OpenAI from "openai"
-import { checkAuth } from "@/lib/server-auth-utils" // Updated import
+import { checkAuth } from "@/lib/env-check"
 
 // OpenAI API constants
 const API_BASE_URL = "https://api.openai.com/v1"
@@ -141,20 +141,16 @@ function generateFallbackResponse(data: any, viewType: string, assistantType = "
 
 export async function POST(request: NextRequest) {
   try {
-    console.log("Roast API called")
-
     // Check authentication
-    const authResult = await checkAuth(request)
+    const authResult = await checkAuth()
     if (!authResult.isAuthenticated) {
-      console.error("Authentication failed:", authResult.error)
-      return NextResponse.json({ error: "Unauthorized", details: authResult.error }, { status: 401 })
+      console.error("Authentication failed in roast API")
+      return NextResponse.json({ error: "Unauthorized", details: "Authentication check failed" }, { status: 401 })
     }
 
     // Parse request body
     const body = await request.json()
     const { data, viewType, assistantType = "snob" } = body
-
-    console.log(`Processing request for assistant type: ${assistantType}, view type: ${viewType}`)
 
     // Get the assistant ID based on the type
     const assistantId = getAssistantId(assistantType)
@@ -162,31 +158,36 @@ export async function POST(request: NextRequest) {
     if (!assistantId) {
       console.error(`Assistant type "${assistantType}" not found or not configured`)
       return NextResponse.json(
-        { error: `Assistant type "${assistantType}" not found or not configured` },
+        {
+          error: `Assistant type "${assistantType}" not found or not configured`,
+          details: `Check environment variables for ${assistantType.toUpperCase()}_ID`,
+        },
         { status: 400 },
       )
     }
 
-    console.log(`Using assistant ID: ${assistantId.substring(0, 5)}...`)
+    console.log(`Processing request for assistant type: ${assistantType}, view type: ${viewType}`)
+    console.log(`Using assistant ID: ${assistantId.substring(0, 10)}...`)
 
     try {
+      console.log("Creating OpenAI thread")
       // Create a thread
       const thread = await openai.beta.threads.create()
-      console.log(`Thread created: ${thread.id.substring(0, 5)}...`)
 
+      console.log("Adding message to thread")
       // Add a message to the thread
       await openai.beta.threads.messages.create(thread.id, {
         role: "user",
-        content: JSON.stringify({ data, viewType }),
+        content: JSON.stringify(data),
       })
-      console.log("Message added to thread")
 
+      console.log("Running assistant")
       // Run the assistant
       const run = await openai.beta.threads.runs.create(thread.id, {
         assistant_id: assistantId,
       })
-      console.log(`Run created: ${run.id.substring(0, 5)}...`)
 
+      console.log("Request successful, returning thread and run IDs")
       // Return the thread and run IDs
       return NextResponse.json({
         threadId: thread.id,
@@ -199,30 +200,30 @@ export async function POST(request: NextRequest) {
       if (openaiError.status === 401) {
         return NextResponse.json(
           {
-            error: "OpenAI API key is invalid",
-            details: openaiError.message,
+            error: "OpenAI API authentication failed",
+            details: "Invalid API key or expired token",
             fallback: generateFallbackResponse(data, viewType, assistantType),
           },
           { status: 500 },
         )
       }
 
-      if (openaiError.status === 429) {
+      if (openaiError.status === 404) {
         return NextResponse.json(
           {
-            error: "OpenAI API rate limit exceeded",
-            details: openaiError.message,
+            error: "OpenAI resource not found",
+            details: `Assistant ID ${assistantId.substring(0, 10)}... may be invalid`,
             fallback: generateFallbackResponse(data, viewType, assistantType),
           },
           { status: 500 },
         )
       }
 
-      // Return a fallback response for any OpenAI error
+      // Generic error with fallback
       return NextResponse.json(
         {
           error: "OpenAI API error",
-          details: openaiError.message,
+          details: openaiError.message || "Unknown error",
           fallback: generateFallbackResponse(data, viewType, assistantType),
         },
         { status: 500 },
@@ -233,8 +234,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         error: "Internal server error",
-        details: error.message,
-        fallback: "Our music critics are currently on break. Please try again later.",
+        details: error.message || "Unknown error",
+        fallback: generateFallbackResponse([], "unknown", "snob"),
       },
       { status: 500 },
     )
