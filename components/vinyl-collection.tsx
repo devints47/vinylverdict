@@ -1,61 +1,75 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useVinyl } from "@/contexts/vinyl-context"
 import { VinylRecord } from "./vinyl-record"
+import { useVinyl } from "@/contexts/vinyl-context"
 
 export interface VinylDesign {
   id: string
   name: string
-  labelColor?: string
-  faceType?: string
-  labelText?: string
-  description?: string
+  labelColor: string
+  faceType: string
+  labelText: string
+  description: string
   assistantType: string
-  color?: string
 }
 
 export function VinylCollection() {
-  const { vinylOptions, selectedVinyl, setSelectedVinyl, isLoading } = useVinyl()
-  const [isClient, setIsClient] = useState(false)
+  const { selectedVinyl, setSelectedVinyl, vinylOptions, isLoading } = useVinyl()
+  const [vinyls, setVinyls] = useState<VinylDesign[]>([])
 
-  // Set isClient to true once component mounts
+  // Convert context vinyl options to vinyl designs
   useEffect(() => {
-    setIsClient(true)
-  }, [])
+    if (vinylOptions.length > 0) {
+      const vinylDesigns = vinylOptions.map((option) => ({
+        id: option.id,
+        name: option.name,
+        labelColor: option.color.split(" ")[1] || "purple", // Extract color from gradient
+        faceType: option.assistantType,
+        labelText: `${option.name.toUpperCase()} • PREMIUM VINYL • AUDIOPHILE EDITION •`,
+        description: option.description,
+        assistantType: option.assistantType,
+      }))
+      setVinyls(vinylDesigns)
+    }
+  }, [vinylOptions])
 
-  // Don't render anything during SSR or while loading
-  if (!isClient || isLoading) {
+  // Handle vinyl selection
+  const handleVinylSelect = (vinyl: VinylDesign) => {
+    // Find the corresponding option in vinylOptions
+    const selectedOption = vinylOptions.find((option) => option.id === vinyl.id)
+    if (selectedOption) {
+      setSelectedVinyl(selectedOption)
+    }
+  }
+
+  // Show loading state while fetching vinyl options
+  if (isLoading) {
     return (
-      <div className="flex justify-center items-center p-8">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+      <div className="flex justify-center items-center p-4">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-500"></div>
       </div>
     )
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-4">
-      {vinylOptions.map((vinyl) => (
+    <div className="flex flex-wrap justify-center gap-4 p-4">
+      {vinyls.map((vinyl) => (
         <div
           key={vinyl.id}
           className={`cursor-pointer transition-all duration-300 transform hover:scale-105 ${
-            selectedVinyl?.id === vinyl.id ? "scale-105 ring-2 ring-purple-500 rounded-lg" : ""
+            selectedVinyl?.id === vinyl.id ? "scale-105 ring-2 ring-purple-500 rounded-full" : ""
           }`}
-          onClick={() => setSelectedVinyl(vinyl)}
+          onClick={() => handleVinylSelect(vinyl)}
         >
-          <div className="flex flex-col items-center p-4 bg-zinc-900 rounded-lg">
-            <VinylRecord
-              size={150}
-              labelColor={vinyl.labelColor || "purple"}
-              faceType={vinyl.faceType || "default"}
-              labelText={vinyl.labelText || "VINYL VERDICT • PREMIUM VINYL • AUDIOPHILE EDITION •"}
-              isPlaying={selectedVinyl?.id === vinyl.id}
-            />
-            <h3 className="mt-4 text-xl font-bold bg-gradient-to-r text-transparent bg-clip-text from-purple-400 to-pink-600">
-              {vinyl.name}
-            </h3>
-            <p className="mt-2 text-sm text-zinc-400 text-center">{vinyl.description}</p>
-          </div>
+          <VinylRecord
+            labelColor={vinyl.labelColor}
+            faceType={vinyl.faceType}
+            labelText={vinyl.labelText}
+            isPlaying={selectedVinyl?.id === vinyl.id}
+            size={150}
+          />
+          <div className="text-center mt-2 font-medium">{vinyl.name}</div>
         </div>
       ))}
     </div>

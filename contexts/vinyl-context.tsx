@@ -49,23 +49,26 @@ export function VinylProvider({ children }: { children: React.ReactNode }) {
         setVinylOptions(data.assistants)
 
         // After getting the options, try to load the saved selection
-        const savedVinylId = localStorage.getItem(STORAGE_KEY)
-        if (savedVinylId) {
-          const savedVinyl = data.assistants.find((vinyl: AssistantConfig) => vinyl.id === savedVinylId)
-          if (savedVinyl) {
-            setSelectedVinylState(savedVinyl)
+        if (typeof window !== "undefined") {
+          const savedVinylId = localStorage.getItem(STORAGE_KEY)
+          if (savedVinylId) {
+            const savedVinyl = data.assistants.find((vinyl: AssistantConfig) => vinyl.id === savedVinylId)
+            if (savedVinyl) {
+              setSelectedVinylState(savedVinyl)
+            } else {
+              // If saved vinyl not found, use the first option
+              setSelectedVinylState(data.assistants[0])
+            }
           } else {
-            // If saved vinyl not found, use the first option
+            // If no saved vinyl, use the first option
             setSelectedVinylState(data.assistants[0])
           }
-        } else {
-          // If no saved vinyl, use the first option
-          setSelectedVinylState(data.assistants[0])
         }
 
         setIsLoading(false)
       } catch (error) {
         console.error("Error fetching assistant configurations:", error)
+        // Fallback to default if fetch fails
         setIsLoading(false)
       }
     }
@@ -78,7 +81,7 @@ export function VinylProvider({ children }: { children: React.ReactNode }) {
     setSelectedVinylState(vinyl)
 
     // Save to localStorage
-    if (typeof window !== "undefined") {
+    if (typeof window !== "undefined" && vinyl) {
       try {
         localStorage.setItem(STORAGE_KEY, vinyl.id)
       } catch (err) {

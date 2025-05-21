@@ -2,11 +2,11 @@ import { NextResponse } from "next/server"
 import { createRoastData } from "@/lib/format-utils"
 import { checkOpenAIAssistants } from "@/lib/env-check"
 
-// OpenAI API constants - using server-side environment variables
+// OpenAI API constants
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY
 const MUSIC_SNOB_ASSISTANT_ID = process.env.OPENAI_MUSIC_SNOB_ID
 const TASTE_VALIDATOR_ASSISTANT_ID = process.env.OPENAI_TASTE_VALIDATOR_ID
-const HISTORIAN_ASSISTANT_ID = process.env.OPENAI_HISTORIAN_ID
+const HISTORIAN_ASSISTANT_ID = process.env.OPENAI_HISTORIAN_ID // Added Historian assistant ID
 const API_BASE_URL = "https://api.openai.com/v1"
 
 // Check if we have valid assistant IDs
