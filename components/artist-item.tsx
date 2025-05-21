@@ -1,6 +1,5 @@
 "use client"
 
-import { getOptimizedSpotifyImage } from "@/lib/image-optimization"
 import { useEffect, useState, memo } from "react"
 
 interface ArtistItemProps {
@@ -51,12 +50,11 @@ const ArtistItem = memo(function ArtistItem({ artist, index }: ArtistItemProps) 
     }
   }, [])
 
-  // Set optimized image URL
+  // Set image URL directly from the artist data
   useEffect(() => {
-    const artistImageUrl = artist.images[0]?.url || "/diverse-artists-studio.png"
-    const size = isMobile ? 56 : 64
-    setImageUrl(getOptimizedSpotifyImage(artistImageUrl, size))
-  }, [artist.images, isMobile])
+    // Use the first image from the artist or fallback to a placeholder
+    setImageUrl(artist.images[0]?.url || "/diverse-artists-studio.png")
+  }, [artist.images])
 
   // Format follower count with commas
   const formatFollowers = (count: number): string => {
