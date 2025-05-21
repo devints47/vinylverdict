@@ -28,10 +28,12 @@ interface ResponseStore {
   content: string
   isComplete: boolean
   requestId?: string // Add requestId to track requests
+  timestamp: number // Add timestamp for expiration
 }
 
 // Create a session storage key
 const SESSION_STORAGE_KEY = "vinylVerdict_responses"
+const RESPONSE_EXPIRATION_TIME = 5 * 60 * 1000 // 5 minutes in milliseconds
 
 export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, selectedVinyl }: RoastMeProps) {
   const [isLoading, setIsLoading] = useState(false)
@@ -63,7 +65,32 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
       try {
         const savedResponses = sessionStorage.getItem(SESSION_STORAGE_KEY)
         if (savedResponses) {
-          setResponseStore(JSON.parse(savedResponses))
+          const parsedResponses = JSON.parse(savedResponses)
+
+          // Check for expired responses
+          const currentTime = Date.now()
+          const validResponses: Record<string, ResponseStore> = {}
+          let hasExpired = false
+
+          // Filter out expired responses
+          Object.entries(parsedResponses).forEach(([key, response]: [string, any]) => {
+            if (response.timestamp && currentTime - response.timestamp < RESPONSE_EXPIRATION_TIME) {
+              validResponses[key] = response
+            } else {
+              hasExpired = true
+            }
+          })
+
+          // Update storage if any responses expired
+          if (hasExpired) {
+            if (Object.keys(validResponses).length > 0) {
+              sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(validResponses))
+            } else {
+              sessionStorage.removeItem(SESSION_STORAGE_KEY)
+            }
+          }
+
+          setResponseStore(validResponses)
         }
       } catch (err) {
         console.error("Error loading saved responses:", err)
@@ -258,6 +285,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
           content: mainContent,
           isComplete: false,
           requestId,
+          timestamp: Date.now(), // Add timestamp
         },
       }))
     } catch (err) {
@@ -442,6 +470,47 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
       </ReactMarkdown>
     )
   }, [currentResponse.content, currentResponse.isComplete, currentResponse.requestId])
+
+  useEffect(() => {
+    // Set up an interval to check for expired responses
+    const cleanupInterval = setInterval(() => {
+      if (typeof window !== "undefined") {
+        try {
+          const savedResponses = sessionStorage.getItem(SESSION_STORAGE_KEY)
+          if (savedResponses) {
+            const parsedResponses = JSON.parse(savedResponses)
+            const currentTime = Date.now()
+            const validResponses: Record<string, ResponseStore> = {}
+            let hasExpired = false
+
+            // Filter out expired responses
+            Object.entries(parsedResponses).forEach(([key, response]: [string, any]) => {
+              if (response.timestamp && currentTime - response.timestamp < RESPONSE_EXPIRATION_TIME) {
+                validResponses[key] = response
+              } else {
+                hasExpired = true
+              }
+            })
+
+            // Update storage and state if any responses expired
+            if (hasExpired) {
+              if (Object.keys(validResponses).length > 0) {
+                sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(validResponses))
+              } else {
+                sessionStorage.removeItem(SESSION_STORAGE_KEY)
+              }
+
+              setResponseStore(validResponses)
+            }
+          }
+        } catch (err) {
+          console.error("Error cleaning up expired responses:", err)
+        }
+      }
+    }, 60000) // Check every minute
+
+    return () => clearInterval(cleanupInterval)
+  }, [])
 
   return (
     <div className="mb-8 flex flex-col items-center w-full" style={roastSectionStyle}>

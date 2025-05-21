@@ -23,17 +23,19 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-black to-zinc-900 flex flex-col">
-      <header className="p-4 flex justify-between items-center">
-        <Link href="/" className="flex items-center gap-2">
-          <VinylVerdictLogo size={32} />
-          <span className="font-bold text-xl text-white">VinylVerdict</span>
+      <header className="p-4 flex flex-col items-center justify-center">
+        <VinylVerdictLogo size={80} className="mb-4" />
+        <Link
+          href="/"
+          className="text-white bg-purple-700 hover:bg-purple-800 transition-colors px-4 py-2 rounded-md flex items-center gap-2"
+        >
+          <span>← Back to Home</span>
         </Link>
       </header>
 
       <main className="flex-1 flex items-center justify-center p-4">
         <div className="max-w-md w-full">
           <div className="text-center mb-8">
-            <VinylVerdictLogo size={80} className="mb-6" />
             <h1 className="text-3xl font-bold mb-4">Welcome Back</h1>
             <p className="text-zinc-400">
               Connect with your music streaming account to continue your journey of self-discovery (and mild
