@@ -159,6 +159,32 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
     }
   }
 
+  // Get the text for the "Roast Me Again" button based on assistant type
+  const getAgainButtonText = () => {
+    switch (assistantType) {
+      case "worshipper":
+        return "Validate Me Again!"
+      case "historian":
+        return "Tell Me More!"
+      case "snob":
+      default:
+        return "Roast Me Again"
+    }
+  }
+
+  // Get the text for the "Share My Roast" button based on assistant type
+  const getShareButtonText = () => {
+    switch (assistantType) {
+      case "worshipper":
+        return "Share My Validity"
+      case "historian":
+        return "Share My Knowledge"
+      case "snob":
+      default:
+        return "Share My Roast"
+    }
+  }
+
   // Function to cancel an active request
   const cancelActiveRequest = (assistantType: string) => {
     const activeRequest = activeRequestRef.current[assistantType]
@@ -577,7 +603,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
                   className="btn-gradient holographic-shimmer text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl"
                 >
                   <RefreshCw className="h-4 w-4 mr-1" />
-                  Roast Me Again
+                  {getAgainButtonText()}
                 </Button>
 
                 <Button
@@ -588,7 +614,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
                   className="bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl"
                 >
                   <Share2 className="h-4 w-4 mr-1" />
-                  Share My Roast
+                  {getShareButtonText()}
                 </Button>
               </div>
             )}
