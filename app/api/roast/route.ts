@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import OpenAI from "openai"
-import { checkAuth } from "@/lib/env-check"
+import { checkAuth } from "@/lib/server-auth-utils" // Updated import
 
 // OpenAI API constants
 const API_BASE_URL = "https://api.openai.com/v1"
@@ -141,24 +141,14 @@ function generateFallbackResponse(data: any, viewType: string, assistantType = "
 
 export async function POST(request: NextRequest) {
   try {
-    // Enhanced logging for debugging
-    console.log("Roast API request received")
+    console.log("Roast API called")
 
-    // Check authentication with detailed error logging
-    const authResult = await checkAuth()
+    // Check authentication
+    const authResult = await checkAuth(request)
     if (!authResult.isAuthenticated) {
-      console.error("Authentication failed:", authResult.reason || "Unknown reason")
-      return NextResponse.json(
-        {
-          error: "Unauthorized",
-          details: authResult.reason || "Authentication check failed",
-          code: "AUTH_FAILED",
-        },
-        { status: 401 },
-      )
+      console.error("Authentication failed:", authResult.error)
+      return NextResponse.json({ error: "Unauthorized", details: authResult.error }, { status: 401 })
     }
-
-    console.log("Authentication successful")
 
     // Parse request body
     const body = await request.json()
@@ -170,66 +160,81 @@ export async function POST(request: NextRequest) {
     const assistantId = getAssistantId(assistantType)
 
     if (!assistantId) {
-      console.error(`Assistant ID not found for type: ${assistantType}`)
+      console.error(`Assistant type "${assistantType}" not found or not configured`)
       return NextResponse.json(
-        {
-          error: `Assistant type "${assistantType}" not found or not configured`,
-          code: "ASSISTANT_NOT_FOUND",
-        },
+        { error: `Assistant type "${assistantType}" not found or not configured` },
         { status: 400 },
       )
     }
 
     console.log(`Using assistant ID: ${assistantId.substring(0, 5)}...`)
 
-    // Verify OpenAI API key is available
-    if (!process.env.OPENAI_API_KEY) {
-      console.error("OpenAI API key is missing")
-      // Use fallback response instead of failing
-      const fallbackResponse = generateFallbackResponse(data, viewType, assistantType)
-      return NextResponse.json({
-        fallback: true,
-        content: fallbackResponse,
-        message: "Using fallback response due to missing API key",
+    try {
+      // Create a thread
+      const thread = await openai.beta.threads.create()
+      console.log(`Thread created: ${thread.id.substring(0, 5)}...`)
+
+      // Add a message to the thread
+      await openai.beta.threads.messages.create(thread.id, {
+        role: "user",
+        content: JSON.stringify({ data, viewType }),
       })
+      console.log("Message added to thread")
+
+      // Run the assistant
+      const run = await openai.beta.threads.runs.create(thread.id, {
+        assistant_id: assistantId,
+      })
+      console.log(`Run created: ${run.id.substring(0, 5)}...`)
+
+      // Return the thread and run IDs
+      return NextResponse.json({
+        threadId: thread.id,
+        runId: run.id,
+      })
+    } catch (openaiError: any) {
+      console.error("OpenAI API error:", openaiError)
+
+      // Check for specific OpenAI error types
+      if (openaiError.status === 401) {
+        return NextResponse.json(
+          {
+            error: "OpenAI API key is invalid",
+            details: openaiError.message,
+            fallback: generateFallbackResponse(data, viewType, assistantType),
+          },
+          { status: 500 },
+        )
+      }
+
+      if (openaiError.status === 429) {
+        return NextResponse.json(
+          {
+            error: "OpenAI API rate limit exceeded",
+            details: openaiError.message,
+            fallback: generateFallbackResponse(data, viewType, assistantType),
+          },
+          { status: 500 },
+        )
+      }
+
+      // Return a fallback response for any OpenAI error
+      return NextResponse.json(
+        {
+          error: "OpenAI API error",
+          details: openaiError.message,
+          fallback: generateFallbackResponse(data, viewType, assistantType),
+        },
+        { status: 500 },
+      )
     }
-
-    // Create a thread
-    console.log("Creating OpenAI thread")
-    const thread = await openai.beta.threads.create()
-
-    // Add a message to the thread
-    console.log("Adding message to thread")
-    await openai.beta.threads.messages.create(thread.id, {
-      role: "user",
-      content: JSON.stringify(data),
-    })
-
-    // Run the assistant
-    console.log("Running assistant")
-    const run = await openai.beta.threads.runs.create(thread.id, {
-      assistant_id: assistantId,
-    })
-
-    console.log("Request successful, returning thread and run IDs")
-    // Return the thread and run IDs
-    return NextResponse.json({
-      threadId: thread.id,
-      runId: run.id,
-    })
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error in roast API:", error)
-
-    // Provide more detailed error information
-    const errorMessage = error instanceof Error ? error.message : "Unknown error"
-    const errorStack = error instanceof Error ? error.stack : undefined
-
     return NextResponse.json(
       {
         error: "Internal server error",
-        message: errorMessage,
-        stack: process.env.NODE_ENV === "development" ? errorStack : undefined,
-        code: "SERVER_ERROR",
+        details: error.message,
+        fallback: "Our music critics are currently on break. Please try again later.",
       },
       { status: 500 },
     )

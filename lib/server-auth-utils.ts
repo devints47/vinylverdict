@@ -1,44 +1,118 @@
-// Server-side authentication utilities
+import type { NextRequest } from "next/server"
+import { cookies } from "next/headers"
 
-// Generate a random string for the code verifier
-export function generateCodeVerifier(length: number): string {
-  let text = ""
-  const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~"
-
-  for (let i = 0; i < length; i++) {
-    text += possible.charAt(Math.floor(Math.random() * possible.length))
-  }
-
-  return text
-}
-
-// Generate a code challenge from the code verifier
-export async function generateCodeChallenge(codeVerifier: string): Promise<string> {
+// Check if the user is authenticated
+export async function checkAuth(request: NextRequest) {
   try {
-    // In Node.js environment, use the crypto module
-    const crypto = require("crypto")
-    const base64URLEncode = (str: Buffer) =>
-      str.toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "")
+    // Get the access token from cookies
+    const cookieStore = cookies()
+    const accessToken = cookieStore.get("spotify_access_token")?.value
 
-    const sha256 = crypto.createHash("sha256").update(codeVerifier).digest()
-    return base64URLEncode(sha256)
-  } catch (error) {
-    console.error("Error generating code challenge:", error)
-    throw new Error("Failed to generate code challenge for PKCE flow")
+    if (!accessToken) {
+      console.log("No access token found in cookies")
+      return {
+        isAuthenticated: false,
+        error: "No access token found",
+      }
+    }
+
+    // Verify the token is valid by making a request to Spotify
+    try {
+      const response = await fetch("https://api.spotify.com/v1/me", {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
+
+      if (!response.ok) {
+        console.log(`Spotify API returned status: ${response.status}`)
+
+        // If token is expired, we should handle refresh here
+        if (response.status === 401) {
+          // Try to refresh the token
+          const refreshed = await refreshAccessToken()
+          if (refreshed.success) {
+            return { isAuthenticated: true }
+          } else {
+            return {
+              isAuthenticated: false,
+              error: "Token expired and refresh failed",
+            }
+          }
+        }
+
+        return {
+          isAuthenticated: false,
+          error: `Spotify API error: ${response.status}`,
+        }
+      }
+
+      return { isAuthenticated: true }
+    } catch (error: any) {
+      console.error("Error verifying access token:", error)
+      return {
+        isAuthenticated: false,
+        error: `Error verifying token: ${error.message}`,
+      }
+    }
+  } catch (error: any) {
+    console.error("Error in checkAuth:", error)
+    return {
+      isAuthenticated: false,
+      error: `Authentication check failed: ${error.message}`,
+    }
   }
 }
 
-// Verify that the state parameter matches what we expect
-export function verifyState(storedState: string | undefined, receivedState: string): boolean {
-  if (!storedState) {
-    console.error("No stored state found")
+// Refresh the access token
+async function refreshAccessToken() {
+  try {
+    const cookieStore = cookies()
+    const refreshToken = cookieStore.get("spotify_refresh_token")?.value
+
+    if (!refreshToken) {
+      console.log("No refresh token found")
+      return { success: false, error: "No refresh token found" }
+    }
+
+    // Call your refresh token endpoint
+    const response = await fetch("/api/auth/refresh", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    })
+
+    if (!response.ok) {
+      console.log(`Refresh token request failed: ${response.status}`)
+      return { success: false, error: `Refresh failed: ${response.status}` }
+    }
+
+    return { success: true }
+  } catch (error: any) {
+    console.error("Error refreshing token:", error)
+    return { success: false, error: error.message }
+  }
+}
+
+// Validate environment variables
+export function validateEnvironment() {
+  const requiredVars = [
+    "NEXT_PUBLIC_SPOTIFY_CLIENT_ID",
+    "NEXT_PUBLIC_REDIRECT_URI",
+    "OPENAI_API_KEY",
+    "OPENAI_MUSIC_SNOB_ID",
+    "OPENAI_TASTE_VALIDATOR_ID",
+    "OPENAI_HISTORIAN_ID",
+  ]
+
+  const missingVars = requiredVars.filter((varName) => !process.env[varName])
+
+  if (missingVars.length > 0) {
+    console.warn(`Missing environment variables: ${missingVars.join(", ")}`)
     return false
   }
 
-  const isMatch = storedState === receivedState
-  if (!isMatch) {
-    console.error("State mismatch - possible CSRF attack")
-  }
-
-  return isMatch
+  return true
 }
