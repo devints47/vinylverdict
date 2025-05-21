@@ -141,40 +141,77 @@ function generateFallbackResponse(data: any, viewType: string, assistantType = "
 
 export async function POST(request: NextRequest) {
   try {
-    // Check authentication
+    // Enhanced logging for debugging
+    console.log("Roast API request received")
+
+    // Check authentication with detailed error logging
     const authResult = await checkAuth()
     if (!authResult.isAuthenticated) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      console.error("Authentication failed:", authResult.reason || "Unknown reason")
+      return NextResponse.json(
+        {
+          error: "Unauthorized",
+          details: authResult.reason || "Authentication check failed",
+          code: "AUTH_FAILED",
+        },
+        { status: 401 },
+      )
     }
+
+    console.log("Authentication successful")
 
     // Parse request body
     const body = await request.json()
     const { data, viewType, assistantType = "snob" } = body
 
+    console.log(`Processing request for assistant type: ${assistantType}, view type: ${viewType}`)
+
     // Get the assistant ID based on the type
     const assistantId = getAssistantId(assistantType)
 
     if (!assistantId) {
+      console.error(`Assistant ID not found for type: ${assistantType}`)
       return NextResponse.json(
-        { error: `Assistant type "${assistantType}" not found or not configured` },
+        {
+          error: `Assistant type "${assistantType}" not found or not configured`,
+          code: "ASSISTANT_NOT_FOUND",
+        },
         { status: 400 },
       )
     }
 
+    console.log(`Using assistant ID: ${assistantId.substring(0, 5)}...`)
+
+    // Verify OpenAI API key is available
+    if (!process.env.OPENAI_API_KEY) {
+      console.error("OpenAI API key is missing")
+      // Use fallback response instead of failing
+      const fallbackResponse = generateFallbackResponse(data, viewType, assistantType)
+      return NextResponse.json({
+        fallback: true,
+        content: fallbackResponse,
+        message: "Using fallback response due to missing API key",
+      })
+    }
+
     // Create a thread
+    console.log("Creating OpenAI thread")
     const thread = await openai.beta.threads.create()
 
     // Add a message to the thread
+    console.log("Adding message to thread")
     await openai.beta.threads.messages.create(thread.id, {
       role: "user",
       content: JSON.stringify(data),
     })
 
     // Run the assistant
+    console.log("Running assistant")
     const run = await openai.beta.threads.runs.create(thread.id, {
       assistant_id: assistantId,
     })
 
+    console.log("Request successful, returning thread and run IDs")
     // Return the thread and run IDs
     return NextResponse.json({
       threadId: thread.id,
@@ -182,6 +219,19 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error("Error in roast API:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+
+    // Provide more detailed error information
+    const errorMessage = error instanceof Error ? error.message : "Unknown error"
+    const errorStack = error instanceof Error ? error.stack : undefined
+
+    return NextResponse.json(
+      {
+        error: "Internal server error",
+        message: errorMessage,
+        stack: process.env.NODE_ENV === "development" ? errorStack : undefined,
+        code: "SERVER_ERROR",
+      },
+      { status: 500 },
+    )
   }
 }
