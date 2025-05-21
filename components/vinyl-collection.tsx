@@ -23,7 +23,59 @@ export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: Vi
   const [activeIndex, setActiveIndex] = useState(0)
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [flipDirection, setFlipDirection] = useState<FlipDirection>("none")
-  const { selectedVinyl, setSelectedVinyl, vinylDesigns } = useVinyl()
+  const { selectedVinyl, setSelectedVinyl } = useVinyl()
+
+  // Define our vinyl designs
+  const vinylDesigns: VinylDesign[] = [
+    {
+      id: "music-snob",
+      name: "Music Snob",
+      labelColor: "purple",
+      faceType: "snob",
+      labelText: "VINYLVERDICT • PREMIUM VINYL • AUDIOPHILE EDITION •",
+      description:
+        "The most discerning and judgmental of our critics. Music Snob has strong opinions about everything from production quality to lyrical depth. Prepare for a thorough dissection of your musical choices with zero mercy.",
+      assistantType: "snob", // This is the Music Snob assistant
+    },
+    {
+      id: "taste-validator",
+      name: "Taste Validator",
+      labelColor: "teal",
+      faceType: "happy",
+      labelText: "VALIDATION • APPRECIATION • AFFIRMATION • PRAISE •",
+      description:
+        "The ultimate music enthusiast who sees the beauty in every genre and artist. Taste Validator celebrates your musical journey with genuine excitement and positivity, finding the artistic merit in even your most questionable choices.",
+      assistantType: "worshipper", // Keep the assistantType the same for API compatibility
+    },
+    {
+      id: "indie-vibes",
+      name: "The Historian",
+      labelColor: "blue",
+      faceType: "cool",
+      labelText: "INDIE • ALTERNATIVE • UNDERGROUND • EXCLUSIVE •",
+      description:
+        "An ancient keeper of musical secrets who unveils the mysterious and forgotten lore behind your listening habits. The Historian analyzes your taste through an esoteric lens, revealing hidden connections and mythical knowledge about your musical journey.",
+      assistantType: "historian", // Added assistantType for The Historian
+    },
+    {
+      id: "pop-hits",
+      name: "Pop Sensation",
+      labelColor: "pink",
+      faceType: "happy",
+      labelText: "TOP CHARTS • DANCE HITS • PARTY ANTHEMS • REMIX •",
+      description:
+        "Enthusiastic about all things mainstream and catchy. Pop Sensation judges your playlist based on its danceability, chart performance, and viral potential. Expects maximum energy and hooks.",
+    },
+    {
+      id: "classic-rock",
+      name: "Rock Legend",
+      labelColor: "red",
+      faceType: "surprised",
+      labelText: "CLASSIC ROCK • GUITAR SOLOS • HEADBANGERS • LIVE •",
+      description:
+        "A true believer in the power of electric guitars and drum solos. Rock Legend evaluates your music based on its raw energy, instrumental prowess, and authenticity. Expects music that makes you want to headbang.",
+    },
+  ]
 
   // Set the initial active index based on the selected vinyl from context
   useEffect(() => {
@@ -36,7 +88,7 @@ export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: Vi
         setActiveIndex(index)
       }
     }
-  }, [selectedVinyl, vinylDesigns])
+  }, [selectedVinyl])
 
   // Set the initial vinyl on mount
   useEffect(() => {

@@ -1,67 +1,70 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
+import { useEffect, useState, useRef } from "react"
 
 interface AnimatedDescriptionProps {
   description: string
-  labelColor?: string
+  labelColor: string
+  className?: string
 }
 
-export function AnimatedDescription({ description, labelColor = "purple" }: AnimatedDescriptionProps) {
+// Map label colors to tailwind gradient classes
+const colorMap: Record<string, string> = {
+  purple: "from-purple-900/30 to-black/80 border-purple-800/50",
+  teal: "from-teal-900/30 to-black/80 border-teal-800/50",
+  blue: "from-blue-900/30 to-black/80 border-blue-800/50",
+  pink: "from-pink-900/30 to-black/80 border-pink-800/50",
+  red: "from-red-900/30 to-black/80 border-red-800/50",
+}
+
+export function AnimatedDescription({ description, labelColor, className = "" }: AnimatedDescriptionProps) {
   const [currentDescription, setCurrentDescription] = useState(description)
-  const [isAnimating, setIsAnimating] = useState(false)
+  const [shouldAnimate, setShouldAnimate] = useState(false)
+  const firstUpdate = useRef(true)
 
-  // Update description when it changes
+  // Get the appropriate gradient class based on label color
+  const gradientClass = colorMap[labelColor] || colorMap.purple
+
+  // Update the description when it changes
   useEffect(() => {
+    // Skip animation on first render/mount
+    if (firstUpdate.current) {
+      firstUpdate.current = false
+      setCurrentDescription(description)
+      return
+    }
+
+    // Only animate after the first description change
     if (description !== currentDescription) {
-      setIsAnimating(true)
-
-      // Short delay before changing the text
-      const timer = setTimeout(() => {
-        setCurrentDescription(description)
-
-        // Short delay before ending the animation
-        setTimeout(() => {
-          setIsAnimating(false)
-        }, 300)
-      }, 300)
-
-      return () => clearTimeout(timer)
+      setShouldAnimate(true)
+      setCurrentDescription(description)
     }
   }, [description, currentDescription])
 
-  // Get gradient class based on label color
-  const getGradientClass = () => {
-    switch (labelColor) {
-      case "teal":
-        return "from-teal-400 to-emerald-500"
-      case "blue":
-        return "from-blue-400 to-indigo-500"
-      case "pink":
-        return "from-pink-400 to-purple-500"
-      case "red":
-        return "from-yellow-500 to-red-600"
-      case "purple":
-      default:
-        return "from-purple-400 to-indigo-500"
-    }
+  // For the first render, return a static div with no animation
+  if (!shouldAnimate) {
+    return (
+      <div className={`relative ${className}`}>
+        <div className={`bg-gradient-to-r ${gradientClass} border border-zinc-800 rounded-lg p-3 backdrop-blur-sm`}>
+          <p className="text-sm text-[#A1A1AA]">{currentDescription}</p>
+        </div>
+      </div>
+    )
   }
 
+  // For subsequent renders, use motion for animation
   return (
-    <AnimatePresence mode="wait">
+    <div className={`relative ${className}`}>
       <motion.div
         key={currentDescription}
-        initial={{ opacity: 0, y: 10 }}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -10 }}
-        transition={{ duration: 0.3 }}
-        className={`bg-zinc-900/80 backdrop-blur-sm border border-zinc-800 rounded-lg p-4 shadow-lg h-full`}
+        transition={{ duration: 0.5 }}
+        className={`bg-gradient-to-r ${gradientClass} border border-zinc-800 rounded-lg p-3 backdrop-blur-sm`}
       >
-        <p className={`text-sm md:text-base text-gradient bg-gradient-to-r ${getGradientClass()}`}>
-          {currentDescription}
-        </p>
+        <p className="text-sm text-[#A1A1AA]">{currentDescription}</p>
       </motion.div>
-    </AnimatePresence>
+    </div>
   )
 }

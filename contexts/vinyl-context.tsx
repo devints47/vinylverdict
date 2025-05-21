@@ -3,86 +3,59 @@
 import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
 
-// Define the vinyl design type
-export interface VinylDesign {
-  id: string
-  name: string
-  labelColor: string
-  faceType: "snob" | "happy" | "cool" | "surprised"
-  labelText: string
-  description: string
-  assistantType?: string
-}
-
-// Define the vinyl designs
-export const vinylDesigns: VinylDesign[] = [
+// Define the vinyl options with their properties
+export const vinylOptions = [
   {
-    id: "music-snob",
+    id: "snob",
     name: "Music Snob",
-    labelColor: "purple",
-    faceType: "snob",
-    labelText: "VINYLVERDICT • PREMIUM VINYL • AUDIOPHILE EDITION •",
     description:
       "The most discerning and judgmental of our critics. Music Snob has strong opinions about everything from production quality to lyrical depth. Prepare for a thorough dissection of your musical choices with zero mercy.",
+    color: "from-red-500 to-orange-500",
     assistantType: "snob",
   },
   {
-    id: "taste-validator",
+    id: "worshipper",
     name: "Taste Validator",
-    labelColor: "teal",
-    faceType: "happy",
-    labelText: "VALIDATION • APPRECIATION • AFFIRMATION • PRAISE •",
     description:
       "The ultimate music enthusiast who sees the beauty in every genre and artist. Taste Validator celebrates your musical journey with genuine excitement and positivity, finding the artistic merit in even your most questionable choices.",
+    color: "from-green-400 to-emerald-500",
     assistantType: "worshipper",
   },
   {
-    id: "indie-vibes",
-    name: "The Historian",
-    labelColor: "blue",
-    faceType: "cool",
-    labelText: "INDIE • ALTERNATIVE • UNDERGROUND • EXCLUSIVE •",
+    id: "historian",
+    name: "Music Historian",
     description:
       "An ancient keeper of musical secrets who unveils the mysterious and forgotten lore behind your listening habits. The Historian analyzes your taste through an esoteric lens, revealing hidden connections and mythical knowledge about your musical journey.",
+    color: "from-blue-400 to-indigo-500",
     assistantType: "historian",
   },
-  // Pop Sensation and Rock Legend are commented out for now
+  // Pop Sensation and Rock Legend are hidden for now
   // {
-  //   id: "pop-hits",
+  //   id: "pop-sensation",
   //   name: "Pop Sensation",
-  //   labelColor: "pink",
-  //   faceType: "happy",
-  //   labelText: "TOP CHARTS • DANCE HITS • PARTY ANTHEMS • REMIX •",
-  //   description:
-  //     "Enthusiastic about all things mainstream and catchy. Pop Sensation judges your playlist based on its danceability, chart performance, and viral potential. Expects maximum energy and hooks.",
+  //   description: "A chart-topping pop star who evaluates your music through the lens of commercial appeal and trend-setting potential.",
+  //   color: "from-pink-400 to-purple-500",
   //   assistantType: "pop-sensation",
   // },
   // {
-  //   id: "classic-rock",
+  //   id: "rock-legend",
   //   name: "Rock Legend",
-  //   labelColor: "red",
-  //   faceType: "surprised",
-  //   labelText: "CLASSIC ROCK • GUITAR SOLOS • HEADBANGERS • LIVE •",
-  //   description:
-  //     "A true believer in the power of electric guitars and drum solos. Rock Legend evaluates your music based on its raw energy, instrumental prowess, and authenticity. Expects music that makes you want to headbang.",
+  //   description: "A veteran rocker who's seen it all and judges your taste based on its raw energy, authenticity, and rebellious spirit.",
+  //   color: "from-yellow-500 to-red-600",
   //   assistantType: "rock-legend",
   // },
 ]
 
 // Define the context type
 interface VinylContextType {
-  selectedVinyl: VinylDesign
-  setSelectedVinyl: (vinyl: VinylDesign) => void
-  vinylDesigns: VinylDesign[]
-  handleVinylSelect?: (vinyl: VinylDesign) => void
+  selectedVinyl: (typeof vinylOptions)[0]
+  setSelectedVinyl: (vinyl: (typeof vinylOptions)[0]) => void
 }
 
 // Create the context with a default value
 const VinylContext = createContext<VinylContextType>({
-  selectedVinyl: vinylDesigns[0],
+  selectedVinyl: vinylOptions[0],
   setSelectedVinyl: () => {},
-  vinylDesigns: vinylDesigns,
-  handleVinylSelect: undefined,
 })
 
 // Storage key for selected vinyl
@@ -91,7 +64,7 @@ const STORAGE_KEY = "vinylVerdict_selectedVinyl"
 // Provider component
 export function VinylProvider({ children }: { children: React.ReactNode }) {
   // Initialize state with the first vinyl option
-  const [selectedVinyl, setSelectedVinylState] = useState<VinylDesign>(vinylDesigns[0])
+  const [selectedVinyl, setSelectedVinylState] = useState<(typeof vinylOptions)[0]>(vinylOptions[0])
 
   // Load the selected vinyl from localStorage on initial render
   useEffect(() => {
@@ -100,11 +73,11 @@ export function VinylProvider({ children }: { children: React.ReactNode }) {
         const savedVinylId = localStorage.getItem(STORAGE_KEY)
         if (savedVinylId) {
           // First try to find by assistantType (more reliable)
-          let savedVinyl = vinylDesigns.find((vinyl) => vinyl.assistantType === savedVinylId)
+          let savedVinyl = vinylOptions.find((vinyl) => vinyl.assistantType === savedVinylId)
 
           // If not found, try by id (backward compatibility)
           if (!savedVinyl) {
-            savedVinyl = vinylDesigns.find((vinyl) => vinyl.id === savedVinylId)
+            savedVinyl = vinylOptions.find((vinyl) => vinyl.id === savedVinylId)
           }
 
           if (savedVinyl) {
@@ -118,7 +91,7 @@ export function VinylProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   // Custom setter that also saves to localStorage
-  const setSelectedVinyl = (vinyl: VinylDesign) => {
+  const setSelectedVinyl = (vinyl: (typeof vinylOptions)[0]) => {
     setSelectedVinylState(vinyl)
 
     // Save to localStorage - use assistantType as it's more reliable
@@ -131,16 +104,7 @@ export function VinylProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  // Handle vinyl selection (optional)
-  const handleVinylSelect = (vinyl: VinylDesign) => {
-    setSelectedVinyl(vinyl)
-  }
-
-  return (
-    <VinylContext.Provider value={{ selectedVinyl, setSelectedVinyl, vinylDesigns, handleVinylSelect }}>
-      {children}
-    </VinylContext.Provider>
-  )
+  return <VinylContext.Provider value={{ selectedVinyl, setSelectedVinyl }}>{children}</VinylContext.Provider>
 }
 
 // Custom hook to use the vinyl context

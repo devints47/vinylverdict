@@ -574,7 +574,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
           <CardFooter className="flex flex-col gap-4">
             <p className="text-sm text-zinc-500 italic">{getFooterText()}</p>
 
-            {/* Share button */}
+            {/* Share button only - moved the secondary roast button outside */}
             {showShareButton && (
               <div className="flex justify-center w-full mt-2">
                 <Button
