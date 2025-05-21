@@ -5,7 +5,7 @@ import React from "react"
 import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
-import { Loader2, AlertCircle } from "lucide-react"
+import { Loader2, AlertCircle, RefreshCw, Share2 } from "lucide-react"
 import ReactMarkdown from "react-markdown"
 import { formatTrackData, formatArtistData, formatRecentlyPlayedData } from "@/lib/format-utils"
 import { getRoast } from "@/lib/openai-service"
@@ -168,6 +168,15 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
       return true
     }
     return false
+  }
+
+  // Function to reset the current response
+  const resetResponse = () => {
+    setResponseStore((prev) => {
+      const newStore = { ...prev }
+      delete newStore[assistantType]
+      return newStore
+    })
   }
 
   const handleRoastMe = async () => {
@@ -512,30 +521,35 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
     return () => clearInterval(cleanupInterval)
   }, [])
 
+  // Determine if we should show the main roast button or the post-roast buttons
+  const showPostRoastButtons = currentResponse.content && currentResponse.isComplete
+
   return (
     <div className="mb-8 flex flex-col items-center w-full" style={roastSectionStyle}>
       <div className="flex justify-center w-full">
-        <Button
-          onClick={handleRoastMe}
-          disabled={false} // Never disable the button so users can cancel
-          className={`btn-gradient holographic-shimmer text-white font-bold py-4 px-8 text-lg rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl max-w-md ${
-            activeRequestRef.current[assistantType] ? "bg-red-600 hover:bg-red-700" : ""
-          }`}
-          size="lg"
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="h-5 w-5 animate-spin" />
-              <span>{activeRequestRef.current[assistantType] ? "Cancel" : getLoadingText()}</span>
-            </>
-          ) : (
-            <>
-              <span className="text-xl">{getEmoji()}</span>
-              <span>{getButtonText()}</span>
-              <span className="text-xl">{getEmoji()}</span>
-            </>
-          )}
-        </Button>
+        {!showPostRoastButtons ? (
+          <Button
+            onClick={handleRoastMe}
+            disabled={false} // Never disable the button so users can cancel
+            className={`btn-gradient holographic-shimmer text-white font-bold py-4 px-8 text-lg rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl max-w-md ${
+              activeRequestRef.current[assistantType] ? "bg-red-600 hover:bg-red-700" : ""
+            }`}
+            size="lg"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="h-5 w-5 animate-spin" />
+                <span>{activeRequestRef.current[assistantType] ? "Cancel" : getLoadingText()}</span>
+              </>
+            ) : (
+              <>
+                <span className="text-xl">{getEmoji()}</span>
+                <span>{getButtonText()}</span>
+                <span className="text-xl">{getEmoji()}</span>
+              </>
+            )}
+          </Button>
+        ) : null}
       </div>
 
       {error && (
@@ -552,8 +566,49 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
             <div className="markdown-content text-sm sm:text-base md:text-lg">{typewriterComponent}</div>
           </CardContent>
 
-          <CardFooter className="pt-4 pb-4 text-sm text-zinc-500 italic">{getFooterText()}</CardFooter>
+          <CardFooter className="flex flex-col gap-4">
+            <p className="text-sm text-zinc-500 italic">{getFooterText()}</p>
+
+            {/* Post-roast buttons */}
+            {showPostRoastButtons && (
+              <div className="flex flex-wrap justify-center gap-4 w-full mt-2">
+                <Button
+                  onClick={resetResponse}
+                  className="btn-gradient holographic-shimmer text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl"
+                >
+                  <RefreshCw className="h-4 w-4 mr-1" />
+                  Roast Me Again
+                </Button>
+
+                <Button
+                  onClick={() => {
+                    // This will be implemented later
+                    console.log("Share functionality will be implemented later")
+                  }}
+                  className="bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl"
+                >
+                  <Share2 className="h-4 w-4 mr-1" />
+                  Share My Roast
+                </Button>
+              </div>
+            )}
+          </CardFooter>
         </Card>
+      )}
+
+      {/* Show the "Roast Me Again" button outside the card when post-roast buttons are visible */}
+      {showPostRoastButtons && (
+        <div className="mt-6 flex justify-center w-full">
+          <Button
+            onClick={handleRoastMe}
+            className="btn-gradient holographic-shimmer text-white font-bold py-4 px-8 text-lg rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl max-w-md"
+            size="lg"
+          >
+            <span className="text-xl">{getEmoji()}</span>
+            <span>{getButtonText()}</span>
+            <span className="text-xl">{getEmoji()}</span>
+          </Button>
+        </div>
       )}
     </div>
   )
