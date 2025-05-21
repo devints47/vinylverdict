@@ -1,12 +1,12 @@
-import { type NextRequest, NextResponse } from "next/server"
-import { generateRoast } from "@/lib/openai-service"
-import { checkOpenAIAssistants } from "@/lib/utils" // Declared the variable before using it
+import { NextResponse } from "next/server"
+import { createRoastData } from "@/lib/format-utils"
+import { checkOpenAIAssistants } from "@/lib/env-check"
 
 // OpenAI API constants
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY
 const MUSIC_SNOB_ASSISTANT_ID = process.env.OPENAI_MUSIC_SNOB_ID
 const TASTE_VALIDATOR_ASSISTANT_ID = process.env.OPENAI_TASTE_VALIDATOR_ID
-const HISTORIAN_ASSISTANT_ID = process.env.OPENAI_HISTORIAN_ID // Added Historian assistant ID
+const HISTORIAN_ASSISTANT_ID = process.env.OPENAI_HISTORIAN_ID
 const API_BASE_URL = "https://api.openai.com/v1"
 
 // Check if we have valid assistant IDs
@@ -279,20 +279,110 @@ function generateFallbackResponse(data: any, viewType: string, assistantType = "
   return response + `\n\n*Note: ${noteText}*`
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
-    const body = await request.json()
-    const { assistantType, data } = body
-
-    if (!assistantType || !data) {
-      return NextResponse.json({ error: "Missing required fields: assistantType and data" }, { status: 400 })
+    // Check if API key exists
+    if (!OPENAI_API_KEY) {
+      console.error("OpenAI API key is missing")
+      return NextResponse.json(
+        {
+          roast:
+            "# Hmm, That's Awkward\n\nThe Music Snob seems to have dozed off while analyzing your questionable taste. Please try again later or play something better to wake them up.",
+          error: "OpenAI API key is missing",
+        },
+        { status: 200 },
+      )
     }
 
-    const roast = await generateRoast(assistantType, data)
+    const { data, viewType, assistantType = "snob" } = await request.json()
 
-    return NextResponse.json({ roast })
+    // Determine which assistant ID to use
+    let assistantId
+    switch (assistantType) {
+      case "worshipper":
+        assistantId = TASTE_VALIDATOR_ASSISTANT_ID
+        break
+      case "historian":
+        assistantId = HISTORIAN_ASSISTANT_ID
+        break
+      case "snob":
+      default:
+        assistantId = MUSIC_SNOB_ASSISTANT_ID
+    }
+
+    // Check if Assistant ID exists
+    if (!assistantId) {
+      console.error(`OpenAI Assistant ID is missing for type: ${assistantType}`)
+      return NextResponse.json(
+        {
+          roast:
+            "# Where's The Music Personality?\n\nOur resident music personality seems to have gone missing. The management is currently trying to locate them, probably checking local record stores and coffee shops.",
+          error: `OpenAI Assistant ID is missing for type: ${assistantType}`,
+        },
+        { status: 200 },
+      )
+    }
+
+    // Create the data object using the helper function
+    const messageData = createRoastData(data, viewType)
+
+    try {
+      // Create a new thread
+      const thread = await createThread()
+
+      // Add the message to the thread
+      await addMessage(thread.id, messageData)
+
+      // Run the assistant
+      const run = await runAssistant(thread.id, assistantId)
+
+      // Wait for the run to complete
+      await waitForRunCompletion(thread.id, run.id)
+
+      // Get the messages
+      const messages = await getMessages(thread.id)
+
+      // Find the assistant's response (should be the last message)
+      const assistantMessages = messages.data.filter((msg: any) => msg.role === "assistant")
+
+      if (assistantMessages.length === 0) {
+        throw new Error("No response from assistant")
+      }
+
+      // Return the content of the last assistant message
+      const roastContent = assistantMessages[0].content[0].text.value
+
+      return NextResponse.json(
+        { roast: roastContent },
+        {
+          headers: {
+            "Cache-Control": "private, max-age=3600",
+          },
+        },
+      )
+    } catch (openaiError) {
+      console.error("OpenAI API error:", openaiError)
+
+      // Generate a fallback response instead of failing
+      const fallbackRoast = generateFallbackResponse(data, viewType, assistantType)
+
+      return NextResponse.json(
+        {
+          roast: fallbackRoast,
+          error: "OpenAI API error, using fallback",
+        },
+        { status: 200 },
+      )
+    }
   } catch (error) {
     console.error("Error in roast API:", error)
-    return NextResponse.json({ error: "Failed to generate roast" }, { status: 500 })
+    return NextResponse.json(
+      {
+        roast:
+          "# The Music Personality Is Speechless\n\nYour taste in music has rendered our resident critic temporarily unable to form coherent sentences. Either your taste is truly beyond critique, or it's so bad they're still processing it.",
+        error: "Failed to generate roast",
+      },
+      { status: 200 },
+    )
   }
 }
