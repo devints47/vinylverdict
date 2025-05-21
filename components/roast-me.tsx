@@ -27,6 +27,7 @@ interface RoastMeProps {
 interface ResponseStore {
   content: string
   isComplete: boolean
+  requestId?: string // Add requestId to track requests
 }
 
 // Create a session storage key
@@ -39,6 +40,9 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
 
   // Store responses for each assistant type
   const [responseStore, setResponseStore] = useState<Record<string, ResponseStore>>({})
+
+  // Track active requests by assistant type
+  const activeRequestRef = useRef<Record<string, { id: string; cancel: () => void }>>({})
 
   // Keep track of the last active tab to prevent re-rendering on tab change
   const lastActiveTabRef = useRef(activeTab)
@@ -76,6 +80,18 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
     }
   }, [responseStore])
 
+  // Clean up any active requests when component unmounts
+  useEffect(() => {
+    return () => {
+      // Cancel all active requests
+      Object.values(activeRequestRef.current).forEach((request) => {
+        if (request && typeof request.cancel === "function") {
+          request.cancel()
+        }
+      })
+    }
+  }, [])
+
   // Get the appropriate button text based on the active tab and assistant type
   const getButtonText = () => {
     // Use a consistent action verb format based on assistant type
@@ -92,6 +108,14 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
         actionVerb = "Roast"
     }
 
+    // Check if there's an active request for this assistant type
+    const isActiveRequest = activeRequestRef.current[assistantType] !== undefined
+
+    // If there's an active request, show "Cancel" instead
+    if (isActiveRequest && isLoading) {
+      return `Cancel ${actionVerb}`
+    }
+
     // Use a consistent format for all tabs
     switch (activeTab) {
       case "top-tracks":
@@ -105,11 +129,52 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
     }
   }
 
+  // Function to cancel an active request
+  const cancelActiveRequest = (assistantType: string) => {
+    const activeRequest = activeRequestRef.current[assistantType]
+    if (activeRequest && typeof activeRequest.cancel === "function") {
+      activeRequest.cancel()
+      delete activeRequestRef.current[assistantType]
+      return true
+    }
+    return false
+  }
+
   const handleRoastMe = async () => {
+    // Check if there's an active request for this assistant type
+    if (activeRequestRef.current[assistantType]) {
+      // Cancel the active request
+      cancelActiveRequest(assistantType)
+      setIsLoading(false)
+      return
+    }
+
     try {
       setIsLoading(true)
       setError(null)
       setIsFallback(false)
+
+      // Generate a unique ID for this request
+      const requestId = `request_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+
+      // Create a cancel function
+      let isCancelled = false
+      const cancel = () => {
+        isCancelled = true
+      }
+
+      // Store the request in the active requests ref
+      activeRequestRef.current[assistantType] = { id: requestId, cancel }
+
+      // Clear any existing response for this assistant type
+      setResponseStore((prev) => ({
+        ...prev,
+        [assistantType]: {
+          content: "",
+          isComplete: false,
+          requestId,
+        },
+      }))
 
       // Update the last active tab reference
       lastActiveTabRef.current = activeTab
@@ -138,6 +203,12 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
 
       // Call the API through our service with the assistant type
       const response = await getRoast(formattedData, viewType, assistantType)
+
+      // If the request was cancelled while waiting for the response, don't update the state
+      if (isCancelled) {
+        console.log("Request was cancelled, not updating state")
+        return
+      }
 
       // Check if this is a fallback response using a standardized pattern
       if (response.includes("*Note:") || response.includes("Note: This is a fallback")) {
@@ -176,12 +247,17 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
         [assistantType]: {
           content: mainContent,
           isComplete: false,
+          requestId,
         },
       }))
     } catch (err) {
       console.error("Error getting roast:", err)
       setError(`Failed to analyze your music taste. Our AI critic is taking a break. Please try again later.`)
     } finally {
+      // Remove this request from active requests
+      if (activeRequestRef.current[assistantType]) {
+        delete activeRequestRef.current[assistantType]
+      }
       setIsLoading(false)
     }
   }
@@ -336,14 +412,16 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
       <div className="flex justify-center w-full">
         <Button
           onClick={handleRoastMe}
-          disabled={isLoading}
-          className="btn-gradient holographic-shimmer text-white font-bold py-4 px-8 text-lg rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl max-w-md"
+          disabled={false} // Never disable the button so users can cancel
+          className={`btn-gradient holographic-shimmer text-white font-bold py-4 px-8 text-lg rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl max-w-md ${
+            activeRequestRef.current[assistantType] ? "bg-red-600 hover:bg-red-700" : ""
+          }`}
           size="lg"
         >
           {isLoading ? (
             <>
               <Loader2 className="h-5 w-5 animate-spin" />
-              <span>{getLoadingText()}</span>
+              <span>{activeRequestRef.current[assistantType] ? "Cancel" : getLoadingText()}</span>
             </>
           ) : (
             <>
@@ -373,6 +451,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
                   speed={7} // Doubled speed from 15ms to 7ms
                   onComplete={handleTypewriterComplete}
                   cursorChar="█"
+                  key={currentResponse.requestId || "default"} // Force re-render when requestId changes
                 />
               ) : (
                 <ReactMarkdown

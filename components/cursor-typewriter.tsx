@@ -1,101 +1,126 @@
 "use client"
 
-import { useEffect, useState, useRef } from "react"
+import { useState, useEffect, useRef } from "react"
 import ReactMarkdown from "react-markdown"
 import rehypeRaw from "rehype-raw"
 
 interface CursorTypewriterProps {
   markdown: string
   speed?: number
-  className?: string
   onComplete?: () => void
   cursorChar?: string
 }
 
 export function CursorTypewriter({
   markdown,
-  speed = 7, // Doubled the speed from 15ms to 7ms
-  className = "",
+  speed = 7, // Default to faster speed (7ms)
   onComplete,
-  cursorChar = "█",
+  cursorChar = "|",
 }: CursorTypewriterProps) {
-  const [displayPosition, setDisplayPosition] = useState(0)
+  const [displayedContent, setDisplayedContent] = useState("")
   const [isComplete, setIsComplete] = useState(false)
+  const [cursorVisible, setCursorVisible] = useState(true)
+  const animationRef = useRef<number | null>(null)
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const isMountedRef = useRef(true)
 
-  // Handle the typewriter effect
+  // Reset state when markdown changes
   useEffect(() => {
-    if (!markdown) {
-      setDisplayPosition(0)
-      setIsComplete(false)
-      return
+    setDisplayedContent("")
+    setIsComplete(false)
+    setCursorVisible(true)
+
+    // Clear any existing animation or timeout
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current)
+      animationRef.current = null
     }
 
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current)
+      timeoutRef.current = null
     }
 
-    setDisplayPosition(0)
-    setIsComplete(false)
+    return () => {
+      isMountedRef.current = false
 
-    const totalLength = markdown.length
+      // Clean up animations and timeouts
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current)
+      }
 
-    const animateText = () => {
-      setDisplayPosition((prev) => {
-        if (prev < totalLength) {
-          timeoutRef.current = setTimeout(animateText, speed)
-          return prev + 1
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+      }
+    }
+  }, [markdown])
+
+  // Typewriter effect
+  useEffect(() => {
+    if (!markdown || isComplete) return
+
+    let currentIndex = 0
+    let lastUpdateTime = 0
+
+    const animate = (timestamp: number) => {
+      if (!isMountedRef.current) return
+
+      if (!lastUpdateTime) lastUpdateTime = timestamp
+
+      const elapsed = timestamp - lastUpdateTime
+
+      if (elapsed >= speed) {
+        if (currentIndex < markdown.length) {
+          setDisplayedContent(markdown.substring(0, currentIndex + 1))
+          currentIndex++
+          lastUpdateTime = timestamp
         } else {
           setIsComplete(true)
           if (onComplete) onComplete()
-          return prev
+          return
         }
-      })
+      }
+
+      animationRef.current = requestAnimationFrame(animate)
     }
 
-    timeoutRef.current = setTimeout(animateText, speed)
+    animationRef.current = requestAnimationFrame(animate)
 
     return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current)
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current)
+      }
     }
-  }, [markdown, speed, onComplete])
+  }, [markdown, speed, isComplete, onComplete])
 
-  // Create the text with only the typed characters visible plus cursor
-  const getTextWithCursor = () => {
-    if (isComplete) {
-      return markdown
-    }
+  // Blinking cursor effect
+  useEffect(() => {
+    if (isComplete) return
 
-    // Get only the text that has been "typed" so far
-    const visibleText = markdown.substring(0, displayPosition)
+    const cursorInterval = setInterval(() => {
+      if (isMountedRef.current) {
+        setCursorVisible((prev) => !prev)
+      }
+    }, 500)
 
-    // Add the cursor at the end of the visible text
-    return visibleText + `<span class="terminal-cursor">${cursorChar}</span>`
+    return () => clearInterval(cursorInterval)
+  }, [isComplete])
+
+  // Custom components for ReactMarkdown
+  const components = {
+    // Add any custom components here if needed
   }
 
   return (
-    <div
-      className={`${className} text-sm sm:text-base md:text-lg transition-opacity duration-300 ${isComplete ? "opacity-100" : "opacity-95"}`}
-    >
-      <style jsx global>{`
-        .terminal-cursor {
-          color: #a855f7; /* Tailwind purple-500 */
-          display: inline-block;
-          animation: blink 1s step-end infinite;
-          transform: scaleX(0.9); /* Make the cursor 10% narrower */
-        }
-        
-        @keyframes blink {
-          from, to { opacity: 1; }
-          50% { opacity: 0; }
-        }
-      `}</style>
+    <div className="typewriter-container">
       <ReactMarkdown
-        className="prose prose-invert max-w-none text-zinc-300 prose-headings:text-purple-gradient prose-strong:text-white prose-em:text-zinc-400 prose-li:marker:text-purple-gradient"
+        className="prose prose-invert max-w-none text-zinc-300 prose-strong:text-white prose-em:text-zinc-400 prose-li:marker:text-purple-gradient"
         rehypePlugins={[rehypeRaw]}
+        components={components}
       >
-        {getTextWithCursor()}
+        {displayedContent}
       </ReactMarkdown>
+      {!isComplete && cursorVisible && <span className="cursor-blink">{cursorChar}</span>}
     </div>
   )
 }
