@@ -61,6 +61,9 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
   // Reference to the component container for scrolling
   const containerRef = useRef<HTMLDivElement>(null)
 
+  // Reference to the primary button for scrolling
+  const primaryButtonRef = useRef<HTMLButtonElement>(null)
+
   // Load saved responses from session storage on initial render
   useEffect(() => {
     // Only run in browser environment
@@ -192,37 +195,65 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
     return false
   }
 
-  // Function to scroll to the top of the container
+  // Function to scroll to the top of the page
   const scrollToTop = () => {
-    if (containerRef.current) {
-      containerRef.current.scrollIntoView({ behavior: "smooth" })
-    } else {
-      // Fallback if ref is not available
+    // First try to scroll to the primary button
+    if (primaryButtonRef.current) {
+      primaryButtonRef.current.scrollIntoView({ behavior: "smooth", block: "start" })
+    }
+    // If that fails, try the container
+    else if (containerRef.current) {
+      containerRef.current.scrollIntoView({ behavior: "smooth", block: "start" })
+    }
+    // Last resort - scroll to the top of the page
+    else {
       window.scrollTo({ top: 0, behavior: "smooth" })
     }
   }
 
-  const handleRoastMe = async () => {
-    // Check if there's an active request for this assistant type
-    if (activeRequestRef.current[assistantType]) {
-      // Cancel the active request
-      cancelActiveRequest(assistantType)
-      setIsLoading(false)
-      return
-    }
-
-    // If there's an existing response, clear it first
-    if (currentResponse.content) {
-      setResponseStore((prev) => {
-        const newStore = { ...prev }
-        delete newStore[assistantType]
-        return newStore
-      })
-
-      // Scroll to top when starting a new request
+  const handleRoastMe = async (isSecondaryButton = false) => {
+    // If this is the secondary button, we want to ensure we scroll to the top
+    // before clearing the response
+    if (isSecondaryButton) {
       scrollToTop()
-    }
 
+      // Add a small delay to ensure the scroll happens before clearing the response
+      setTimeout(() => {
+        // Clear the existing response
+        setResponseStore((prev) => {
+          const newStore = { ...prev }
+          delete newStore[assistantType]
+          return newStore
+        })
+
+        // Then start the new request
+        startNewRequest()
+      }, 100)
+    } else {
+      // Check if there's an active request for this assistant type
+      if (activeRequestRef.current[assistantType]) {
+        // Cancel the active request
+        cancelActiveRequest(assistantType)
+        setIsLoading(false)
+        return
+      }
+
+      // If there's an existing response, clear it first
+      if (currentResponse.content) {
+        setResponseStore((prev) => {
+          const newStore = { ...prev }
+          delete newStore[assistantType]
+          return newStore
+        })
+      }
+
+      // Start a new request
+      startNewRequest()
+    }
+  }
+
+  // Function to start a new request
+  const startNewRequest = async () => {
     try {
       setIsLoading(true)
       setError(null)
@@ -533,9 +564,10 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
 
   return (
     <div ref={containerRef} className="mb-8 flex flex-col items-center w-full" style={roastSectionStyle}>
-      <div className="flex justify-center w-full">
+      <div id="roast-primary-button" className="flex justify-center w-full">
         <Button
-          onClick={handleRoastMe}
+          ref={primaryButtonRef}
+          onClick={() => handleRoastMe(false)}
           disabled={isPrimaryButtonDisabled} // Disable button while typewriting
           className={`btn-gradient holographic-shimmer text-white font-bold py-4 px-8 text-lg rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl max-w-md ${
             isLoading || isPrimaryButtonDisabled ? "bg-purple-600 hover:bg-purple-700 opacity-90" : ""
@@ -597,7 +629,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
       {showShareButton && (
         <div className="mt-6 flex justify-center w-full">
           <Button
-            onClick={handleRoastMe}
+            onClick={() => handleRoastMe(true)}
             className="btn-gradient holographic-shimmer text-white font-bold py-4 px-8 text-lg rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl max-w-md"
             size="lg"
           >
