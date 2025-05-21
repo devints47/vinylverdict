@@ -5,7 +5,7 @@ import React from "react"
 import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
-import { Loader2, AlertCircle, RefreshCw, Share2 } from "lucide-react"
+import { Loader2, AlertCircle } from "lucide-react"
 import ReactMarkdown from "react-markdown"
 import { formatTrackData, formatArtistData, formatRecentlyPlayedData } from "@/lib/format-utils"
 import { getRoast } from "@/lib/openai-service"
@@ -159,32 +159,6 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
     }
   }
 
-  // Get the text for the "Roast Me Again" button based on assistant type
-  const getAgainButtonText = () => {
-    switch (assistantType) {
-      case "worshipper":
-        return "Validate Me Again!"
-      case "historian":
-        return "Tell Me More!"
-      case "snob":
-      default:
-        return "Roast Me Again"
-    }
-  }
-
-  // Get the text for the "Share My Roast" button based on assistant type
-  const getShareButtonText = () => {
-    switch (assistantType) {
-      case "worshipper":
-        return "Share My Validity"
-      case "historian":
-        return "Share My Knowledge"
-      case "snob":
-      default:
-        return "Share My Roast"
-    }
-  }
-
   // Function to cancel an active request
   const cancelActiveRequest = (assistantType: string) => {
     const activeRequest = activeRequestRef.current[assistantType]
@@ -214,6 +188,11 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
       return
     }
 
+    // If there's an existing response, reset it first
+    if (currentResponse.content) {
+      resetResponse()
+    }
+
     try {
       setIsLoading(true)
       setError(null)
@@ -230,23 +209,6 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
 
       // Store the request in the active requests ref
       activeRequestRef.current[assistantType] = { id: requestId, cancel }
-
-      // Clear any existing response for this assistant type
-      setResponseStore((prev) => {
-        // Create a new object to ensure React detects the change
-        const newStore = { ...prev }
-
-        // If there's an existing response for this assistant type, mark it as complete
-        // to prevent the typewriter from continuing
-        if (newStore[assistantType]) {
-          newStore[assistantType] = {
-            ...newStore[assistantType],
-            isComplete: true,
-          }
-        }
-
-        return newStore
-      })
 
       // Update the last active tab reference
       lastActiveTabRef.current = activeTab
@@ -547,13 +509,13 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
     return () => clearInterval(cleanupInterval)
   }, [])
 
-  // Determine if we should show the main roast button or the post-roast buttons
-  const showPostRoastButtons = currentResponse.content && currentResponse.isComplete
+  // Determine if we should show the main roast button or not
+  const showRoastButton = !isLoading
 
   return (
     <div className="mb-8 flex flex-col items-center w-full" style={roastSectionStyle}>
       <div className="flex justify-center w-full">
-        {!showPostRoastButtons ? (
+        {showRoastButton && (
           <Button
             onClick={handleRoastMe}
             disabled={false} // Never disable the button so users can cancel
@@ -575,7 +537,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
               </>
             )}
           </Button>
-        ) : null}
+        )}
       </div>
 
       {error && (
@@ -586,6 +548,13 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
         </Alert>
       )}
 
+      {isLoading && (
+        <div className="mt-6 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
+          <span className="ml-2 text-lg text-zinc-300">{getLoadingText()}</span>
+        </div>
+      )}
+
       {currentResponse.content && (
         <Card className="mt-6 card-holographic bg-gradient-to-r from-zinc-900 to-black max-w-3xl w-full">
           <CardContent className="pt-6 pb-2">
@@ -594,47 +563,8 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
 
           <CardFooter className="flex flex-col gap-4">
             <p className="text-sm text-zinc-500 italic">{getFooterText()}</p>
-
-            {/* Post-roast buttons */}
-            {showPostRoastButtons && (
-              <div className="flex flex-wrap justify-center gap-4 w-full mt-2">
-                <Button
-                  onClick={resetResponse}
-                  className="btn-gradient holographic-shimmer text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl"
-                >
-                  <RefreshCw className="h-4 w-4 mr-1" />
-                  {getAgainButtonText()}
-                </Button>
-
-                <Button
-                  onClick={() => {
-                    // This will be implemented later
-                    console.log("Share functionality will be implemented later")
-                  }}
-                  className="bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl"
-                >
-                  <Share2 className="h-4 w-4 mr-1" />
-                  {getShareButtonText()}
-                </Button>
-              </div>
-            )}
           </CardFooter>
         </Card>
-      )}
-
-      {/* Show the "Roast Me Again" button outside the card when post-roast buttons are visible */}
-      {showPostRoastButtons && (
-        <div className="mt-6 flex justify-center w-full">
-          <Button
-            onClick={handleRoastMe}
-            className="btn-gradient holographic-shimmer text-white font-bold py-4 px-8 text-lg rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl max-w-md"
-            size="lg"
-          >
-            <span className="text-xl">{getEmoji()}</span>
-            <span>{getButtonText()}</span>
-            <span className="text-xl">{getEmoji()}</span>
-          </Button>
-        </div>
       )}
     </div>
   )
