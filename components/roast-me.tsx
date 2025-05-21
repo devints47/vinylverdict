@@ -5,7 +5,7 @@ import React from "react"
 import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
-import { Loader2, AlertCircle } from "lucide-react"
+import { Loader2, AlertCircle, Share2 } from "lucide-react"
 import ReactMarkdown from "react-markdown"
 import { formatTrackData, formatArtistData, formatRecentlyPlayedData } from "@/lib/format-utils"
 import { getRoast } from "@/lib/openai-service"
@@ -57,6 +57,9 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
 
   // Reference to the typewriter component to maintain its state
   const typewriterRef = useRef<{ reset: () => void } | null>(null)
+
+  // Reference to the component container for scrolling
+  const containerRef = useRef<HTMLDivElement>(null)
 
   // Load saved responses from session storage on initial render
   useEffect(() => {
@@ -159,6 +162,19 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
     }
   }
 
+  // Get the text for the "Share My Roast" button based on assistant type
+  const getShareButtonText = () => {
+    switch (assistantType) {
+      case "worshipper":
+        return "Share My Validity"
+      case "historian":
+        return "Share My Knowledge"
+      case "snob":
+      default:
+        return "Share My Roast"
+    }
+  }
+
   // Function to cancel an active request
   const cancelActiveRequest = (assistantType: string) => {
     const activeRequest = activeRequestRef.current[assistantType]
@@ -170,13 +186,14 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
     return false
   }
 
-  // Function to reset the current response
-  const resetResponse = () => {
-    setResponseStore((prev) => {
-      const newStore = { ...prev }
-      delete newStore[assistantType]
-      return newStore
-    })
+  // Function to scroll to the top of the container
+  const scrollToTop = () => {
+    if (containerRef.current) {
+      containerRef.current.scrollIntoView({ behavior: "smooth" })
+    } else {
+      // Fallback if ref is not available
+      window.scrollTo({ top: 0, behavior: "smooth" })
+    }
   }
 
   const handleRoastMe = async () => {
@@ -188,9 +205,16 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
       return
     }
 
-    // If there's an existing response, reset it first
+    // If there's an existing response, clear it first
     if (currentResponse.content) {
-      resetResponse()
+      setResponseStore((prev) => {
+        const newStore = { ...prev }
+        delete newStore[assistantType]
+        return newStore
+      })
+
+      // Scroll to top when starting a new request
+      scrollToTop()
     }
 
     try {
@@ -510,34 +534,33 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
   }, [])
 
   // Determine if we should show the main roast button or not
-  const showRoastButton = !isLoading
+  const showRoastButton = !isLoading || !currentResponse.content
+  const showShareButton = currentResponse.content && currentResponse.isComplete
 
   return (
-    <div className="mb-8 flex flex-col items-center w-full" style={roastSectionStyle}>
+    <div ref={containerRef} className="mb-8 flex flex-col items-center w-full" style={roastSectionStyle}>
       <div className="flex justify-center w-full">
-        {showRoastButton && (
-          <Button
-            onClick={handleRoastMe}
-            disabled={false} // Never disable the button so users can cancel
-            className={`btn-gradient holographic-shimmer text-white font-bold py-4 px-8 text-lg rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl max-w-md ${
-              activeRequestRef.current[assistantType] ? "bg-red-600 hover:bg-red-700" : ""
-            }`}
-            size="lg"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="h-5 w-5 animate-spin" />
-                <span>{activeRequestRef.current[assistantType] ? "Cancel" : getLoadingText()}</span>
-              </>
-            ) : (
-              <>
-                <span className="text-xl">{getEmoji()}</span>
-                <span>{getButtonText()}</span>
-                <span className="text-xl">{getEmoji()}</span>
-              </>
-            )}
-          </Button>
-        )}
+        <Button
+          onClick={handleRoastMe}
+          disabled={false} // Never disable the button so users can cancel
+          className={`btn-gradient holographic-shimmer text-white font-bold py-4 px-8 text-lg rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl max-w-md ${
+            activeRequestRef.current[assistantType] ? "bg-red-600 hover:bg-red-700" : ""
+          }`}
+          size="lg"
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="h-5 w-5 animate-spin" />
+              <span>{activeRequestRef.current[assistantType] ? "Cancel" : getLoadingText()}</span>
+            </>
+          ) : (
+            <>
+              <span className="text-xl">{getEmoji()}</span>
+              <span>{getButtonText()}</span>
+              <span className="text-xl">{getEmoji()}</span>
+            </>
+          )}
+        </Button>
       </div>
 
       {error && (
@@ -548,7 +571,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
         </Alert>
       )}
 
-      {isLoading && (
+      {isLoading && !currentResponse.content && (
         <div className="mt-6 flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
           <span className="ml-2 text-lg text-zinc-300">{getLoadingText()}</span>
@@ -563,6 +586,22 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
 
           <CardFooter className="flex flex-col gap-4">
             <p className="text-sm text-zinc-500 italic">{getFooterText()}</p>
+
+            {/* Share button only */}
+            {showShareButton && (
+              <div className="flex justify-center w-full mt-2">
+                <Button
+                  onClick={() => {
+                    // This will be implemented later
+                    console.log("Share functionality will be implemented later")
+                  }}
+                  className="bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl"
+                >
+                  <Share2 className="h-4 w-4 mr-1" />
+                  {getShareButtonText()}
+                </Button>
+              </div>
+            )}
           </CardFooter>
         </Card>
       )}
