@@ -3,6 +3,23 @@ import type { NextRequest } from "next/server"
 
 export const runtime = "edge"
 
+// Set cache control headers
+const cacheControl = {
+  "content-type": "image/png",
+  "cache-control": "public, max-age=60, s-maxage=60",
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+}
+
+// Handle OPTIONS requests for CORS preflight
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 204,
+    headers: cacheControl,
+  })
+}
+
 export async function GET(request: NextRequest) {
   try {
     // Get the searchParams from the request URL
@@ -304,17 +321,20 @@ export async function GET(request: NextRequest) {
       {
         width: 1080,
         height: 1920,
-        headers: {
-          "content-type": "image/png",
-          "cache-control": "public, max-age=60, s-maxage=60",
-          "Access-Control-Allow-Origin": "*",
-        },
+        headers: cacheControl,
       },
     )
 
     return response
   } catch (error) {
     console.error("Error generating Instagram Stories image:", error)
-    return new Response("Error generating image", { status: 500 })
+    return new Response("Error generating image", {
+      status: 500,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      },
+    })
   }
 }

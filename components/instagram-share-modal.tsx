@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button"
 import { Instagram, Share } from "lucide-react"
 import { toast } from "@/components/ui/use-toast"
-import { generateInstagramShareImage, copyImageToClipboard, openInstagramStories } from "@/lib/instagram-share"
+import { generateSocialImage, copyImageToClipboard, openSocialApp } from "@/lib/social-image-generator"
 
 interface InstagramShareModalProps {
   isOpen: boolean
@@ -17,21 +17,33 @@ interface InstagramShareModalProps {
 export function InstagramShareModal({ isOpen, onClose, text, assistantType }: InstagramShareModalProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [imageUrl, setImageUrl] = useState<string | null>(null)
+  const [retryCount, setRetryCount] = useState(0)
 
   // Generate the image when the modal opens
   useEffect(() => {
     if (isOpen) {
       generateImage()
     }
-  }, [isOpen])
+  }, [isOpen, retryCount])
 
   const generateImage = async () => {
     try {
       setIsLoading(true)
-      // Always generate a story image
-      const storyUrl = await generateInstagramShareImage(text, assistantType, "story")
+
+      // Force refresh if this is a retry
+      const forceRefresh = retryCount > 0
+
+      // Generate a story image
+      const storyUrl = await generateSocialImage({
+        text,
+        assistantType,
+        format: "story",
+        forceRefresh,
+      })
+
       setImageUrl(storyUrl)
     } catch (error) {
+      console.error("Error generating Instagram image:", error)
       toast({
         title: "Error generating image",
         description: "Failed to generate the share image. Please try again.",
@@ -50,7 +62,7 @@ export function InstagramShareModal({ isOpen, onClose, text, assistantType }: In
       await copyImageToClipboard(imageUrl)
 
       // Open Instagram Stories
-      openInstagramStories()
+      openSocialApp("instagram")
 
       toast({
         title: "Image copied",
@@ -60,9 +72,24 @@ export function InstagramShareModal({ isOpen, onClose, text, assistantType }: In
       // Close the modal after a short delay
       setTimeout(() => onClose(), 500)
     } catch (error) {
+      console.error("Error sharing to Instagram:", error)
       toast({
         title: "Sharing failed",
         description: "Failed to copy the image. Please try again.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleImageError = () => {
+    // If the image fails to load, increment retry count to trigger a reload
+    if (retryCount < 3) {
+      console.log("Image failed to load, retrying...", retryCount + 1)
+      setRetryCount((prev) => prev + 1)
+    } else {
+      toast({
+        title: "Image generation failed",
+        description: "Could not generate the preview image after multiple attempts.",
         variant: "destructive",
       })
     }
@@ -81,32 +108,26 @@ export function InstagramShareModal({ isOpen, onClose, text, assistantType }: In
 
         <div className="space-y-4">
           {/* Preview Image */}
-          {imageUrl && (
-            <div className="relative mx-auto max-w-[240px]">
+          <div className="relative mx-auto max-w-[240px]">
+            {isLoading ? (
+              <div className="aspect-[9/16] bg-zinc-800 rounded-lg flex items-center justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
+              </div>
+            ) : imageUrl ? (
               <img
                 src={imageUrl || "/placeholder.svg"}
                 alt="Instagram Story preview"
                 className="w-full rounded-lg border border-zinc-700 object-contain"
                 style={{ aspectRatio: "9/16" }}
-                onError={(e) => {
-                  // If image fails to load, try to reload it
-                  const target = e.target as HTMLImageElement
-                  if (target.src === imageUrl) {
-                    // Add a timestamp to force reload
-                    target.src = `${imageUrl}${imageUrl.includes("?") ? "&" : "?"}t=${Date.now()}`
-                  }
-                }}
+                onError={handleImageError}
               />
-              <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">1080×1920</div>
-            </div>
-          )}
-
-          {isLoading && (
-            <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
-              <span className="ml-2 text-zinc-400">Generating story image...</span>
-            </div>
-          )}
+            ) : (
+              <div className="aspect-[9/16] bg-zinc-800 rounded-lg flex items-center justify-center">
+                <span className="text-zinc-400">Preview unavailable</span>
+              </div>
+            )}
+            <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">1080×1920</div>
+          </div>
 
           {/* Share Button */}
           <Button
