@@ -46,8 +46,8 @@ export async function generateSocialImage({
     const encodedText = encodeURIComponent(truncatedText)
     const encodedType = encodeURIComponent(assistantType)
 
-    // Use the simpler endpoint for more reliable image generation
-    const apiUrl = `${appUrl}/api/og/simple-story?text=${encodedText}&type=${encodedType}&t=${Date.now()}`
+    // Use the minimal endpoint for maximum reliability
+    const apiUrl = `${appUrl}/api/og/minimal-story?text=${encodedText}&type=${encodedType}&t=${Date.now()}`
 
     // Add to cache
     imageCache[cacheKey] = {

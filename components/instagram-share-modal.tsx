@@ -43,7 +43,7 @@ export function InstagramShareModal({ isOpen, onClose, text, assistantType }: In
       setIsLoading(true)
       setImageLoaded(false)
 
-      // Generate a story image
+      // Try to generate a story image
       const storyUrl = await generateSocialImage({
         text,
         assistantType,
@@ -53,22 +53,26 @@ export function InstagramShareModal({ isOpen, onClose, text, assistantType }: In
 
       setImageUrl(storyUrl)
 
-      // Pre-load the image
+      // Pre-load the image with fallback
       const img = new Image()
       img.onload = () => setImageLoaded(true)
       img.onerror = () => {
-        console.error("Image failed to load")
-        if (retryCount < 3) {
-          setRetryCount((prev) => prev + 1)
-        }
+        console.error("Dynamic image failed, using fallback")
+        // Use fallback image if dynamic generation fails
+        setImageUrl("/fallback-story.png")
+        setImageLoaded(true)
       }
       img.src = storyUrl
     } catch (error) {
       console.error("Error generating Instagram image:", error)
+      // Use fallback image
+      setImageUrl("/fallback-story.png")
+      setImageLoaded(true)
+
       toast({
-        title: "Error generating image",
-        description: "Failed to generate the share image. Please try again.",
-        variant: "destructive",
+        title: "Using fallback image",
+        description: "Dynamic image generation failed, using a default image.",
+        variant: "default",
       })
     } finally {
       setIsLoading(false)
