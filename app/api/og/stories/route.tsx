@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://vinylverdict.fm"
 
     // Generate the Stories image (1080x1920)
-    return new ImageResponse(
+    const response = new ImageResponse(
       <div
         style={{
           height: "100%",
@@ -304,8 +304,15 @@ export async function GET(request: NextRequest) {
       {
         width: 1080,
         height: 1920,
+        headers: {
+          "content-type": "image/png",
+          "cache-control": "public, max-age=60, s-maxage=60",
+          "Access-Control-Allow-Origin": "*",
+        },
       },
     )
+
+    return response
   } catch (error) {
     console.error("Error generating Instagram Stories image:", error)
     return new Response("Error generating image", { status: 500 })

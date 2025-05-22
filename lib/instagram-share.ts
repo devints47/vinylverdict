@@ -1,102 +1,60 @@
-// This function generates an Instagram-friendly image for sharing
-export async function generateInstagramShareImage(
+// Instagram sharing utilities
+export const generateInstagramShareImage = async (
   text: string,
   assistantType: string,
-  format: "post" | "story" = "post",
-): Promise<string> {
+  format: "post" | "story" = "story", // Default to story format
+): Promise<string> => {
   try {
     // Get the app URL from environment variable or use a default
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
 
-    // Create the API URL based on format
-    const apiUrl =
-      format === "story"
-        ? `${appUrl}/api/og/stories?text=${encodeURIComponent(text)}&type=${assistantType}`
-        : `${appUrl}/api/og?text=${encodeURIComponent(text)}&type=${assistantType}`
+    // Create the OG image URL (always use stories format)
+    const shareText = encodeURIComponent(text.substring(0, 200)) // Shorter text for stories
+    const ogImageUrl = `${appUrl}/api/og/stories?text=${shareText}&type=${assistantType}`
 
-    // Return the URL to the generated image
-    return apiUrl
+    return ogImageUrl
   } catch (error) {
     console.error("Error generating Instagram share image:", error)
-    throw new Error("Failed to generate Instagram share image")
+    throw error
   }
 }
 
-// This function downloads an image from a URL
-export async function downloadImage(url: string, filename: string): Promise<void> {
+export const copyImageToClipboard = async (imageUrl: string): Promise<void> => {
   try {
-    const response = await fetch(url)
-    const blob = await response.blob()
-    const objectUrl = URL.createObjectURL(blob)
-
-    const link = document.createElement("a")
-    link.href = objectUrl
-    link.download = filename
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-
-    // Clean up the object URL
-    URL.revokeObjectURL(objectUrl)
-  } catch (error) {
-    console.error("Error downloading image:", error)
-    throw new Error("Failed to download image")
-  }
-}
-
-// This function copies an image to the clipboard
-export async function copyImageToClipboard(url: string): Promise<void> {
-  try {
-    const response = await fetch(url)
+    const response = await fetch(imageUrl)
     const blob = await response.blob()
 
-    // Check if the Clipboard API supports writing images
-    if (navigator.clipboard && navigator.clipboard.write) {
-      const item = new ClipboardItem({ [blob.type]: blob })
-      await navigator.clipboard.write([item])
+    // Check if the browser supports clipboard API for images
+    if (navigator.clipboard && "write" in navigator.clipboard) {
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          [blob.type]: blob,
+        }),
+      ])
     } else {
+      // Fallback: download the image
       throw new Error("Clipboard API not supported")
     }
   } catch (error) {
     console.error("Error copying image to clipboard:", error)
-    throw new Error("Failed to copy image to clipboard")
+    throw error
   }
 }
 
-// This function attempts to open the Instagram camera
-export function openInstagramCamera(): void {
-  // Try to open Instagram app on mobile
-  const instagramUrl = "instagram://camera"
-  const fallbackUrl = "https://www.instagram.com/"
+// Instagram app deep linking utility (focus on Stories)
+export const openInstagramStories = () => {
+  // Try to open Instagram Stories directly
+  const instagramStoriesUrl = "instagram://story-camera"
+  const fallbackUrl = "https://www.instagram.com/stories/camera/"
 
   // For mobile devices, try to open the app
   if (/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-    window.location.href = instagramUrl
+    window.location.href = instagramStoriesUrl
 
     // Fallback to web version after a delay
     setTimeout(() => {
       window.open(fallbackUrl, "_blank")
-    }, 1000)
-  } else {
-    // For desktop, open web version
-    window.open(fallbackUrl, "_blank")
-  }
-}
-
-// This function attempts to open Instagram Stories
-export function openInstagramStories(): void {
-  // Try to open Instagram stories on mobile
-  const instagramUrl = "instagram://story-camera"
-  const fallbackUrl = "https://www.instagram.com/"
-
-  // For mobile devices, try to open the app
-  if (/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-    window.location.href = instagramUrl
-
-    // Fallback to web version after a delay
-    setTimeout(() => {
-      window.open(fallbackUrl, "_blank")
-    }, 1000)
+    }, 1500)
   } else {
     // For desktop, open web version
     window.open(fallbackUrl, "_blank")

@@ -30,28 +30,28 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       name: "Twitter",
       icon: <X className="h-6 w-6" />,
       color: "bg-black hover:bg-zinc-800",
-      description: "Share on Twitter",
+      description: "Share to Twitter",
     },
     {
       id: "facebook",
       name: "Facebook",
       icon: <Facebook className="h-6 w-6" />,
       color: "bg-[#1877F2] hover:bg-[#0e6ae4]",
-      description: "Share on Facebook",
+      description: "Share to Facebook Stories",
     },
     {
       id: "instagram",
       name: "Instagram",
       icon: <Instagram className="h-6 w-6" />,
       color: "bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] hover:opacity-90",
-      description: "Share on Instagram",
+      description: "Share to Instagram Stories",
     },
     {
       id: "linkedin",
       name: "LinkedIn",
       icon: <Linkedin className="h-6 w-6" />,
       color: "bg-[#0077B5] hover:bg-[#006399]",
-      description: "Share on LinkedIn",
+      description: "Share to LinkedIn",
     },
     {
       id: "email",
@@ -101,7 +101,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     try {
       // Get the app URL from environment variable or use a default
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
-      const shareText = encodeURIComponent(text.substring(0, 300))
+      const shareText = encodeURIComponent(text.substring(0, 200))
       const shareUrl = `${appUrl}/share?text=${shareText}&type=${assistantType}`
 
       if (navigator.share) {
