@@ -18,20 +18,30 @@ export function InstagramShareModal({ isOpen, onClose, text, assistantType }: In
   const [isLoading, setIsLoading] = useState(false)
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [retryCount, setRetryCount] = useState(0)
+  const [imageLoaded, setImageLoaded] = useState(false)
 
   // Generate the image when the modal opens
   useEffect(() => {
     if (isOpen) {
       generateImage()
+    } else {
+      // Reset state when modal closes
+      setImageLoaded(false)
+      setRetryCount(0)
     }
-  }, [isOpen, retryCount])
+  }, [isOpen])
 
-  const generateImage = async () => {
+  // Retry image generation if needed
+  useEffect(() => {
+    if (retryCount > 0 && retryCount <= 3 && isOpen) {
+      generateImage(true)
+    }
+  }, [retryCount])
+
+  const generateImage = async (forceRefresh = false) => {
     try {
       setIsLoading(true)
-
-      // Force refresh if this is a retry
-      const forceRefresh = retryCount > 0
+      setImageLoaded(false)
 
       // Generate a story image
       const storyUrl = await generateSocialImage({
@@ -42,6 +52,17 @@ export function InstagramShareModal({ isOpen, onClose, text, assistantType }: In
       })
 
       setImageUrl(storyUrl)
+
+      // Pre-load the image
+      const img = new Image()
+      img.onload = () => setImageLoaded(true)
+      img.onerror = () => {
+        console.error("Image failed to load")
+        if (retryCount < 3) {
+          setRetryCount((prev) => prev + 1)
+        }
+      }
+      img.src = storyUrl
     } catch (error) {
       console.error("Error generating Instagram image:", error)
       toast({
@@ -81,20 +102,6 @@ export function InstagramShareModal({ isOpen, onClose, text, assistantType }: In
     }
   }
 
-  const handleImageError = () => {
-    // If the image fails to load, increment retry count to trigger a reload
-    if (retryCount < 3) {
-      console.log("Image failed to load, retrying...", retryCount + 1)
-      setRetryCount((prev) => prev + 1)
-    } else {
-      toast({
-        title: "Image generation failed",
-        description: "Could not generate the preview image after multiple attempts.",
-        variant: "destructive",
-      })
-    }
-  }
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md bg-zinc-900 border-zinc-800">
@@ -114,13 +121,26 @@ export function InstagramShareModal({ isOpen, onClose, text, assistantType }: In
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
               </div>
             ) : imageUrl ? (
-              <img
-                src={imageUrl || "/placeholder.svg"}
-                alt="Instagram Story preview"
-                className="w-full rounded-lg border border-zinc-700 object-contain"
-                style={{ aspectRatio: "9/16" }}
-                onError={handleImageError}
-              />
+              <>
+                {!imageLoaded && (
+                  <div className="absolute inset-0 aspect-[9/16] bg-zinc-800 rounded-lg flex items-center justify-center z-10">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
+                  </div>
+                )}
+                <img
+                  src={imageUrl || "/placeholder.svg"}
+                  alt="Instagram Story preview"
+                  className="w-full rounded-lg border border-zinc-700 object-contain"
+                  style={{ aspectRatio: "9/16" }}
+                  onLoad={() => setImageLoaded(true)}
+                  onError={() => {
+                    console.error("Image failed to load")
+                    if (retryCount < 3) {
+                      setRetryCount((prev) => prev + 1)
+                    }
+                  }}
+                />
+              </>
             ) : (
               <div className="aspect-[9/16] bg-zinc-800 rounded-lg flex items-center justify-center">
                 <span className="text-zinc-400">Preview unavailable</span>
@@ -132,7 +152,7 @@ export function InstagramShareModal({ isOpen, onClose, text, assistantType }: In
           {/* Share Button */}
           <Button
             onClick={handleShare}
-            disabled={!imageUrl || isLoading}
+            disabled={!imageUrl || isLoading || !imageLoaded}
             className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-medium"
           >
             <Share className="mr-2 h-4 w-4" />

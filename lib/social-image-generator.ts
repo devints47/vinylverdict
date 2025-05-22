@@ -46,8 +46,8 @@ export async function generateSocialImage({
     const encodedText = encodeURIComponent(truncatedText)
     const encodedType = encodeURIComponent(assistantType)
 
-    // Always use the stories endpoint for all social platforms
-    const apiUrl = `${appUrl}/api/og/stories?text=${encodedText}&type=${encodedType}&t=${Date.now()}`
+    // Use the simpler endpoint for more reliable image generation
+    const apiUrl = `${appUrl}/api/og/simple-story?text=${encodedText}&type=${encodedType}&t=${Date.now()}`
 
     // Add to cache
     imageCache[cacheKey] = {
@@ -55,32 +55,11 @@ export async function generateSocialImage({
       timestamp: Date.now(),
     }
 
-    // Prefetch the image to ensure it's generated and cached by the server
-    await prefetchImage(apiUrl)
-
     return apiUrl
   } catch (error) {
     console.error("Error generating social image:", error)
     throw new Error("Failed to generate social image")
   }
-}
-
-/**
- * Prefetches an image to ensure it's generated and cached
- *
- * @param url - The image URL to prefetch
- * @returns Promise that resolves when the image is loaded
- */
-async function prefetchImage(url: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const img = new Image()
-    img.onload = () => resolve()
-    img.onerror = (e) => {
-      console.error("Error prefetching image:", e)
-      reject(new Error("Failed to prefetch image"))
-    }
-    img.src = url
-  })
 }
 
 /**
@@ -139,7 +118,7 @@ export function openSocialApp(platform: string): void {
   const platformConfig: Record<string, { appUrl: string; webUrl: string }> = {
     instagram: {
       appUrl: "instagram://story-camera",
-      webUrl: "https://www.instagram.com/stories/camera/",
+      webUrl: "https://www.instagram.com/",
     },
     facebook: {
       appUrl: "fb://composer",

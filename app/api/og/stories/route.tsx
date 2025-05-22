@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
         style={{
           height: "100%",
           width: "100%",
-          display: "flex",
+          display: "flex", // Explicit display: flex
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "space-between",
@@ -132,7 +132,7 @@ export async function GET(request: NextRequest) {
         {/* Header section */}
         <div
           style={{
-            display: "flex",
+            display: "flex", // Explicit display: flex
             flexDirection: "column",
             alignItems: "center",
             zIndex: 2,
@@ -142,7 +142,7 @@ export async function GET(request: NextRequest) {
           {/* App logo/branding */}
           <div
             style={{
-              display: "flex",
+              display: "flex", // Explicit display: flex
               alignItems: "center",
               marginBottom: "30px",
             }}
@@ -154,7 +154,7 @@ export async function GET(request: NextRequest) {
                 borderRadius: "50%",
                 background: "linear-gradient(to right, #9333ea, #c084fc)",
                 marginRight: "15px",
-                display: "flex",
+                display: "flex", // Explicit display: flex
                 alignItems: "center",
                 justifyContent: "center",
                 fontSize: 30,
@@ -164,7 +164,7 @@ export async function GET(request: NextRequest) {
             </div>
             <div
               style={{
-                display: "flex",
+                display: "flex", // Explicit display: flex
                 flexDirection: "column",
                 alignItems: "flex-start",
               }}
@@ -194,7 +194,7 @@ export async function GET(request: NextRequest) {
           {/* Title with emoji */}
           <div
             style={{
-              display: "flex",
+              display: "flex", // Explicit display: flex
               alignItems: "center",
               marginBottom: "20px",
             }}
@@ -221,7 +221,7 @@ export async function GET(request: NextRequest) {
         {/* Main content area */}
         <div
           style={{
-            display: "flex",
+            display: "flex", // Explicit display: flex
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
@@ -252,7 +252,7 @@ export async function GET(request: NextRequest) {
         {/* Footer section */}
         <div
           style={{
-            display: "flex",
+            display: "flex", // Explicit display: flex
             flexDirection: "column",
             alignItems: "center",
             zIndex: 2,
@@ -262,6 +262,9 @@ export async function GET(request: NextRequest) {
           {/* Call to action */}
           <div
             style={{
+              display: "flex", // Explicit display: flex
+              flexDirection: "column",
+              alignItems: "center",
               background: "rgba(147, 51, 234, 0.2)",
               border: "2px solid rgba(147, 51, 234, 0.5)",
               borderRadius: "20px",
@@ -292,7 +295,7 @@ export async function GET(request: NextRequest) {
           {/* Swipe up indicator */}
           <div
             style={{
-              display: "flex",
+              display: "flex", // Explicit display: flex
               flexDirection: "column",
               alignItems: "center",
               opacity: 0.6,
@@ -328,7 +331,7 @@ export async function GET(request: NextRequest) {
     return response
   } catch (error) {
     console.error("Error generating Instagram Stories image:", error)
-    return new Response("Error generating image", {
+    return new Response(`Error generating image: ${error instanceof Error ? error.message : String(error)}`, {
       status: 500,
       headers: {
         "Access-Control-Allow-Origin": "*",
