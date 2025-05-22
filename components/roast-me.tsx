@@ -1,16 +1,17 @@
 "use client"
 
 import React from "react"
-
 import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
-import { Loader2, AlertCircle, Share2 } from "lucide-react"
+import { Loader2, AlertCircle, Share2, Copy, Twitter, Facebook, Mail } from "lucide-react"
 import ReactMarkdown from "react-markdown"
 import { formatTrackData, formatArtistData, formatRecentlyPlayedData } from "@/lib/format-utils"
 import { getRoast } from "@/lib/openai-service"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { CursorTypewriter } from "./cursor-typewriter"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { toast } from "@/components/ui/use-toast"
 
 // Add the rehype-raw plugin to allow HTML in markdown
 import rehypeRaw from "rehype-raw"
@@ -562,6 +563,56 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
   // Determine if the primary button should be disabled
   const isPrimaryButtonDisabled = currentResponse.content && !currentResponse.isComplete
 
+  // Add this function before the return statement in the RoastMe component
+
+  // Function to handle sharing
+  const handleShare = async (platform: string) => {
+    try {
+      // Get the app URL from environment variable or use a default
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
+
+      // Create the share URL with the OG image
+      const shareText = encodeURIComponent(currentResponse.content.substring(0, 300))
+      const ogImageUrl = `${appUrl}/api/og?text=${shareText}&type=${assistantType}`
+      const shareUrl = `${appUrl}/share?text=${shareText}&type=${assistantType}`
+
+      // Handle different sharing platforms
+      switch (platform) {
+        case "twitter":
+          window.open(
+            `https://twitter.com/intent/tweet?text=${encodeURIComponent("Check out my music taste verdict from VinylVerdict.fm!")}&url=${encodeURIComponent(shareUrl)}`,
+            "_blank",
+          )
+          break
+        case "facebook":
+          window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, "_blank")
+          break
+        case "email":
+          window.open(
+            `mailto:?subject=${encodeURIComponent("My Music Taste Verdict from VinylVerdict.fm")}&body=${encodeURIComponent("Check out my music taste verdict:\n\n" + shareUrl)}`,
+            "_blank",
+          )
+          break
+        case "copy":
+          await navigator.clipboard.writeText(shareUrl)
+          toast({
+            title: "Link copied to clipboard",
+            description: "Share it with your friends!",
+          })
+          break
+        default:
+          break
+      }
+    } catch (error) {
+      console.error("Error sharing:", error)
+      toast({
+        title: "Error sharing",
+        description: "There was an error sharing your verdict. Please try again.",
+        variant: "destructive",
+      })
+    }
+  }
+
   return (
     <div ref={containerRef} className="mb-8 flex flex-col items-center w-full" style={roastSectionStyle}>
       <div id="roast-primary-button" className="flex justify-center w-full">
@@ -609,16 +660,32 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
             {/* Share button only - moved the secondary roast button outside */}
             {showShareButton && (
               <div className="flex justify-center w-full mt-2">
-                <Button
-                  onClick={() => {
-                    // This will be implemented later
-                    console.log("Share functionality will be implemented later")
-                  }}
-                  className="bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl"
-                >
-                  <Share2 className="h-4 w-4 mr-1" />
-                  {getShareButtonText()}
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button className="bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl">
+                      <Share2 className="h-4 w-4 mr-1" />
+                      {getShareButtonText()}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="center" className="w-56 bg-zinc-900 border-zinc-800">
+                    <DropdownMenuItem onClick={() => handleShare("twitter")} className="cursor-pointer">
+                      <Twitter className="mr-2 h-4 w-4" />
+                      <span>Twitter</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleShare("facebook")} className="cursor-pointer">
+                      <Facebook className="mr-2 h-4 w-4" />
+                      <span>Facebook</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleShare("email")} className="cursor-pointer">
+                      <Mail className="mr-2 h-4 w-4" />
+                      <span>Email</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleShare("copy")} className="cursor-pointer">
+                      <Copy className="mr-2 h-4 w-4" />
+                      <span>Copy Link</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             )}
           </CardFooter>

@@ -8,9 +8,11 @@ import { ScrollToTop } from "@/components/scroll-to-top"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Analytics } from "@vercel/analytics/react"
 import { Suspense } from "react"
+import { ToastContainer } from "@/components/ui/use-toast"
 
 const inter = Inter({ subsets: ["latin"] })
 
+// Update the metadata object to include dynamic OG image support
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.vinylverdict.fm"),
   title: {
@@ -48,7 +50,7 @@ export const metadata: Metadata = {
     description: "Get a brutally honest critique of your music taste based on your Spotify listening habits.",
     images: [
       {
-        url: "https://www.vinylverdict.fm/og-image.png",
+        url: "https://www.vinylverdict.fm/api/og",
         width: 1200,
         height: 630,
         alt: "VinylVerdict - Your Personal Music Taste Critic",
@@ -59,7 +61,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "VinylVerdict - Your Personal Music Taste Critic",
     description: "Get a brutally honest critique of your music taste based on your Spotify listening habits.",
-    images: ["https://www.vinylverdict.fm/og-image.png"],
+    images: ["https://www.vinylverdict.fm/api/og"],
     creator: "@vinylverdict",
   },
   alternates: {
@@ -89,7 +91,7 @@ export const metadata: Metadata = {
       },
     ],
   },
-    generator: 'v0.dev'
+  generator: "v0.dev",
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -139,6 +141,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <ScrollToTop />
               <SpeedInsights />
               <Analytics />
+              <ToastContainer />
             </VinylProvider>
           </AuthProvider>
         </Suspense>
