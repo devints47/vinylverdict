@@ -7,22 +7,34 @@ export const runtime = "edge"
 function parseRoastText(text: string): Array<{ type: string; content: string; style?: any }> {
   const elements: Array<{ type: string; content: string; style?: any }> = []
 
+  // Calculate dynamic font sizes based on text length
+  const textLength = text.length
+  const baseFontSize = textLength > 2000 ? 28 : textLength > 1500 ? 32 : textLength > 1000 ? 36 : 40
+  const titleFontSize = Math.max(baseFontSize + 12, 44)
+  const scoreFontSize = Math.max(baseFontSize + 8, 40)
+  const signatureFontSize = Math.max(baseFontSize - 4, 24)
+
   // Split by double line breaks to get paragraphs
   const sections = text.split("\n\n").filter((section) => section.trim())
 
   for (const section of sections) {
     const trimmedSection = section.trim()
 
-    // Handle title (first line if it looks like a title)
-    if ((sections.indexOf(section) === 0 && trimmedSection.includes("🎵")) || trimmedSection.includes("🎶")) {
+    // Handle title (first line if it looks like a title or contains emojis)
+    if (
+      (sections.indexOf(section) === 0 && (trimmedSection.includes("🎵") || trimmedSection.includes("🎶"))) ||
+      (trimmedSection.includes("**") && sections.indexOf(section) === 0)
+    ) {
+      // Remove markdown formatting
+      const cleanTitle = trimmedSection.replace(/\*\*/g, "")
       elements.push({
         type: "title",
-        content: trimmedSection,
+        content: cleanTitle,
         style: {
-          fontSize: "52px", // Increased from 36px
+          fontSize: `${titleFontSize}px`,
           fontWeight: "bold",
           color: "#c084fc",
-          marginBottom: "40px", // Increased from 24px
+          marginBottom: "32px",
           textAlign: "center",
           lineHeight: "1.2",
           padding: "0 20px",
@@ -30,16 +42,17 @@ function parseRoastText(text: string): Array<{ type: string; content: string; st
       })
     }
     // Handle score section
-    else if (trimmedSection.toUpperCase().includes("SCORE:")) {
+    else if (trimmedSection.toUpperCase().includes("SCORE:") || trimmedSection.includes("**SCORE")) {
+      const cleanScore = trimmedSection.replace(/\*\*/g, "")
       elements.push({
         type: "score",
-        content: trimmedSection,
+        content: cleanScore,
         style: {
-          fontSize: "48px", // Increased from 32px
+          fontSize: `${scoreFontSize}px`,
           fontWeight: "bold",
           color: "#c084fc",
-          marginTop: "40px", // Increased from 24px
-          marginBottom: "30px", // Increased from 16px
+          marginTop: "32px",
+          marginBottom: "24px",
           textAlign: "center",
         },
       })
@@ -50,19 +63,22 @@ function parseRoastText(text: string): Array<{ type: string; content: string; st
         type: "signature",
         content: trimmedSection,
         style: {
-          fontSize: "32px", // Increased from 20px
+          fontSize: `${signatureFontSize}px`,
           color: "#a855f7",
           fontStyle: "italic",
-          marginTop: "40px", // Increased from 16px
+          marginTop: "32px",
           textAlign: "right",
           padding: "0 20px",
         },
       })
     }
-    // Handle regular paragraphs
+    // Handle regular paragraphs with markdown support
     else {
+      // Process markdown formatting
+      const processedText = processMarkdown(trimmedSection)
+
       // Split long paragraphs into smaller chunks for better readability
-      const lines = trimmedSection.split("\n").filter((line) => line.trim())
+      const lines = processedText.split("\n").filter((line) => line.trim())
 
       for (const line of lines) {
         if (line.trim()) {
@@ -70,9 +86,9 @@ function parseRoastText(text: string): Array<{ type: string; content: string; st
             type: "paragraph",
             content: line.trim(),
             style: {
-              fontSize: "36px", // Increased from 22px
+              fontSize: `${baseFontSize}px`,
               color: "#ffffff",
-              marginBottom: "30px", // Increased from 16px
+              marginBottom: "20px",
               lineHeight: "1.4",
               padding: "0 20px",
             },
@@ -83,6 +99,22 @@ function parseRoastText(text: string): Array<{ type: string; content: string; st
   }
 
   return elements
+}
+
+// Process markdown formatting
+function processMarkdown(text: string): string {
+  // Handle bold text (**text** or __text__)
+  text = text.replace(/\*\*(.*?)\*\*/g, "$1")
+  text = text.replace(/__(.*?)__/g, "$1")
+
+  // Handle italic text (*text* or _text_)
+  text = text.replace(/\*(.*?)\*/g, "$1")
+  text = text.replace(/_(.*?)_/g, "$1")
+
+  // Handle code blocks (`text`)
+  text = text.replace(/`(.*?)`/g, "$1")
+
+  return text
 }
 
 export async function GET(request: NextRequest) {
@@ -114,9 +146,9 @@ export async function GET(request: NextRequest) {
           width: "100%",
           height: "100%",
           backgroundColor: "#000000",
-          padding: "60px 40px", // Increased padding
+          padding: "50px 30px",
           fontFamily: "system-ui, -apple-system, sans-serif",
-          justifyContent: "space-between", // Distribute content evenly
+          justifyContent: "space-between",
         }}
       >
         {/* Header */}
@@ -124,18 +156,18 @@ export async function GET(request: NextRequest) {
           style={{
             display: "flex",
             alignItems: "center",
-            marginBottom: "50px", // Increased from 30px
+            marginBottom: "40px",
           }}
         >
           {/* Vinyl Record Icon */}
           <div
             style={{
-              width: "70px", // Increased from 50px
-              height: "70px", // Increased from 50px
+              width: "60px",
+              height: "60px",
               borderRadius: "50%",
               backgroundColor: "#1a1a1a",
-              border: "3px solid #333", // Increased from 2px
-              marginRight: "20px", // Increased from 16px
+              border: "3px solid #333",
+              marginRight: "16px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -144,8 +176,8 @@ export async function GET(request: NextRequest) {
           >
             <div
               style={{
-                width: "24px", // Increased from 16px
-                height: "24px", // Increased from 16px
+                width: "20px",
+                height: "20px",
                 borderRadius: "50%",
                 backgroundColor: accentColor,
               }}
@@ -156,7 +188,7 @@ export async function GET(request: NextRequest) {
           <div style={{ display: "flex", flexDirection: "column" }}>
             <div
               style={{
-                fontSize: "42px", // Increased from 28px
+                fontSize: "36px",
                 fontWeight: "bold",
                 background: `linear-gradient(45deg, ${accentColor}, #9333ea)`,
                 backgroundClip: "text",
@@ -168,7 +200,7 @@ export async function GET(request: NextRequest) {
             </div>
             <div
               style={{
-                fontSize: "20px", // Increased from 14px
+                fontSize: "16px",
                 color: "#888",
               }}
             >
@@ -183,9 +215,9 @@ export async function GET(request: NextRequest) {
             display: "flex",
             flexDirection: "column",
             backgroundColor: "rgba(255, 255, 255, 0.05)",
-            borderRadius: "24px", // Increased from 16px
-            padding: "50px 30px", // Increased from 32px
-            border: `3px solid ${accentColor}`, // Increased from 2px
+            borderRadius: "20px",
+            padding: "40px 25px",
+            border: `2px solid ${accentColor}`,
             flex: 1,
             overflow: "hidden",
           }}
@@ -211,13 +243,13 @@ export async function GET(request: NextRequest) {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            marginTop: "40px", // Increased from 24px
-            marginBottom: "20px", // Increased from 16px
+            marginTop: "32px",
+            marginBottom: "16px",
           }}
         >
           <div
             style={{
-              fontSize: "22px", // Increased from 16px
+              fontSize: "18px",
               color: "#888",
               marginRight: "12px",
             }}
@@ -230,13 +262,13 @@ export async function GET(request: NextRequest) {
               display: "flex",
               alignItems: "center",
               backgroundColor: "#1DB954",
-              borderRadius: "24px", // Increased from 20px
-              padding: "10px 20px", // Increased from 8px 16px
+              borderRadius: "20px",
+              padding: "8px 16px",
             }}
           >
             <div
               style={{
-                fontSize: "24px", // Increased from 18px
+                fontSize: "20px",
                 fontWeight: "bold",
                 color: "#000000",
               }}
@@ -246,7 +278,7 @@ export async function GET(request: NextRequest) {
           </div>
           <div
             style={{
-              fontSize: "22px", // Increased from 16px
+              fontSize: "18px",
               color: "#888",
               marginLeft: "8px",
             }}
@@ -261,12 +293,12 @@ export async function GET(request: NextRequest) {
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            marginTop: "20px", // Added margin
+            marginTop: "16px",
           }}
         >
           <div
             style={{
-              fontSize: "24px", // Increased from 18px
+              fontSize: "20px",
               color: "#666",
             }}
           >
@@ -281,7 +313,7 @@ export async function GET(request: NextRequest) {
             bottom: "0",
             left: "0",
             right: "0",
-            height: "10px", // Increased from 6px
+            height: "8px",
             background: `linear-gradient(90deg, ${accentColor}, #9333ea, ${accentColor})`,
             opacity: 0.6,
           }}

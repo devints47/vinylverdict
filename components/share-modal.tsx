@@ -5,8 +5,8 @@ import { useState, useEffect, useRef } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/use-toast"
-import { Facebook, Instagram, Mail, Copy, Share2, Linkedin, X, Share, Download } from "lucide-react"
-import { generateShareImageUrl, copyImageToClipboard, downloadImage, openSocialApp } from "@/lib/static-image-generator"
+import { Facebook, Instagram, Mail, Copy, Share2, Linkedin, X, Share, MessageCircle } from "lucide-react"
+import { generateShareImageUrl, copyImageToClipboard, openSocialApp } from "@/lib/static-image-generator"
 
 interface ShareModalProps {
   isOpen: boolean
@@ -38,6 +38,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
   const [imageUrl, setImageUrl] = useState<string>("")
   const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null)
   const [imageLoaded, setImageLoaded] = useState(false)
+  const [showingImage, setShowingImage] = useState(false)
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0)
   const [pollingAttempts, setPollingAttempts] = useState(0)
   const loadingIntervalRef = useRef<NodeJS.Timeout | null>(null)
@@ -51,6 +52,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     if (isOpen) {
       // Reset states
       setImageLoaded(false)
+      setShowingImage(false)
       setPollingAttempts(0)
 
       // Generate image URL with timestamp to prevent caching
@@ -111,26 +113,26 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       const response = await fetch(url, { method: "HEAD" })
 
       if (response.ok) {
-        // Image is ready, stop polling and set as loaded
+        // Image is ready, stop polling
         if (pollingIntervalRef.current) {
           clearInterval(pollingIntervalRef.current)
         }
 
-        // Force reload the image to ensure it's the latest version
-        if (imgRef.current) {
-          imgRef.current.src = `${url}&cache=${Date.now()}`
-        }
-
         setImageLoaded(true)
+
+        // Add 1 second delay before showing the image
+        setTimeout(() => {
+          setShowingImage(true)
+        }, 1000)
       }
     } catch (error) {
       console.error("Error checking image availability:", error)
     }
   }
 
-  // Clear intervals when image is loaded
+  // Clear intervals when image is showing
   useEffect(() => {
-    if (imageLoaded) {
+    if (showingImage) {
       if (loadingIntervalRef.current) {
         clearInterval(loadingIntervalRef.current)
       }
@@ -138,7 +140,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
         clearInterval(pollingIntervalRef.current)
       }
     }
-  }, [imageLoaded])
+  }, [showingImage])
 
   const shareOptions: ShareOption[] = [
     {
@@ -152,7 +154,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       id: "facebook",
       name: "Facebook",
       icon: <Facebook className="h-6 w-6" />,
-      color: "bg-[#1877F2] hover:bg-[#0e6ae4]",
+      color: "bg-[#1877F2] hover:bg-[#166fe5]",
       description: "Share to Facebook Stories",
     },
     {
@@ -163,11 +165,29 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       description: "Share to Instagram Stories",
     },
     {
+      id: "whatsapp",
+      name: "WhatsApp",
+      icon: (
+        <svg className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.785" />
+        </svg>
+      ),
+      color: "bg-[#25D366] hover:bg-[#22c55e]",
+      description: "Share to WhatsApp",
+    },
+    {
       id: "linkedin",
       name: "LinkedIn",
       icon: <Linkedin className="h-6 w-6" />,
       color: "bg-[#0077B5] hover:bg-[#006399]",
       description: "Share to LinkedIn",
+    },
+    {
+      id: "messages",
+      name: "Messages",
+      icon: <MessageCircle className="h-6 w-6" />,
+      color: "bg-[#007AFF] hover:bg-[#0056CC]",
+      description: "Share via Messages",
     },
     {
       id: "email",
@@ -238,7 +258,24 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       return
     }
 
-    // For all other platforms, show the Instagram-style preview
+    if (option.id === "messages") {
+      const shareText = `Check out my music taste verdict from VinylVerdict.fm!\n\n${text.substring(0, 100)}...\n\nGet yours at vinylverdict.fm`
+      const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+
+      if (isMobile) {
+        window.open(`sms:?body=${encodeURIComponent(shareText)}`, "_blank")
+      } else {
+        navigator.clipboard.writeText(shareText)
+        toast({
+          title: "Text copied",
+          description: "Message text has been copied to clipboard!",
+        })
+      }
+      onClose()
+      return
+    }
+
+    // For all other platforms, show the preview with image
     setSelectedPlatform(option.id)
   }
 
@@ -265,22 +302,6 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     }
   }
 
-  const handleDownload = async () => {
-    try {
-      await downloadImage(imageUrl, `vinylverdict-${assistantType}-story.png`)
-      toast({
-        title: "Image downloaded",
-        description: "The image has been saved to your device.",
-      })
-    } catch (error) {
-      toast({
-        title: "Download failed",
-        description: "Failed to download the image. Please try again.",
-        variant: "destructive",
-      })
-    }
-  }
-
   const renderPreview = () => {
     if (!selectedPlatform) return null
 
@@ -300,7 +321,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
           </DialogHeader>
 
           <div className="relative mx-auto w-full" style={{ maxWidth: "280px" }}>
-            {!imageLoaded ? (
+            {!showingImage ? (
               <div className="aspect-[9/16] bg-zinc-800 rounded-lg flex flex-col items-center justify-center p-4 text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mb-4"></div>
                 <p className="text-purple-300 font-medium text-lg">{loadingMessages[loadingMessageIndex]}</p>
@@ -330,26 +351,27 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
           <div className="space-y-2 mt-2">
             <Button
               onClick={handleShareAfterPreview}
-              disabled={!imageLoaded}
+              disabled={!showingImage}
               className={`w-full text-white font-medium ${platform.color.replace("hover:", "")}`}
             >
               <Share className="mr-2 h-4 w-4" />
               Share to {platform.name}
-            </Button>
-
-            <Button
-              onClick={handleDownload}
-              variant="outline"
-              className="w-full border-zinc-700 text-zinc-300 hover:bg-zinc-800"
-            >
-              <Download className="mr-2 h-4 w-4" />
-              Download Image
             </Button>
           </div>
         </DialogContent>
       </Dialog>
     )
   }
+
+  useEffect(() => {
+    if (selectedPlatform) {
+      setShowingImage(false)
+      // Add 1 second delay even if image is already loaded
+      setTimeout(() => {
+        setShowingImage(true)
+      }, 1000)
+    }
+  }, [selectedPlatform])
 
   return (
     <>
@@ -365,7 +387,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
             </DialogDescription>
           </DialogHeader>
 
-          <div className="grid grid-cols-4 gap-3 py-4">
+          <div className="grid grid-cols-3 gap-3 py-4">
             {shareOptions.map((option) => (
               <button
                 key={option.id}

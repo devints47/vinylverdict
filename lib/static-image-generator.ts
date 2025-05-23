@@ -62,14 +62,18 @@ export async function downloadImage(imageUrl: string, filename: string): Promise
  * Opens social media apps
  */
 export function openSocialApp(platform: string): void {
+  const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+
   switch (platform) {
     case "instagram":
-      // Try to open Instagram app on mobile
-      window.open("instagram://camera", "_blank")
-      // Fallback to Instagram website
-      setTimeout(() => {
+      if (isMobile) {
+        window.open("instagram://camera", "_blank")
+        setTimeout(() => {
+          window.open("https://www.instagram.com", "_blank")
+        }, 1000)
+      } else {
         window.open("https://www.instagram.com", "_blank")
-      }, 500)
+      }
       break
     case "twitter":
       window.open("https://twitter.com/compose/tweet", "_blank")
@@ -79,6 +83,24 @@ export function openSocialApp(platform: string): void {
       break
     case "linkedin":
       window.open("https://www.linkedin.com", "_blank")
+      break
+    case "whatsapp":
+      if (isMobile) {
+        window.open("whatsapp://", "_blank")
+        setTimeout(() => {
+          window.open("https://web.whatsapp.com", "_blank")
+        }, 1000)
+      } else {
+        window.open("https://web.whatsapp.com", "_blank")
+      }
+      break
+    case "messages":
+      if (isMobile) {
+        window.open("sms:", "_blank")
+      } else {
+        // For desktop, we'll just copy the text since SMS isn't directly available
+        navigator.clipboard.writeText("Check out my music taste verdict from VinylVerdict.fm!")
+      }
       break
     default:
       break
