@@ -3,180 +3,80 @@ import type { NextRequest } from "next/server"
 
 export const runtime = "edge"
 
-// Enhanced markdown parser that preserves formatting like the original roast
-function parseRoastText(text: string): Array<{ type: string; content: string; style?: any }> {
-  const elements: Array<{ type: string; content: string; style?: any }> = []
-
-  // Use the complete text without any truncation
-  const fullText = text
-
-  // Calculate dynamic font sizes based on text length and paragraph count
-  const textLength = fullText.length
-  const paragraphCount = fullText.split("\n\n").filter((p) => p.trim()).length
-
-  // More aggressive font size reduction for longer texts to fit everything
-  let baseFontSize =
-    textLength > 4000
-      ? 18
-      : textLength > 3500
-        ? 20
-        : textLength > 3000
-          ? 22
-          : textLength > 2500
-            ? 24
-            : textLength > 2000
-              ? 26
-              : textLength > 1500
-                ? 28
-                : textLength > 1000
-                  ? 30
-                  : 32
-
-  // Further adjust based on paragraph count to ensure everything fits
-  if (paragraphCount > 12) {
-    baseFontSize = Math.max(baseFontSize - 4, 16)
-  } else if (paragraphCount > 10) {
-    baseFontSize = Math.max(baseFontSize - 3, 18)
-  } else if (paragraphCount > 8) {
-    baseFontSize = Math.max(baseFontSize - 2, 20)
-  } else if (paragraphCount > 6) {
-    baseFontSize = Math.max(baseFontSize - 1, 22)
-  }
-
-  const titleFontSize = Math.max(baseFontSize + 8, 32)
-  const scoreFontSize = Math.max(baseFontSize + 6, 30)
-  const signatureFontSize = Math.max(baseFontSize - 2, 20)
-
-  // Split by double line breaks to get paragraphs
-  const sections = fullText.split("\n\n").filter((section) => section.trim())
-
-  for (const section of sections) {
-    const trimmedSection = section.trim()
-
-    // Handle title (first line if it looks like a title or contains emojis or starts with #)
-    if (
-      sections.indexOf(section) === 0 &&
-      (trimmedSection.includes("🎵") ||
-        trimmedSection.includes("🎶") ||
-        trimmedSection.startsWith("#") ||
-        trimmedSection.includes("**"))
-    ) {
-      // Process title with markdown formatting
-      let titleText = trimmedSection
-      let isBold = false
-
-      // Check if title has bold formatting
-      if (titleText.includes("**")) {
-        isBold = true
-        titleText = titleText.replace(/\*\*/g, "")
-      }
-
-      elements.push({
-        type: "title",
-        content: titleText,
-        style: {
-          fontSize: `${titleFontSize}px`,
-          fontWeight: isBold ? "bold" : "normal",
-          color: "#c084fc", // Purple color
-          marginBottom: "16px",
-          textAlign: "center",
-          lineHeight: "1.2",
-          padding: "0 16px",
-          display: "flex",
-        },
-      })
-    }
-    // Handle score section
-    else if (trimmedSection.toUpperCase().includes("SCORE:") || trimmedSection.includes("**SCORE")) {
-      // Process score with markdown formatting
-      let scoreText = trimmedSection
-      let isBold = false
-
-      // Check if score has bold formatting
-      if (scoreText.includes("**")) {
-        isBold = true
-        scoreText = scoreText.replace(/\*\*/g, "")
-      }
-
-      elements.push({
-        type: "score",
-        content: scoreText,
-        style: {
-          fontSize: `${scoreFontSize}px`,
-          fontWeight: isBold ? "bold" : "normal",
-          color: "#c084fc", // Purple color
-          marginTop: "16px",
-          marginBottom: "12px",
-          textAlign: "center",
-          display: "flex",
-        },
-      })
-    }
-    // Handle signature (lines starting with – or -)
-    else if (trimmedSection.startsWith("–") || trimmedSection.startsWith("-")) {
-      elements.push({
-        type: "signature",
-        content: trimmedSection,
-        style: {
-          fontSize: `${signatureFontSize}px`,
-          color: "#a855f7", // Light purple color
-          fontStyle: "italic",
-          marginTop: "16px",
-          textAlign: "right",
-          padding: "0 16px",
-          display: "flex",
-        },
-      })
-    }
-    // Handle regular paragraphs - NO SLICING OR TRUNCATION
-    else {
-      // Keep the entire paragraph intact - no splitting into lines
-      if (trimmedSection.trim()) {
-        // Process paragraph with basic formatting
-        let paragraphText = trimmedSection.trim()
-
-        // Remove markdown formatting but preserve the text
-        paragraphText = paragraphText.replace(/\*\*(.*?)\*\*/g, "$1")
-        paragraphText = paragraphText.replace(/\*(.*?)\*/g, "$1")
-
-        elements.push({
-          type: "paragraph",
-          content: paragraphText,
-          style: {
-            fontSize: `${baseFontSize}px`,
-            color: "#ffffff", // White text
-            marginBottom: "12px",
-            lineHeight: "1.3",
-            padding: "0 16px",
-            display: "flex",
-          },
-        })
-      }
-    }
-  }
-
-  return elements
-}
-
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const text = searchParams.get("text") || "Your music taste is... interesting."
     const type = searchParams.get("type") || "snob"
 
-    // Parse the roast text
-    const parsedElements = parseRoastText(text)
-
     // Get colors based on assistant type
-    let accentColor = "#c084fc" // Purple
-    let titleText = "Music Snob's Take"
+    let accentColor = "#c084fc" // Purple for snob
+    let gradientStart = "#9333ea"
+    let gradientEnd = "#c084fc"
 
     if (type === "worshipper") {
       accentColor = "#c084fc"
-      titleText = "Taste Validator"
+      gradientStart = "#9333ea"
+      gradientEnd = "#c084fc"
     } else if (type === "historian") {
       accentColor = "#60a5fa"
-      titleText = "Music Historian"
+      gradientStart = "#3b82f6"
+      gradientEnd = "#60a5fa"
+    }
+
+    // Extract title and content
+    let title = ""
+    let content = text
+
+    // Try to extract title from first line
+    const lines = text.split("\n")
+    if (lines.length > 0) {
+      title = lines[0]
+      content = lines.slice(1).join("\n").trim()
+    }
+
+    // Extract signature if present
+    let signature = ""
+    if (content.includes("- The Music Snob") || content.includes("– The Music Snob")) {
+      const signatureIndex = Math.max(content.lastIndexOf("- The Music Snob"), content.lastIndexOf("– The Music Snob"))
+      if (signatureIndex !== -1) {
+        signature = content.substring(signatureIndex)
+        content = content.substring(0, signatureIndex).trim()
+      }
+    } else if (content.includes("- The Taste Validator") || content.includes("– The Taste Validator")) {
+      const signatureIndex = Math.max(
+        content.lastIndexOf("- The Taste Validator"),
+        content.lastIndexOf("– The Taste Validator"),
+      )
+      if (signatureIndex !== -1) {
+        signature = content.substring(signatureIndex)
+        content = content.substring(0, signatureIndex).trim()
+      }
+    } else if (content.includes("- The Music Historian") || content.includes("– The Music Historian")) {
+      const signatureIndex = Math.max(
+        content.lastIndexOf("- The Music Historian"),
+        content.lastIndexOf("– The Music Historian"),
+      )
+      if (signatureIndex !== -1) {
+        signature = content.substring(signatureIndex)
+        content = content.substring(0, signatureIndex).trim()
+      }
+    }
+
+    // Extract score if present
+    let score = ""
+    if (content.includes("Score:")) {
+      const scoreIndex = content.lastIndexOf("Score:")
+      if (scoreIndex !== -1) {
+        const scoreEndIndex = content.indexOf("\n", scoreIndex)
+        if (scoreEndIndex !== -1) {
+          score = content.substring(scoreIndex, scoreEndIndex)
+          content = content.substring(0, scoreIndex).trim() + "\n\n" + content.substring(scoreEndIndex + 1).trim()
+        } else {
+          score = content.substring(scoreIndex)
+          content = content.substring(0, scoreIndex).trim()
+        }
+      }
     }
 
     return new ImageResponse(
@@ -252,31 +152,96 @@ export async function GET(request: NextRequest) {
           </div>
         </div>
 
-        {/* Content Area - Styled like the roast container */}
+        {/* Content Area - Styled exactly like the roast container */}
         <div
           style={{
             display: "flex",
             flexDirection: "column",
-            backgroundColor: "rgba(20, 20, 30, 0.6)",
+            backgroundColor: "#121212",
             borderRadius: "16px",
-            padding: "16px 12px",
+            padding: "20px",
             border: `2px solid ${accentColor}`,
             flex: 1,
             overflow: "hidden",
           }}
         >
-          {parsedElements.map((element, index) => (
+          {/* Title */}
+          {title && (
             <div
-              key={index}
               style={{
-                ...element.style,
-                wordWrap: "break-word",
-                whiteSpace: "pre-wrap",
+                fontSize: "32px",
+                fontWeight: "bold",
+                background: `linear-gradient(135deg, ${gradientStart}, ${gradientEnd})`,
+                backgroundClip: "text",
+                WebkitBackgroundClip: "text",
+                color: "transparent",
+                marginBottom: "20px",
+                textAlign: "center",
+                lineHeight: "1.2",
+                display: "flex",
               }}
             >
-              {element.content}
+              {title}
             </div>
-          ))}
+          )}
+
+          {/* Main Content */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              flex: 1,
+            }}
+          >
+            {/* Split content into paragraphs */}
+            {content.split("\n\n").map((paragraph, index) => (
+              <div
+                key={index}
+                style={{
+                  fontSize: "22px",
+                  color: "#ffffff",
+                  marginBottom: "16px",
+                  lineHeight: "1.4",
+                  display: "flex",
+                }}
+              >
+                {paragraph}
+              </div>
+            ))}
+          </div>
+
+          {/* Score */}
+          {score && (
+            <div
+              style={{
+                fontSize: "28px",
+                fontWeight: "bold",
+                color: accentColor,
+                marginTop: "16px",
+                marginBottom: "12px",
+                textAlign: "center",
+                display: "flex",
+              }}
+            >
+              {score}
+            </div>
+          )}
+
+          {/* Signature */}
+          {signature && (
+            <div
+              style={{
+                fontSize: "20px",
+                color: accentColor,
+                fontStyle: "italic",
+                marginTop: "16px",
+                textAlign: "right",
+                display: "flex",
+              }}
+            >
+              {signature}
+            </div>
+          )}
         </div>
 
         {/* Spotify Attribution with SVG Logo */}
