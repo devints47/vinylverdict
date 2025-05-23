@@ -73,6 +73,8 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       templateContainer.style.backgroundPosition = "center"
       templateContainer.style.display = "flex"
       templateContainer.style.flexDirection = "column"
+      templateContainer.style.justifyContent = "center" // Center content vertically
+      templateContainer.style.alignItems = "center" // Center content horizontally
       templateContainer.style.padding = "60px 40px"
       templateContainer.style.fontFamily = "'Inter', sans-serif"
       templateContainer.style.color = "white"
@@ -106,8 +108,8 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       header.style.alignItems = "center"
       header.style.justifyContent = "center"
       header.style.marginBottom = "40px"
-      header.style.marginTop = "20px"
-      header.style.flexShrink = "0" // Prevent header from shrinking
+      header.style.width = "100%"
+      header.style.maxWidth = "800px" // Limit width for better centering
 
       // Logo placeholder
       const logoContainer = document.createElement("div")
@@ -151,71 +153,14 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       content.style.borderRadius = "12px"
       content.style.padding = "40px"
       content.style.border = "1px solid rgba(147, 51, 234, 0.3)"
-      content.style.marginBottom = "40px"
       content.style.width = "100%"
+      content.style.maxWidth = "800px" // Limit width for better centering
       content.style.boxSizing = "border-box"
-      // Removed minHeight and flex properties - let content determine height
+      content.style.marginBottom = "0" // Remove bottom margin
 
       // Convert markdown to HTML with the calculated font size
       content.innerHTML = convertMarkdownToHtml(text, fontSize)
       templateContainer.appendChild(content)
-
-      // Create spacer to push footer down
-      const spacer = document.createElement("div")
-      spacer.style.flexGrow = "1"
-      templateContainer.appendChild(spacer)
-
-      // Create footer matching the index page style exactly
-      const footer = document.createElement("div")
-      footer.style.display = "flex"
-      footer.style.alignItems = "center"
-      footer.style.justifyContent = "center"
-      footer.style.marginBottom = "40px"
-      footer.style.flexShrink = "0"
-
-      // Create the pill container matching index page
-      const footerPill = document.createElement("div")
-      footerPill.style.display = "inline-flex"
-      footerPill.style.alignItems = "center"
-      footerPill.style.gap = "12px"
-      footerPill.style.backgroundColor = "rgba(0, 0, 0, 0.8)"
-      footerPill.style.padding = "16px 32px"
-      footerPill.style.borderRadius = "9999px"
-      footerPill.style.fontSize = "20px"
-      footerPill.style.color = "white"
-
-      // Create text elements
-      const builtText = document.createElement("span")
-      builtText.textContent = "Built Using the"
-      builtText.style.fontSize = "inherit"
-      builtText.style.color = "inherit"
-
-      // Create Spotify logo container
-      const spotifyLogoWrapper = document.createElement("div")
-      spotifyLogoWrapper.style.display = "inline-flex"
-      spotifyLogoWrapper.style.alignItems = "center"
-      spotifyLogoWrapper.style.height = "28px"
-
-      const spotifyLogo = document.createElement("img")
-      spotifyLogo.src = "/spotify_full_logo.svg"
-      spotifyLogo.alt = "Spotify"
-      spotifyLogo.style.height = "100%"
-      spotifyLogo.style.width = "auto"
-      spotifyLogo.style.display = "block"
-
-      spotifyLogoWrapper.appendChild(spotifyLogo)
-
-      const apiText = document.createElement("span")
-      apiText.textContent = "Web API"
-      apiText.style.fontSize = "inherit"
-      apiText.style.color = "inherit"
-
-      // Assemble footer
-      footerPill.appendChild(builtText)
-      footerPill.appendChild(spotifyLogoWrapper)
-      footerPill.appendChild(apiText)
-      footer.appendChild(footerPill)
-      templateContainer.appendChild(footer)
 
       // Wait for images to load and content to render
       setTimeout(() => {
