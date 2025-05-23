@@ -1,13 +1,12 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/use-toast"
-import { Facebook, Instagram, Mail, Copy, Share2, Linkedin, MessageCircle, X, Share } from "lucide-react"
-import { generateSocialImage, copyImageToClipboard, openSocialApp } from "@/lib/social-image-generator"
+import { Facebook, Instagram, Mail, Copy, Share2, Linkedin, X, Share, Download } from "lucide-react"
+import { generateShareImageUrl, copyImageToClipboard, downloadImage, openSocialApp } from "@/lib/static-image-generator"
 
 interface ShareModalProps {
   isOpen: boolean
@@ -27,11 +26,16 @@ interface ShareOption {
 }
 
 export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: ShareModalProps) {
-  const [imageUrl, setImageUrl] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const [imageUrl, setImageUrl] = useState<string>("")
   const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null)
 
-  // Define all share options with their respective colors and icons
+  useEffect(() => {
+    if (isOpen) {
+      const url = generateShareImageUrl(text, assistantType)
+      setImageUrl(url)
+    }
+  }, [isOpen, text, assistantType])
+
   const shareOptions: ShareOption[] = [
     {
       id: "twitter",
@@ -55,7 +59,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       icon: <Instagram className="h-6 w-6" />,
       color: "bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] hover:opacity-90",
       description: "Share to Instagram Stories",
-      needsPreview: false, // Instagram has its own modal with preview
+      needsPreview: false,
     },
     {
       id: "linkedin",
@@ -71,15 +75,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       icon: <Mail className="h-6 w-6" />,
       color: "bg-[#D44638] hover:bg-[#c13e31]",
       description: "Share via Email",
-      needsPreview: true,
-    },
-    {
-      id: "sms",
-      name: "SMS",
-      icon: <MessageCircle className="h-6 w-6" />,
-      color: "bg-[#25D366] hover:bg-[#20bd5a]",
-      description: "Share via SMS",
-      needsPreview: true,
+      needsPreview: false,
     },
     {
       id: "copy",
@@ -87,7 +83,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       icon: <Copy className="h-6 w-6" />,
       color: "bg-zinc-700 hover:bg-zinc-600",
       description: "Copy link to clipboard",
-      needsPreview: true,
+      needsPreview: false,
     },
     {
       id: "share",
@@ -99,38 +95,6 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     },
   ]
 
-  // Generate the image when the modal opens
-  useEffect(() => {
-    if (isOpen) {
-      generateImage()
-    }
-  }, [isOpen])
-
-  const generateImage = async () => {
-    try {
-      setIsLoading(true)
-
-      // Generate a story image for all platforms
-      const storyUrl = await generateSocialImage({
-        text,
-        assistantType,
-        format: "story",
-      })
-
-      setImageUrl(storyUrl)
-    } catch (error) {
-      console.error("Error generating social image:", error)
-      toast({
-        title: "Error generating image",
-        description: "Failed to generate the share image. Please try again.",
-        variant: "destructive",
-      })
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  // Get the appropriate title based on the assistant type
   const getShareTitle = () => {
     switch (assistantType) {
       case "worshipper":
@@ -143,91 +107,80 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     }
   }
 
-  // Handle native share if available
-  const handleNativeShare = async () => {
-    try {
-      // Get the app URL from environment variable or use a default
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
-      const shareText = encodeURIComponent(text.substring(0, 200))
-      const shareUrl = `${appUrl}/share?text=${shareText}&type=${assistantType}`
-
-      if (navigator.share) {
-        await navigator.share({
-          title: "My Music Taste Verdict from VinylVerdict.fm",
-          text: "Check out my music taste verdict!",
-          url: shareUrl,
-        })
-        toast({
-          title: "Shared successfully",
-          description: "Your verdict has been shared!",
-        })
-      } else {
-        // Fallback to copy link
-        onShare("copy")
-      }
-    } catch (error) {
-      console.error("Error with native sharing:", error)
-      toast({
-        title: "Sharing failed",
-        description: "There was an error sharing. Please try another method.",
-        variant: "destructive",
-      })
-    }
-  }
-
-  // Handle click on a share option
   const handleShareClick = (option: ShareOption) => {
-    if (option.id === "share") {
-      handleNativeShare()
-      onClose()
-    } else if (option.id === "instagram") {
+    if (option.id === "instagram") {
       onShare(option.id)
-      // Don't close the modal for Instagram since it opens another modal
     } else if (option.needsPreview) {
-      // Show the preview for this platform
       setSelectedPlatform(option.id)
     } else {
-      onShare(option.id)
-      onClose()
+      handleDirectShare(option.id)
     }
   }
 
-  // Handle share after preview
+  const handleDirectShare = async (platform: string) => {
+    if (platform === "copy") {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
+      const shareUrl = `${appUrl}/share?text=${encodeURIComponent(text.substring(0, 200))}&type=${assistantType}`
+      await navigator.clipboard.writeText(shareUrl)
+      toast({
+        title: "Link copied",
+        description: "Share link has been copied to clipboard!",
+      })
+    } else if (platform === "email") {
+      const subject = "My Music Taste Verdict from VinylVerdict.fm"
+      const body = `Check out my music taste verdict:\n\n${text}\n\nGet your own at vinylverdict.fm`
+      window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`)
+    } else if (platform === "share" && navigator.share) {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
+      const shareUrl = `${appUrl}/share?text=${encodeURIComponent(text.substring(0, 200))}&type=${assistantType}`
+      await navigator.share({
+        title: "My Music Taste Verdict",
+        text: "Check out my music taste verdict!",
+        url: shareUrl,
+      })
+    }
+    onClose()
+  }
+
   const handleShareAfterPreview = async () => {
-    if (!selectedPlatform || !imageUrl) return
+    if (!selectedPlatform) return
 
     try {
-      // For platforms that need the image copied
-      if (["twitter", "facebook", "linkedin"].includes(selectedPlatform)) {
-        await copyImageToClipboard(imageUrl)
-        openSocialApp(selectedPlatform)
-      } else if (selectedPlatform === "copy") {
-        // For copy link, just copy the URL
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
-        const shareUrl = `${appUrl}/share?text=${encodeURIComponent(text.substring(0, 200))}&type=${assistantType}`
-        await navigator.clipboard.writeText(shareUrl)
-        toast({
-          title: "Link copied",
-          description: "Share link has been copied to clipboard!",
-        })
-      } else {
-        // For other platforms, just call the onShare handler
-        onShare(selectedPlatform)
-      }
+      await copyImageToClipboard(imageUrl)
+      openSocialApp(selectedPlatform)
 
-      // Close the modal
+      const platform = shareOptions.find((opt) => opt.id === selectedPlatform)
+      toast({
+        title: "Image copied",
+        description: `The image has been copied. You can now paste it into ${platform?.name}!`,
+      })
+
       onClose()
     } catch (error) {
-      console.error("Error sharing:", error)
       toast({
         title: "Sharing failed",
-        description: "There was an error sharing. Please try again.",
+        description: "Failed to copy the image. Please try again.",
         variant: "destructive",
       })
     }
   }
 
-  // Render the preview section
+  const handleDownload = async () => {
+    try {
+      await downloadImage(imageUrl, `vinylverdict-${assistantType}-story.png`)
+      toast({
+        title: "Image downloaded",
+        description: "The image has been saved to your device.",
+      })
+    } catch (error) {
+      toast({
+        title: "Download failed",
+        description: "Failed to download the image. Please try again.",
+        variant: "destructive",
+      })
+    }
+  }
+
   const renderPreview = () => {
     if (!selectedPlatform) return null
 
@@ -254,36 +207,34 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
             </Button>
           </div>
 
-          {/* Preview Image */}
           <div className="relative mx-auto max-w-[240px]">
-            {isLoading ? (
-              <div className="aspect-[9/16] bg-zinc-800 rounded-lg flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
-              </div>
-            ) : imageUrl ? (
-              <img
-                src={imageUrl || "/placeholder.svg"}
-                alt={`${platform.name} preview`}
-                className="w-full rounded-lg border border-zinc-700 object-contain"
-                style={{ aspectRatio: "9/16" }}
-              />
-            ) : (
-              <div className="aspect-[9/16] bg-zinc-800 rounded-lg flex items-center justify-center">
-                <span className="text-zinc-400">Preview unavailable</span>
-              </div>
-            )}
+            <img
+              src={imageUrl || "/placeholder.svg"}
+              alt={`${platform.name} preview`}
+              className="w-full rounded-lg border border-zinc-700 object-contain"
+              style={{ aspectRatio: "9/16" }}
+            />
             <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">1080×1920</div>
           </div>
 
-          {/* Share Button */}
-          <Button
-            onClick={handleShareAfterPreview}
-            disabled={!imageUrl || isLoading}
-            className={`w-full text-white font-medium ${platform.color.replace("hover:", "")}`}
-          >
-            <Share className="mr-2 h-4 w-4" />
-            Share to {platform.name}
-          </Button>
+          <div className="space-y-2">
+            <Button
+              onClick={handleShareAfterPreview}
+              className={`w-full text-white font-medium ${platform.color.replace("hover:", "")}`}
+            >
+              <Share className="mr-2 h-4 w-4" />
+              Share to {platform.name}
+            </Button>
+
+            <Button
+              onClick={handleDownload}
+              variant="outline"
+              className="w-full border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Download Image
+            </Button>
+          </div>
         </div>
       </div>
     )
@@ -335,7 +286,6 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
         </DialogContent>
       </Dialog>
 
-      {/* Preview overlay */}
       {selectedPlatform && renderPreview()}
     </>
   )

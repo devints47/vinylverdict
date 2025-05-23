@@ -576,9 +576,8 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
       // Get the app URL from environment variable or use a default
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
 
-      // Create the share URL with the OG image
+      // Create the share URL
       const shareText = encodeURIComponent(currentResponse.content.substring(0, 300))
-      const ogImageUrl = `${appUrl}/api/og?text=${shareText}&type=${assistantType}`
       const shareUrl = `${appUrl}/share?text=${shareText}&type=${assistantType}`
 
       // Handle different sharing platforms
@@ -604,15 +603,8 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
             "_blank",
           )
           break
-        case "sms":
-          window.open(
-            `sms:?body=${encodeURIComponent("Check out my music taste verdict from VinylVerdict.fm: " + shareUrl)}`,
-            "_blank",
-          )
-          break
         case "instagram":
-          // For Instagram, we need to handle it differently since they don't have a direct web share API
-          // We'll create a downloadable image and provide instructions
+          // For Instagram, open the specialized modal
           handleInstagramShare()
           break
         case "copy":

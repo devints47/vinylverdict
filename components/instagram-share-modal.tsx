@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { Instagram, Share } from "lucide-react"
+import { Instagram, Share, Download } from "lucide-react"
 import { toast } from "@/components/ui/use-toast"
-import { generateSocialImage, copyImageToClipboard, openSocialApp } from "@/lib/social-image-generator"
+import { generateShareImageUrl, copyImageToClipboard, downloadImage, openSocialApp } from "@/lib/static-image-generator"
 
 interface InstagramShareModalProps {
   isOpen: boolean
@@ -15,63 +15,20 @@ interface InstagramShareModalProps {
 }
 
 export function InstagramShareModal({ isOpen, onClose, text, assistantType }: InstagramShareModalProps) {
-  const [isLoading, setIsLoading] = useState(false)
-  const [imageUrl, setImageUrl] = useState<string | null>(null)
+  const [imageUrl, setImageUrl] = useState<string>("")
   const [imageLoaded, setImageLoaded] = useState(false)
-  const [useFallback, setUseFallback] = useState(false)
 
-  // Reset state when modal opens/closes
   useEffect(() => {
     if (isOpen) {
-      setIsLoading(true)
+      const url = generateShareImageUrl(text, assistantType)
+      setImageUrl(url)
       setImageLoaded(false)
-      setUseFallback(false)
-      generateImage()
-    } else {
-      setImageUrl(null)
     }
-  }, [isOpen])
-
-  const generateImage = async () => {
-    try {
-      // Generate a story image
-      const storyUrl = await generateSocialImage({
-        text,
-        assistantType,
-        format: "story",
-      })
-
-      setImageUrl(storyUrl)
-
-      // Pre-load the image
-      const img = new Image()
-      img.onload = () => {
-        setImageLoaded(true)
-        setIsLoading(false)
-      }
-      img.onerror = () => {
-        console.error("Image failed to load, using fallback")
-        setUseFallback(true)
-        setImageLoaded(true)
-        setIsLoading(false)
-      }
-      img.src = storyUrl
-    } catch (error) {
-      console.error("Error generating Instagram image:", error)
-      setUseFallback(true)
-      setImageLoaded(true)
-      setIsLoading(false)
-    }
-  }
+  }, [isOpen, text, assistantType])
 
   const handleShare = async () => {
-    if (!imageUrl) return
-
     try {
-      // Copy the image to clipboard
       await copyImageToClipboard(imageUrl)
-
-      // Open Instagram Stories
       openSocialApp("instagram")
 
       toast({
@@ -79,10 +36,8 @@ export function InstagramShareModal({ isOpen, onClose, text, assistantType }: In
         description: "The image has been copied. You can now paste it into Instagram Stories!",
       })
 
-      // Close the modal after a short delay
       setTimeout(() => onClose(), 500)
     } catch (error) {
-      console.error("Error sharing to Instagram:", error)
       toast({
         title: "Sharing failed",
         description: "Failed to copy the image. Please try again.",
@@ -91,10 +46,20 @@ export function InstagramShareModal({ isOpen, onClose, text, assistantType }: In
     }
   }
 
-  // Get fallback image URL
-  const getFallbackUrl = () => {
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
-    return `${appUrl}/api/og/static?type=${assistantType}`
+  const handleDownload = async () => {
+    try {
+      await downloadImage(imageUrl, `vinylverdict-${assistantType}-story.png`)
+      toast({
+        title: "Image downloaded",
+        description: "The image has been saved to your device.",
+      })
+    } catch (error) {
+      toast({
+        title: "Download failed",
+        description: "Failed to download the image. Please try again.",
+        variant: "destructive",
+      })
+    }
   }
 
   return (
@@ -111,35 +76,47 @@ export function InstagramShareModal({ isOpen, onClose, text, assistantType }: In
         <div className="space-y-4">
           {/* Preview Image */}
           <div className="relative mx-auto max-w-[240px]">
-            {isLoading ? (
-              <div className="aspect-[9/16] bg-zinc-800 rounded-lg flex items-center justify-center">
+            {!imageLoaded && (
+              <div className="absolute inset-0 aspect-[9/16] bg-zinc-800 rounded-lg flex items-center justify-center z-10">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
               </div>
-            ) : (
-              <img
-                src={useFallback ? getFallbackUrl() : imageUrl || "/placeholder.svg"}
-                alt="Instagram Story preview"
-                className="w-full rounded-lg border border-zinc-700 object-contain"
-                style={{ aspectRatio: "9/16" }}
-                onLoad={() => setImageLoaded(true)}
-                onError={() => {
-                  console.error("Image failed to load, using fallback")
-                  setUseFallback(true)
-                }}
-              />
             )}
+            <img
+              src={imageUrl || "/placeholder.svg"}
+              alt="Instagram Story preview"
+              className="w-full rounded-lg border border-zinc-700 object-contain"
+              style={{ aspectRatio: "9/16" }}
+              onLoad={() => setImageLoaded(true)}
+              onError={() => {
+                toast({
+                  title: "Preview failed",
+                  description: "Could not load image preview, but sharing should still work.",
+                  variant: "destructive",
+                })
+              }}
+            />
             <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">1080×1920</div>
           </div>
 
-          {/* Share Button */}
-          <Button
-            onClick={handleShare}
-            disabled={isLoading && !useFallback}
-            className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-medium"
-          >
-            <Share className="mr-2 h-4 w-4" />
-            Share
-          </Button>
+          {/* Action Buttons */}
+          <div className="space-y-2">
+            <Button
+              onClick={handleShare}
+              className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-medium"
+            >
+              <Share className="mr-2 h-4 w-4" />
+              Share to Instagram
+            </Button>
+
+            <Button
+              onClick={handleDownload}
+              variant="outline"
+              className="w-full border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Download Image
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
