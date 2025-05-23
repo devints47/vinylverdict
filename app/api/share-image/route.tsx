@@ -3,45 +3,77 @@ import type { NextRequest } from "next/server"
 
 export const runtime = "edge"
 
-// Simple markdown parser for basic formatting
-function parseMarkdown(text: string): Array<{ type: string; content: string; style?: any }> {
+// Enhanced markdown parser that preserves formatting like the original roast
+function parseRoastText(text: string): Array<{ type: string; content: string; style?: any }> {
   const elements: Array<{ type: string; content: string; style?: any }> = []
 
-  // Split by lines and process each
-  const lines = text.split("\n").filter((line) => line.trim())
+  // Split by double line breaks to get paragraphs
+  const sections = text.split("\n\n").filter((section) => section.trim())
 
-  for (const line of lines) {
-    let content = line.trim()
+  for (const section of sections) {
+    const trimmedSection = section.trim()
 
-    // Handle headers
-    if (content.startsWith("### ")) {
+    // Handle title (first line if it looks like a title)
+    if ((sections.indexOf(section) === 0 && trimmedSection.includes("🎵")) || trimmedSection.includes("🎶")) {
       elements.push({
-        type: "h3",
-        content: content.replace("### ", ""),
-        style: { fontSize: "28px", fontWeight: "bold", color: "#c084fc", marginBottom: "8px" },
+        type: "title",
+        content: trimmedSection,
+        style: {
+          fontSize: "36px",
+          fontWeight: "bold",
+          color: "#c084fc",
+          marginBottom: "24px",
+          textAlign: "center",
+        },
       })
-    } else if (content.startsWith("## ")) {
+    }
+    // Handle score section
+    else if (trimmedSection.toUpperCase().includes("SCORE:")) {
       elements.push({
-        type: "h2",
-        content: content.replace("## ", ""),
-        style: { fontSize: "32px", fontWeight: "bold", color: "#c084fc", marginBottom: "12px" },
+        type: "score",
+        content: trimmedSection,
+        style: {
+          fontSize: "32px",
+          fontWeight: "bold",
+          color: "#c084fc",
+          marginTop: "24px",
+          marginBottom: "16px",
+        },
       })
-    } else if (content.startsWith("# ")) {
+    }
+    // Handle signature (lines starting with – or -)
+    else if (trimmedSection.startsWith("–") || trimmedSection.startsWith("-")) {
       elements.push({
-        type: "h1",
-        content: content.replace("# ", ""),
-        style: { fontSize: "36px", fontWeight: "bold", color: "#c084fc", marginBottom: "16px" },
+        type: "signature",
+        content: trimmedSection,
+        style: {
+          fontSize: "20px",
+          color: "#a855f7",
+          fontStyle: "italic",
+          marginTop: "16px",
+          textAlign: "right",
+        },
       })
-    } else {
-      // Handle bold and italic text
-      content = content.replace(/\*\*(.*?)\*\*/g, "$1") // Remove ** for bold (we'll style it)
-      content = content.replace(/\*(.*?)\*/g, "$1") // Remove * for italic
+    }
+    // Handle regular paragraphs
+    else {
+      // Split long paragraphs into smaller chunks for better readability
+      const lines = trimmedSection.split("\n").filter((line) => line.trim())
 
-      elements.push({
-        type: "p",
-        content,
-        style: { fontSize: "24px", color: "#ffffff", marginBottom: "12px", lineHeight: "1.4" },
-      })
+      for (const line of lines) {
+        if (line.trim()) {
+          elements.push({
+            type: "paragraph",
+            content: line.trim(),
+            style: {
+              fontSize: "22px",
+              color: "#ffffff",
+              marginBottom: "16px",
+              lineHeight: "1.5",
+            },
+          })
+        }
+      }
     }
   }
 
@@ -54,8 +86,8 @@ export async function GET(request: NextRequest) {
     const text = searchParams.get("text") || "Your music taste is... interesting."
     const type = searchParams.get("type") || "snob"
 
-    // Parse the markdown text
-    const parsedElements = parseMarkdown(text)
+    // Parse the roast text
+    const parsedElements = parseRoastText(text)
 
     // Get colors based on assistant type
     let accentColor = "#c084fc" // Purple
@@ -77,7 +109,7 @@ export async function GET(request: NextRequest) {
           width: "100%",
           height: "100%",
           backgroundColor: "#000000",
-          padding: "60px",
+          padding: "40px",
           fontFamily: "system-ui, -apple-system, sans-serif",
         }}
       >
@@ -86,18 +118,18 @@ export async function GET(request: NextRequest) {
           style={{
             display: "flex",
             alignItems: "center",
-            marginBottom: "40px",
+            marginBottom: "30px",
           }}
         >
           {/* Vinyl Record Icon */}
           <div
             style={{
-              width: "60px",
-              height: "60px",
+              width: "50px",
+              height: "50px",
               borderRadius: "50%",
               backgroundColor: "#1a1a1a",
               border: "2px solid #333",
-              marginRight: "20px",
+              marginRight: "16px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -106,8 +138,8 @@ export async function GET(request: NextRequest) {
           >
             <div
               style={{
-                width: "20px",
-                height: "20px",
+                width: "16px",
+                height: "16px",
                 borderRadius: "50%",
                 backgroundColor: accentColor,
               }}
@@ -118,7 +150,7 @@ export async function GET(request: NextRequest) {
           <div style={{ display: "flex", flexDirection: "column" }}>
             <div
               style={{
-                fontSize: "32px",
+                fontSize: "28px",
                 fontWeight: "bold",
                 background: `linear-gradient(45deg, ${accentColor}, #9333ea)`,
                 backgroundClip: "text",
@@ -130,7 +162,7 @@ export async function GET(request: NextRequest) {
             </div>
             <div
               style={{
-                fontSize: "16px",
+                fontSize: "14px",
                 color: "#888",
               }}
             >
@@ -139,30 +171,17 @@ export async function GET(request: NextRequest) {
           </div>
         </div>
 
-        {/* Title */}
-        <div
-          style={{
-            fontSize: "40px",
-            fontWeight: "bold",
-            color: accentColor,
-            marginBottom: "30px",
-            textAlign: "center",
-          }}
-        >
-          {titleText}
-        </div>
-
         {/* Content Area */}
         <div
           style={{
             display: "flex",
             flexDirection: "column",
             backgroundColor: "rgba(255, 255, 255, 0.05)",
-            borderRadius: "20px",
-            padding: "40px",
+            borderRadius: "16px",
+            padding: "32px",
             border: `2px solid ${accentColor}`,
             flex: 1,
-            maxHeight: "600px",
+            maxHeight: "1400px",
             overflow: "hidden",
           }}
         >
@@ -172,11 +191,63 @@ export async function GET(request: NextRequest) {
               style={{
                 ...element.style,
                 display: "block",
+                wordWrap: "break-word",
+                whiteSpace: "pre-wrap",
               }}
             >
               {element.content}
             </div>
           ))}
+        </div>
+
+        {/* Spotify Attribution */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            marginTop: "24px",
+            marginBottom: "16px",
+          }}
+        >
+          <div
+            style={{
+              fontSize: "16px",
+              color: "#888",
+              marginRight: "12px",
+            }}
+          >
+            Powered by
+          </div>
+          {/* Spotify Logo */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              backgroundColor: "#1DB954",
+              borderRadius: "20px",
+              padding: "8px 16px",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "18px",
+                fontWeight: "bold",
+                color: "#000000",
+              }}
+            >
+              Spotify
+            </div>
+          </div>
+          <div
+            style={{
+              fontSize: "16px",
+              color: "#888",
+              marginLeft: "8px",
+            }}
+          >
+            Web API
+          </div>
         </div>
 
         {/* Footer */}
@@ -185,13 +256,12 @@ export async function GET(request: NextRequest) {
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            marginTop: "30px",
           }}
         >
           <div
             style={{
-              fontSize: "20px",
-              color: "#888",
+              fontSize: "18px",
+              color: "#666",
             }}
           >
             Get your own verdict at vinylverdict.fm
@@ -205,7 +275,7 @@ export async function GET(request: NextRequest) {
             bottom: "0",
             left: "0",
             right: "0",
-            height: "8px",
+            height: "6px",
             background: `linear-gradient(90deg, ${accentColor}, #9333ea, ${accentColor})`,
             opacity: 0.6,
           }}

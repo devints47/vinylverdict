@@ -11,7 +11,6 @@ import { getRoast } from "@/lib/openai-service"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { CursorTypewriter } from "./cursor-typewriter"
 import { toast } from "@/components/ui/use-toast"
-import { InstagramShareModal } from "./instagram-share-modal"
 import { ShareModal } from "./share-modal"
 
 // Add the rehype-raw plugin to allow HTML in markdown
@@ -41,7 +40,6 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isFallback, setIsFallback] = useState(false)
-  const [showInstagramModal, setShowInstagramModal] = useState(false)
   const [showShareModal, setShowShareModal] = useState(false)
 
   // Store responses for each assistant type
@@ -566,10 +564,6 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
   // Determine if the primary button should be disabled
   const isPrimaryButtonDisabled = currentResponse.content && !currentResponse.isComplete
 
-  const handleInstagramShare = () => {
-    setShowInstagramModal(true)
-  }
-
   // Function to handle sharing
   const handleShare = async (platform: string) => {
     try {
@@ -604,8 +598,8 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
           )
           break
         case "instagram":
-          // For Instagram, open the specialized modal
-          handleInstagramShare()
+          // For Instagram, we'll use the same preview modal
+          // No special handling needed as it's handled in the ShareModal
           break
         case "copy":
           await navigator.clipboard.writeText(shareUrl)
@@ -701,14 +695,6 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
           </Button>
         </div>
       )}
-
-      {/* Instagram Share Modal */}
-      <InstagramShareModal
-        isOpen={showInstagramModal}
-        onClose={() => setShowInstagramModal(false)}
-        text={currentResponse.content}
-        assistantType={assistantType}
-      />
 
       {/* Main Share Modal */}
       <ShareModal

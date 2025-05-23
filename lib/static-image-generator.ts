@@ -1,14 +1,15 @@
 /**
+ * Utility functions for generating and handling static share images
+ */
+
+/**
  * Generates a static share image URL
  */
 export function generateShareImageUrl(text: string, assistantType: string): string {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
-
-  // Encode the text and type for URL
-  const encodedText = encodeURIComponent(text)
-  const encodedType = encodeURIComponent(assistantType)
-
-  return `${appUrl}/api/share-image?text=${encodedText}&type=${encodedType}`
+  const encodedText = encodeURIComponent(text.substring(0, 1000))
+  const timestamp = Date.now() // Add timestamp to prevent caching
+  return `${appUrl}/api/share-image?text=${encodedText}&type=${assistantType}&t=${timestamp}`
 }
 
 /**
@@ -16,25 +17,19 @@ export function generateShareImageUrl(text: string, assistantType: string): stri
  */
 export async function copyImageToClipboard(imageUrl: string): Promise<void> {
   try {
+    // Fetch the image
     const response = await fetch(imageUrl)
-    if (!response.ok) {
-      throw new Error(`Failed to fetch image: ${response.status}`)
-    }
-
     const blob = await response.blob()
 
-    if (navigator.clipboard && "write" in navigator.clipboard) {
-      await navigator.clipboard.write([
-        new ClipboardItem({
-          [blob.type]: blob,
-        }),
-      ])
-    } else {
-      throw new Error("Clipboard API not supported")
-    }
+    // Create a ClipboardItem
+    const item = new ClipboardItem({ [blob.type]: blob })
+
+    // Write to clipboard
+    await navigator.clipboard.write([item])
+    return Promise.resolve()
   } catch (error) {
     console.error("Error copying image to clipboard:", error)
-    throw error
+    return Promise.reject(error)
   }
 }
 
@@ -43,25 +38,23 @@ export async function copyImageToClipboard(imageUrl: string): Promise<void> {
  */
 export async function downloadImage(imageUrl: string, filename: string): Promise<void> {
   try {
+    // Fetch the image
     const response = await fetch(imageUrl)
-    if (!response.ok) {
-      throw new Error(`Failed to fetch image: ${response.status}`)
-    }
-
     const blob = await response.blob()
-    const url = URL.createObjectURL(blob)
 
+    // Create a download link
+    const url = window.URL.createObjectURL(blob)
     const link = document.createElement("a")
     link.href = url
     link.download = filename
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
-
-    URL.revokeObjectURL(url)
+    window.URL.revokeObjectURL(url)
+    return Promise.resolve()
   } catch (error) {
     console.error("Error downloading image:", error)
-    throw error
+    return Promise.reject(error)
   }
 }
 
@@ -69,34 +62,25 @@ export async function downloadImage(imageUrl: string, filename: string): Promise
  * Opens social media apps
  */
 export function openSocialApp(platform: string): void {
-  const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-
-  const platformConfig: Record<string, { appUrl: string; webUrl: string }> = {
-    instagram: {
-      appUrl: "instagram://story-camera",
-      webUrl: "https://www.instagram.com/",
-    },
-    facebook: {
-      appUrl: "fb://composer",
-      webUrl: "https://www.facebook.com/",
-    },
-    twitter: {
-      appUrl: "twitter://post",
-      webUrl: "https://twitter.com/compose/tweet",
-    },
-    linkedin: {
-      appUrl: "linkedin://compose",
-      webUrl: "https://www.linkedin.com/sharing/share-offsite/",
-    },
-  }
-
-  const config = platformConfig[platform]
-  if (!config) return
-
-  if (isMobile) {
-    window.location.href = config.appUrl
-    setTimeout(() => window.open(config.webUrl, "_blank"), 1500)
-  } else {
-    window.open(config.webUrl, "_blank")
+  switch (platform) {
+    case "instagram":
+      // Try to open Instagram app on mobile
+      window.open("instagram://camera", "_blank")
+      // Fallback to Instagram website
+      setTimeout(() => {
+        window.open("https://www.instagram.com", "_blank")
+      }, 500)
+      break
+    case "twitter":
+      window.open("https://twitter.com/compose/tweet", "_blank")
+      break
+    case "facebook":
+      window.open("https://www.facebook.com", "_blank")
+      break
+    case "linkedin":
+      window.open("https://www.linkedin.com", "_blank")
+      break
+    default:
+      break
   }
 }

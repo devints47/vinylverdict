@@ -22,17 +22,18 @@ interface ShareOption {
   icon: React.ReactNode
   color: string
   description: string
-  needsPreview: boolean
 }
 
 export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: ShareModalProps) {
   const [imageUrl, setImageUrl] = useState<string>("")
   const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null)
+  const [imageLoaded, setImageLoaded] = useState(false)
 
   useEffect(() => {
     if (isOpen) {
       const url = generateShareImageUrl(text, assistantType)
       setImageUrl(url)
+      setImageLoaded(false)
     }
   }, [isOpen, text, assistantType])
 
@@ -43,7 +44,6 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       icon: <X className="h-6 w-6" />,
       color: "bg-black hover:bg-zinc-800",
       description: "Share to Twitter",
-      needsPreview: true,
     },
     {
       id: "facebook",
@@ -51,7 +51,6 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       icon: <Facebook className="h-6 w-6" />,
       color: "bg-[#1877F2] hover:bg-[#0e6ae4]",
       description: "Share to Facebook Stories",
-      needsPreview: true,
     },
     {
       id: "instagram",
@@ -59,7 +58,6 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       icon: <Instagram className="h-6 w-6" />,
       color: "bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] hover:opacity-90",
       description: "Share to Instagram Stories",
-      needsPreview: false,
     },
     {
       id: "linkedin",
@@ -67,7 +65,6 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       icon: <Linkedin className="h-6 w-6" />,
       color: "bg-[#0077B5] hover:bg-[#006399]",
       description: "Share to LinkedIn",
-      needsPreview: true,
     },
     {
       id: "email",
@@ -75,7 +72,6 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       icon: <Mail className="h-6 w-6" />,
       color: "bg-[#D44638] hover:bg-[#c13e31]",
       description: "Share via Email",
-      needsPreview: false,
     },
     {
       id: "copy",
@@ -83,7 +79,6 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       icon: <Copy className="h-6 w-6" />,
       color: "bg-zinc-700 hover:bg-zinc-600",
       description: "Copy link to clipboard",
-      needsPreview: false,
     },
     {
       id: "share",
@@ -91,7 +86,6 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       icon: <Share2 className="h-6 w-6" />,
       color: "bg-purple-600 hover:bg-purple-700",
       description: "Use native share menu",
-      needsPreview: false,
     },
   ]
 
@@ -108,38 +102,41 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
   }
 
   const handleShareClick = (option: ShareOption) => {
-    if (option.id === "instagram") {
-      onShare(option.id)
-    } else if (option.needsPreview) {
-      setSelectedPlatform(option.id)
-    } else {
-      handleDirectShare(option.id)
+    // Handle special cases that don't need image preview
+    if (option.id === "email") {
+      const subject = "My Music Taste Verdict from VinylVerdict.fm"
+      const body = `Check out my music taste verdict:\n\n${text}\n\nGet your own at vinylverdict.fm`
+      window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`)
+      onClose()
+      return
     }
-  }
 
-  const handleDirectShare = async (platform: string) => {
-    if (platform === "copy") {
+    if (option.id === "copy") {
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
       const shareUrl = `${appUrl}/share?text=${encodeURIComponent(text.substring(0, 200))}&type=${assistantType}`
-      await navigator.clipboard.writeText(shareUrl)
+      navigator.clipboard.writeText(shareUrl)
       toast({
         title: "Link copied",
         description: "Share link has been copied to clipboard!",
       })
-    } else if (platform === "email") {
-      const subject = "My Music Taste Verdict from VinylVerdict.fm"
-      const body = `Check out my music taste verdict:\n\n${text}\n\nGet your own at vinylverdict.fm`
-      window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`)
-    } else if (platform === "share" && navigator.share) {
+      onClose()
+      return
+    }
+
+    if (option.id === "share" && navigator.share) {
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
       const shareUrl = `${appUrl}/share?text=${encodeURIComponent(text.substring(0, 200))}&type=${assistantType}`
-      await navigator.share({
+      navigator.share({
         title: "My Music Taste Verdict",
         text: "Check out my music taste verdict!",
         url: shareUrl,
       })
+      onClose()
+      return
     }
-    onClose()
+
+    // For all other platforms, show the Instagram-style preview
+    setSelectedPlatform(option.id)
   }
 
   const handleShareAfterPreview = async () => {
@@ -208,11 +205,24 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
           </div>
 
           <div className="relative mx-auto max-w-[240px]">
+            {!imageLoaded && (
+              <div className="absolute inset-0 aspect-[9/16] bg-zinc-800 rounded-lg flex items-center justify-center z-10">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
+              </div>
+            )}
             <img
               src={imageUrl || "/placeholder.svg"}
               alt={`${platform.name} preview`}
               className="w-full rounded-lg border border-zinc-700 object-contain"
               style={{ aspectRatio: "9/16" }}
+              onLoad={() => setImageLoaded(true)}
+              onError={() => {
+                toast({
+                  title: "Preview failed",
+                  description: "Could not load image preview, but sharing should still work.",
+                  variant: "destructive",
+                })
+              }}
             />
             <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">1080×1920</div>
           </div>
@@ -220,6 +230,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
           <div className="space-y-2">
             <Button
               onClick={handleShareAfterPreview}
+              disabled={!imageLoaded}
               className={`w-full text-white font-medium ${platform.color.replace("hover:", "")}`}
             >
               <Share className="mr-2 h-4 w-4" />
