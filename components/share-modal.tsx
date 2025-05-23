@@ -39,12 +39,29 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
   const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null)
   const [showingImage, setShowingImage] = useState(false)
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0)
+  const [userProfile, setUserProfile] = useState<any>(null)
   const loadingIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const imgRef = useRef<HTMLImageElement>(null)
   const templateRef = useRef<HTMLDivElement>(null)
 
+  // Fetch user profile when modal opens
   useEffect(() => {
     if (isOpen) {
+      fetch("/api/auth/me")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.user) {
+            setUserProfile(data.user)
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching user profile:", error)
+        })
+    }
+  }, [isOpen])
+
+  useEffect(() => {
+    if (isOpen && userProfile) {
       // Reset states
       setImageUrl("")
       setShowingImage(false)
@@ -66,15 +83,15 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       templateContainer.style.left = "-9999px"
       templateContainer.style.top = "-9999px"
       templateContainer.style.width = "1080px"
-      templateContainer.style.minHeight = "1920px" // Keep minHeight for the container
+      templateContainer.style.minHeight = "1920px"
       templateContainer.style.backgroundColor = "#121212"
       templateContainer.style.backgroundImage = "url(/waveform-bg.png)"
       templateContainer.style.backgroundSize = "cover"
       templateContainer.style.backgroundPosition = "center"
       templateContainer.style.display = "flex"
       templateContainer.style.flexDirection = "column"
-      templateContainer.style.justifyContent = "center" // Center content vertically
-      templateContainer.style.alignItems = "center" // Center content horizontally
+      templateContainer.style.justifyContent = "center"
+      templateContainer.style.alignItems = "center"
       templateContainer.style.padding = "60px 40px"
       templateContainer.style.fontFamily = "'Inter', sans-serif"
       templateContainer.style.color = "white"
@@ -102,50 +119,26 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
         fontSize = 30
       }
 
-      // Create header
-      const header = document.createElement("div")
-      header.style.display = "flex"
-      header.style.alignItems = "center"
-      header.style.justifyContent = "center"
-      header.style.marginBottom = "40px"
-      header.style.width = "100%"
-      header.style.maxWidth = "800px" // Limit width for better centering
+      // Create subtitle at the top
+      const subtitle = document.createElement("div")
+      subtitle.style.textAlign = "center"
+      subtitle.style.marginBottom = "40px"
+      subtitle.style.width = "100%"
+      subtitle.style.maxWidth = "800px"
 
-      // Logo placeholder
-      const logoContainer = document.createElement("div")
-      logoContainer.style.display = "flex"
-      logoContainer.style.alignItems = "center"
-      logoContainer.style.gap = "16px"
+      const subtitleText = document.createElement("h2")
+      const personalityName = getPersonalityName(assistantType)
+      const username = userProfile.display_name || userProfile.id || "Your"
+      subtitleText.textContent = `${personalityName}'s analysis of ${username}`
+      subtitleText.style.fontSize = "32px"
+      subtitleText.style.fontWeight = "600"
+      subtitleText.style.color = "#d4d4d8"
+      subtitleText.style.margin = "0"
+      subtitleText.style.padding = "0"
+      subtitleText.style.lineHeight = "1.4"
 
-      const logoImg = document.createElement("img")
-      logoImg.src = "/vinyl-favicon.png"
-      logoImg.alt = "VinylVerdict Logo"
-      logoImg.style.height = "100px"
-      logoImg.style.width = "100px"
-
-      const titleContainer = document.createElement("div")
-
-      const title = document.createElement("h1")
-      title.textContent = "VinylVerdict.FM"
-      title.style.fontSize = "60px"
-      title.style.fontWeight = "bold"
-      title.style.color = "#c026d3" // Solid pinkish-purple color
-      title.style.margin = "0"
-      title.style.padding = "0"
-
-      const subtitle = document.createElement("p")
-      subtitle.textContent = getAssistantTitle(assistantType)
-      subtitle.style.fontSize = "24px"
-      subtitle.style.color = "#d4d4d8"
-      subtitle.style.margin = "0"
-      subtitle.style.padding = "0"
-
-      titleContainer.appendChild(title)
-      titleContainer.appendChild(subtitle)
-      logoContainer.appendChild(logoImg)
-      logoContainer.appendChild(titleContainer)
-      header.appendChild(logoContainer)
-      templateContainer.appendChild(header)
+      subtitle.appendChild(subtitleText)
+      templateContainer.appendChild(subtitle)
 
       // Create content area with no minHeight - only as tall as content
       const content = document.createElement("div")
@@ -154,13 +147,46 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       content.style.padding = "40px"
       content.style.border = "1px solid rgba(147, 51, 234, 0.3)"
       content.style.width = "100%"
-      content.style.maxWidth = "800px" // Limit width for better centering
+      content.style.maxWidth = "800px"
       content.style.boxSizing = "border-box"
-      content.style.marginBottom = "0" // Remove bottom margin
+      content.style.marginBottom = "40px"
 
       // Convert markdown to HTML with the calculated font size
       content.innerHTML = convertMarkdownToHtml(text, fontSize)
       templateContainer.appendChild(content)
+
+      // Create footer with logo and VinylVerdict.FM
+      const footer = document.createElement("div")
+      footer.style.display = "flex"
+      footer.style.alignItems = "center"
+      footer.style.justifyContent = "center"
+      footer.style.width = "100%"
+      footer.style.maxWidth = "800px"
+
+      // Logo and title container
+      const logoContainer = document.createElement("div")
+      logoContainer.style.display = "flex"
+      logoContainer.style.alignItems = "center"
+      logoContainer.style.gap = "16px"
+
+      const logoImg = document.createElement("img")
+      logoImg.src = "/vinyl-favicon.png"
+      logoImg.alt = "VinylVerdict Logo"
+      logoImg.style.height = "80px"
+      logoImg.style.width = "80px"
+
+      const title = document.createElement("h1")
+      title.textContent = "VinylVerdict.FM"
+      title.style.fontSize = "48px"
+      title.style.fontWeight = "bold"
+      title.style.color = "#c026d3"
+      title.style.margin = "0"
+      title.style.padding = "0"
+
+      logoContainer.appendChild(logoImg)
+      logoContainer.appendChild(title)
+      footer.appendChild(logoContainer)
+      templateContainer.appendChild(footer)
 
       // Wait for images to load and content to render
       setTimeout(() => {
@@ -205,7 +231,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
               document.body.removeChild(templateContainer)
             }
           })
-      }, 1500) // Increased timeout to ensure everything loads
+      }, 1500)
     }
 
     return () => {
@@ -220,7 +246,20 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
         templateContainer.parentNode.removeChild(templateContainer)
       }
     }
-  }, [isOpen, text, assistantType])
+  }, [isOpen, text, assistantType, userProfile])
+
+  // Get the personality name based on assistant type
+  const getPersonalityName = (type: string): string => {
+    switch (type) {
+      case "worshipper":
+        return "The Taste Validator"
+      case "historian":
+        return "The Music Historian"
+      case "snob":
+      default:
+        return "The Music Snob"
+    }
+  }
 
   // Get the appropriate title based on assistant type
   const getAssistantTitle = (type: string): string => {
