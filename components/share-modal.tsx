@@ -6,9 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/use-toast"
 import { Facebook, Instagram, Mail, Copy, Share2, Linkedin, X, Share, MessageCircle } from "lucide-react"
-import { copyImageToClipboard, openSocialApp, generateImageFromElement, downloadImage } from "@/lib/html-to-image"
-import { ShareImageTemplate } from "./share-image-template"
-import ReactDOM from "react-dom"
+import html2canvas from "html2canvas"
 
 interface ShareModalProps {
   isOpen: boolean
@@ -43,7 +41,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0)
   const loadingIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const imgRef = useRef<HTMLImageElement>(null)
-  const templateRef = useRef<HTMLDivElement | null>(null)
+  const templateRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (isOpen) {
@@ -61,49 +59,158 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
         setLoadingMessageIndex((prev) => (prev + 1) % loadingMessages.length)
       }, 2000)
 
-      // Create a temporary container for the template
-      const container = document.createElement("div")
-      container.style.position = "absolute"
-      container.style.left = "-9999px"
-      container.style.top = "-9999px"
-      document.body.appendChild(container)
+      // Create the template element directly in the DOM
+      const templateContainer = document.createElement("div")
+      templateContainer.id = "share-image-template"
+      templateContainer.style.position = "fixed"
+      templateContainer.style.left = "-9999px"
+      templateContainer.style.top = "-9999px"
+      templateContainer.style.width = "1080px"
+      templateContainer.style.height = "1920px"
+      templateContainer.style.backgroundColor = "#121212"
+      templateContainer.style.backgroundImage = "url(/waveform-bg.png)"
+      templateContainer.style.backgroundSize = "cover"
+      templateContainer.style.backgroundPosition = "center"
+      templateContainer.style.display = "flex"
+      templateContainer.style.flexDirection = "column"
+      templateContainer.style.padding = "60px 40px"
+      templateContainer.style.fontFamily = "'Inter', sans-serif"
+      templateContainer.style.color = "white"
+      templateContainer.style.zIndex = "-1000"
+      document.body.appendChild(templateContainer)
 
-      // Render the template with the roast content
-      ReactDOM.render(
-        <ShareImageTemplate assistantType={assistantType}>
-          <div
-            className="markdown-content text-sm sm:text-base md:text-lg"
-            dangerouslySetInnerHTML={{ __html: convertMarkdownToHtml(text) }}
-          />
-        </ShareImageTemplate>,
-        container,
-        async () => {
-          // Wait a bit for images to load
-          setTimeout(async () => {
-            try {
-              // Generate image from the rendered template
-              const imageUrl = await generateImageFromElement(container.firstChild as HTMLElement)
-              setImageUrl(imageUrl)
-              setShowingImage(true)
+      // Create header
+      const header = document.createElement("div")
+      header.style.display = "flex"
+      header.style.alignItems = "center"
+      header.style.justifyContent = "center"
+      header.style.marginBottom = "40px"
 
-              // Clean up
-              if (loadingIntervalRef.current) {
-                clearInterval(loadingIntervalRef.current)
-              }
-            } catch (error) {
-              console.error("Error generating image:", error)
-              toast({
-                title: "Image generation failed",
-                description: "Could not generate share image. Please try again.",
-                variant: "destructive",
-              })
-            } finally {
-              // Clean up the temporary container
-              document.body.removeChild(container)
+      // Logo placeholder (you'll need to replace this with actual logo rendering)
+      const logoContainer = document.createElement("div")
+      logoContainer.style.display = "flex"
+      logoContainer.style.alignItems = "center"
+      logoContainer.style.gap = "16px"
+
+      const logoImg = document.createElement("img")
+      logoImg.src = "/vinyl-favicon.png"
+      logoImg.alt = "VinylVerdict Logo"
+      logoImg.style.height = "80px"
+      logoImg.style.width = "80px"
+
+      const titleContainer = document.createElement("div")
+
+      const title = document.createElement("h1")
+      title.textContent = "VinylVerdict.FM"
+      title.style.fontSize = "48px"
+      title.style.fontWeight = "bold"
+      title.style.background = "linear-gradient(135deg, #9333ea, #a855f7, #c026d3, #a855f7, #9333ea)"
+      title.style.backgroundSize = "200% 200%"
+      title.style.webkitBackgroundClip = "text"
+      title.style.webkitTextFillColor = "transparent"
+      title.style.backgroundClip = "text"
+      title.style.margin = "0"
+      title.style.padding = "0"
+
+      const subtitle = document.createElement("p")
+      subtitle.textContent = getAssistantTitle(assistantType)
+      subtitle.style.fontSize = "20px"
+      subtitle.style.color = "#d4d4d8"
+      subtitle.style.margin = "0"
+      subtitle.style.padding = "0"
+
+      titleContainer.appendChild(title)
+      titleContainer.appendChild(subtitle)
+      logoContainer.appendChild(logoImg)
+      logoContainer.appendChild(titleContainer)
+      header.appendChild(logoContainer)
+      templateContainer.appendChild(header)
+
+      // Create content area
+      const content = document.createElement("div")
+      content.style.flex = "1"
+      content.style.backgroundColor = "rgba(24, 24, 27, 0.8)"
+      content.style.borderRadius = "12px"
+      content.style.padding = "32px"
+      content.style.overflowY = "auto"
+      content.style.border = "1px solid rgba(147, 51, 234, 0.3)"
+
+      // Convert markdown to HTML
+      content.innerHTML = convertMarkdownToHtml(text)
+      templateContainer.appendChild(content)
+
+      // Create footer
+      const footer = document.createElement("div")
+      footer.style.marginTop = "40px"
+      footer.style.display = "flex"
+      footer.style.alignItems = "center"
+      footer.style.justifyContent = "center"
+
+      const footerContent = document.createElement("div")
+      footerContent.style.display = "flex"
+      footerContent.style.alignItems = "center"
+      footerContent.style.gap = "16px"
+      footerContent.style.backgroundColor = "rgba(0, 0, 0, 0.5)"
+      footerContent.style.padding = "12px 24px"
+      footerContent.style.borderRadius = "9999px"
+
+      const builtUsing = document.createElement("span")
+      builtUsing.textContent = "Built Using the"
+      builtUsing.style.fontSize = "18px"
+      builtUsing.style.color = "white"
+
+      const spotifyLogo = document.createElement("img")
+      spotifyLogo.src = "/spotify_full_logo.svg"
+      spotifyLogo.alt = "Spotify"
+      spotifyLogo.style.height = "32px"
+
+      const webApi = document.createElement("span")
+      webApi.textContent = "Web API"
+      webApi.style.fontSize = "18px"
+      webApi.style.color = "white"
+
+      footerContent.appendChild(builtUsing)
+      footerContent.appendChild(spotifyLogo)
+      footerContent.appendChild(webApi)
+      footer.appendChild(footerContent)
+      templateContainer.appendChild(footer)
+
+      // Wait for images to load
+      setTimeout(() => {
+        // Generate image from the template
+        html2canvas(templateContainer, {
+          allowTaint: true,
+          useCORS: true,
+          scale: 2,
+          logging: false,
+          backgroundColor: null,
+        })
+          .then((canvas) => {
+            // Convert canvas to data URL
+            const imageUrl = canvas.toDataURL("image/png", 1.0)
+            setImageUrl(imageUrl)
+            setShowingImage(true)
+
+            // Clean up
+            if (loadingIntervalRef.current) {
+              clearInterval(loadingIntervalRef.current)
             }
-          }, 1000)
-        },
-      )
+
+            // Remove the template container
+            document.body.removeChild(templateContainer)
+          })
+          .catch((error) => {
+            console.error("Error generating image:", error)
+            toast({
+              title: "Image generation failed",
+              description: "Could not generate share image. Please try again.",
+              variant: "destructive",
+            })
+
+            // Remove the template container
+            document.body.removeChild(templateContainer)
+          })
+      }, 1000)
     }
 
     return () => {
@@ -111,33 +218,132 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       if (loadingIntervalRef.current) {
         clearInterval(loadingIntervalRef.current)
       }
+
+      // Clean up any template containers that might be left
+      const templateContainer = document.getElementById("share-image-template")
+      if (templateContainer) {
+        document.body.removeChild(templateContainer)
+      }
     }
   }, [isOpen, text, assistantType])
+
+  // Get the appropriate title based on assistant type
+  const getAssistantTitle = (type: string): string => {
+    switch (type) {
+      case "worshipper":
+        return "Music Taste Validation"
+      case "historian":
+        return "Music History Analysis"
+      case "snob":
+      default:
+        return "Music Taste Verdict"
+    }
+  }
 
   // Convert markdown to HTML with proper styling
   const convertMarkdownToHtml = (markdown: string): string => {
     // Basic markdown conversion (this is simplified - you might want to use a proper markdown parser)
     let html = markdown
       // Convert headers
-      .replace(/^# (.*$)/gm, '<h1 class="text-purple-gradient text-3xl font-bold mb-4">$1</h1>')
-      .replace(/^## (.*$)/gm, '<h2 class="text-purple-gradient text-2xl font-bold mb-3">$2</h2>')
-      .replace(/^### (.*$)/gm, '<h3 class="text-purple-gradient text-xl font-bold mb-2">$1</h3>')
+      .replace(
+        /^# (.*$)/gm,
+        '<h1 style="color: #a855f7; font-size: 24px; font-weight: bold; margin-bottom: 16px;">$1</h1>',
+      )
+      .replace(
+        /^## (.*$)/gm,
+        '<h2 style="color: #a855f7; font-size: 20px; font-weight: bold; margin-bottom: 12px;">$1</h2>',
+      )
+      .replace(
+        /^### (.*$)/gm,
+        '<h3 style="color: #a855f7; font-size: 18px; font-weight: bold; margin-bottom: 8px;">$1</h3>',
+      )
       // Convert bold and italic
-      .replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>')
-      .replace(/\*(.*?)\*/g, '<em class="text-zinc-400">$1</em>')
+      .replace(/\*\*(.*?)\*\*/g, '<strong style="color: white;">$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em style="color: #a1a1aa;">$1</em>')
       // Convert paragraphs
-      .replace(/\n\n/g, '</p><p class="mb-4">')
+      .replace(/\n\n/g, '</p><p style="margin-bottom: 16px; color: #e4e4e7;">')
       // Convert lists
-      .replace(/^- (.*$)/gm, '<li class="ml-4">$1</li>')
-      // Wrap in paragraph if not already
-      .replace(/^([^<].*)/gm, '<p class="mb-4">$1</p>')
+      .replace(/^- (.*$)/gm, '<li style="margin-left: 16px; color: #e4e4e7;">$1</li>')
 
-    // Ensure it starts with a paragraph
+    // Wrap in paragraph if not already
     if (!html.startsWith("<h1") && !html.startsWith("<p")) {
-      html = `<p class="mb-4">${html}</p>`
+      html = `<p style="margin-bottom: 16px; color: #e4e4e7;">${html}</p>`
     }
 
     return html
+  }
+
+  // Function to copy image to clipboard
+  const copyImageToClipboard = async (dataUrl: string): Promise<void> => {
+    try {
+      // Convert data URL to blob
+      const response = await fetch(dataUrl)
+      const blob = await response.blob()
+
+      // Create a ClipboardItem
+      const item = new ClipboardItem({ [blob.type]: blob })
+
+      // Write to clipboard
+      await navigator.clipboard.write([item])
+    } catch (error) {
+      console.error("Error copying image to clipboard:", error)
+      throw new Error("Failed to copy image to clipboard")
+    }
+  }
+
+  // Function to open social media apps
+  const openSocialApp = (platform: string): void => {
+    const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+
+    switch (platform) {
+      case "instagram":
+        if (isMobile) {
+          window.open("instagram://camera", "_blank")
+          setTimeout(() => {
+            window.open("https://www.instagram.com", "_blank")
+          }, 1000)
+        } else {
+          window.open("https://www.instagram.com", "_blank")
+        }
+        break
+      case "twitter":
+        window.open("https://twitter.com/compose/tweet", "_blank")
+        break
+      case "facebook":
+        window.open("https://www.facebook.com", "_blank")
+        break
+      case "linkedin":
+        window.open("https://www.linkedin.com", "_blank")
+        break
+      case "whatsapp":
+        if (isMobile) {
+          window.open("whatsapp://", "_blank")
+          setTimeout(() => {
+            window.open("https://web.whatsapp.com", "_blank")
+          }, 1000)
+        } else {
+          window.open("https://web.whatsapp.com", "_blank")
+        }
+        break
+      default:
+        break
+    }
+  }
+
+  // Function to download image
+  const downloadImage = async (dataUrl: string, filename: string): Promise<void> => {
+    try {
+      // Create a download link
+      const link = document.createElement("a")
+      link.href = dataUrl
+      link.download = filename
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    } catch (error) {
+      console.error("Error downloading image:", error)
+      throw new Error("Failed to download image")
+    }
   }
 
   const shareOptions: ShareOption[] = [
