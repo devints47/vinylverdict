@@ -66,7 +66,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       templateContainer.style.left = "-9999px"
       templateContainer.style.top = "-9999px"
       templateContainer.style.width = "1080px"
-      templateContainer.style.minHeight = "1920px" // Changed from fixed height to minHeight
+      templateContainer.style.minHeight = "1920px" // Keep minHeight for the container
       templateContainer.style.backgroundColor = "#121212"
       templateContainer.style.backgroundImage = "url(/waveform-bg.png)"
       templateContainer.style.backgroundSize = "cover"
@@ -145,68 +145,76 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       header.appendChild(logoContainer)
       templateContainer.appendChild(header)
 
-      // Create content area with dynamic height
+      // Create content area with no minHeight - only as tall as content
       const content = document.createElement("div")
       content.style.backgroundColor = "rgba(24, 24, 27, 0.8)"
       content.style.borderRadius = "12px"
       content.style.padding = "40px"
       content.style.border = "1px solid rgba(147, 51, 234, 0.3)"
       content.style.marginBottom = "40px"
-      content.style.flexGrow = "1" // Allow content to grow
-      content.style.flexShrink = "0" // Prevent content from shrinking
-      content.style.minHeight = "0" // Allow content to be as small as needed
       content.style.width = "100%"
       content.style.boxSizing = "border-box"
+      // Removed minHeight and flex properties - let content determine height
 
       // Convert markdown to HTML with the calculated font size
       content.innerHTML = convertMarkdownToHtml(text, fontSize)
       templateContainer.appendChild(content)
 
-      // Create footer with proper sizing
+      // Create spacer to push footer down
+      const spacer = document.createElement("div")
+      spacer.style.flexGrow = "1"
+      templateContainer.appendChild(spacer)
+
+      // Create footer matching the index page style exactly
       const footer = document.createElement("div")
-      footer.style.marginTop = "auto" // Push footer to bottom
-      footer.style.marginBottom = "20px"
       footer.style.display = "flex"
       footer.style.alignItems = "center"
       footer.style.justifyContent = "center"
-      footer.style.flexShrink = "0" // Prevent footer from shrinking
-      footer.style.height = "80px" // Fixed height for footer
+      footer.style.marginBottom = "40px"
+      footer.style.flexShrink = "0"
 
-      const footerContent = document.createElement("div")
-      footerContent.style.display = "flex"
-      footerContent.style.alignItems = "center"
-      footerContent.style.gap = "12px"
-      footerContent.style.backgroundColor = "rgba(0, 0, 0, 0.5)"
-      footerContent.style.padding = "12px 24px"
-      footerContent.style.borderRadius = "9999px"
-      footerContent.style.height = "60px"
-      footerContent.style.boxSizing = "border-box"
+      // Create the pill container matching index page
+      const footerPill = document.createElement("div")
+      footerPill.style.display = "inline-flex"
+      footerPill.style.alignItems = "center"
+      footerPill.style.gap = "12px"
+      footerPill.style.backgroundColor = "rgba(0, 0, 0, 0.8)"
+      footerPill.style.padding = "16px 32px"
+      footerPill.style.borderRadius = "9999px"
+      footerPill.style.fontSize = "20px"
+      footerPill.style.color = "white"
 
-      const builtUsing = document.createElement("span")
-      builtUsing.textContent = "Built Using the"
-      builtUsing.style.fontSize = "20px"
-      builtUsing.style.color = "white"
-      builtUsing.style.whiteSpace = "nowrap"
+      // Create text elements
+      const builtText = document.createElement("span")
+      builtText.textContent = "Built Using the"
+      builtText.style.fontSize = "inherit"
+      builtText.style.color = "inherit"
 
-      // Load and handle Spotify logo differently
+      // Create Spotify logo container
+      const spotifyLogoWrapper = document.createElement("div")
+      spotifyLogoWrapper.style.display = "inline-flex"
+      spotifyLogoWrapper.style.alignItems = "center"
+      spotifyLogoWrapper.style.height = "28px"
+
       const spotifyLogo = document.createElement("img")
       spotifyLogo.src = "/spotify_full_logo.svg"
       spotifyLogo.alt = "Spotify"
-      spotifyLogo.style.height = "28px" // Smaller height
-      spotifyLogo.style.width = "auto" // Auto width to maintain aspect ratio
+      spotifyLogo.style.height = "100%"
+      spotifyLogo.style.width = "auto"
       spotifyLogo.style.display = "block"
-      spotifyLogo.style.objectFit = "contain"
 
-      const webApi = document.createElement("span")
-      webApi.textContent = "Web API"
-      webApi.style.fontSize = "20px"
-      webApi.style.color = "white"
-      webApi.style.whiteSpace = "nowrap"
+      spotifyLogoWrapper.appendChild(spotifyLogo)
 
-      footerContent.appendChild(builtUsing)
-      footerContent.appendChild(spotifyLogo)
-      footerContent.appendChild(webApi)
-      footer.appendChild(footerContent)
+      const apiText = document.createElement("span")
+      apiText.textContent = "Web API"
+      apiText.style.fontSize = "inherit"
+      apiText.style.color = "inherit"
+
+      // Assemble footer
+      footerPill.appendChild(builtText)
+      footerPill.appendChild(spotifyLogoWrapper)
+      footerPill.appendChild(apiText)
+      footer.appendChild(footerPill)
       templateContainer.appendChild(footer)
 
       // Wait for images to load and content to render
