@@ -39,15 +39,19 @@ export async function generateSocialImage({
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
 
     // Truncate text appropriately for the format
-    const maxLength = format === "story" ? 200 : 300
+    const maxLength = 100
     const truncatedText = text.length > maxLength ? text.substring(0, maxLength - 3) + "..." : text
 
     // Create the API URL with proper encoding
     const encodedText = encodeURIComponent(truncatedText)
     const encodedType = encodeURIComponent(assistantType)
 
-    // Use the minimal endpoint for maximum reliability
-    const apiUrl = `${appUrl}/api/og/minimal-story?text=${encodedText}&type=${encodedType}&t=${Date.now()}`
+    // Add timestamp for cache busting
+    const timestamp = forceRefresh ? Date.now() : undefined
+    const cacheBuster = timestamp ? `&t=${timestamp}` : ""
+
+    // Try the ultra-minimal endpoint first
+    const apiUrl = `${appUrl}/api/og/ultra-minimal?text=${encodedText}&type=${encodedType}${cacheBuster}`
 
     // Add to cache
     imageCache[cacheKey] = {
@@ -58,7 +62,10 @@ export async function generateSocialImage({
     return apiUrl
   } catch (error) {
     console.error("Error generating social image:", error)
-    throw new Error("Failed to generate social image")
+
+    // If anything fails, use the static fallback
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
+    return `${appUrl}/api/og/static?type=${assistantType}`
   }
 }
 

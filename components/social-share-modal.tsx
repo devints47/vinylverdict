@@ -1,27 +1,42 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import type React from "react"
+
+import { useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { Instagram, Share } from "lucide-react"
+import { Share } from "lucide-react"
 import { toast } from "@/components/ui/use-toast"
 import { generateSocialImage, copyImageToClipboard, openSocialApp } from "@/lib/social-image-generator"
 
-interface InstagramShareModalProps {
+interface SocialShareModalProps {
   isOpen: boolean
   onClose: () => void
   text: string
   assistantType: string
+  platform: string
+  platformName: string
+  platformColor: string
+  platformIcon: React.ReactNode
 }
 
-export function InstagramShareModal({ isOpen, onClose, text, assistantType }: InstagramShareModalProps) {
+export function SocialShareModal({
+  isOpen,
+  onClose,
+  text,
+  assistantType,
+  platform,
+  platformName,
+  platformColor,
+  platformIcon,
+}: SocialShareModalProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [imageLoaded, setImageLoaded] = useState(false)
   const [useFallback, setUseFallback] = useState(false)
 
-  // Reset state when modal opens/closes
-  useEffect(() => {
+  // Generate the image when the modal opens
+  useState(() => {
     if (isOpen) {
       setIsLoading(true)
       setImageLoaded(false)
@@ -30,7 +45,7 @@ export function InstagramShareModal({ isOpen, onClose, text, assistantType }: In
     } else {
       setImageUrl(null)
     }
-  }, [isOpen])
+  })
 
   const generateImage = async () => {
     try {
@@ -57,7 +72,7 @@ export function InstagramShareModal({ isOpen, onClose, text, assistantType }: In
       }
       img.src = storyUrl
     } catch (error) {
-      console.error("Error generating Instagram image:", error)
+      console.error(`Error generating ${platformName} image:`, error)
       setUseFallback(true)
       setImageLoaded(true)
       setIsLoading(false)
@@ -65,24 +80,25 @@ export function InstagramShareModal({ isOpen, onClose, text, assistantType }: In
   }
 
   const handleShare = async () => {
-    if (!imageUrl) return
+    if (!imageUrl && !useFallback) return
 
     try {
       // Copy the image to clipboard
-      await copyImageToClipboard(imageUrl)
+      const urlToShare = useFallback ? getFallbackUrl() : imageUrl!
+      await copyImageToClipboard(urlToShare)
 
-      // Open Instagram Stories
-      openSocialApp("instagram")
+      // Open the social media app
+      openSocialApp(platform)
 
       toast({
         title: "Image copied",
-        description: "The image has been copied. You can now paste it into Instagram Stories!",
+        description: `The image has been copied. You can now paste it into ${platformName}!`,
       })
 
       // Close the modal after a short delay
       setTimeout(() => onClose(), 500)
     } catch (error) {
-      console.error("Error sharing to Instagram:", error)
+      console.error(`Error sharing to ${platformName}:`, error)
       toast({
         title: "Sharing failed",
         description: "Failed to copy the image. Please try again.",
@@ -102,10 +118,14 @@ export function InstagramShareModal({ isOpen, onClose, text, assistantType }: In
       <DialogContent className="sm:max-w-md bg-zinc-900 border-zinc-800">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-white">
-            <Instagram className="h-5 w-5 text-pink-500" />
-            Share to Instagram
+            <div className="h-5 w-5" style={{ color: platformColor }}>
+              {platformIcon}
+            </div>
+            Share to {platformName}
           </DialogTitle>
-          <DialogDescription className="text-zinc-400">Share your music verdict to Instagram Stories</DialogDescription>
+          <DialogDescription className="text-zinc-400">
+            Share your music verdict to {platformName} Stories
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -118,7 +138,7 @@ export function InstagramShareModal({ isOpen, onClose, text, assistantType }: In
             ) : (
               <img
                 src={useFallback ? getFallbackUrl() : imageUrl || "/placeholder.svg"}
-                alt="Instagram Story preview"
+                alt={`${platformName} Story preview`}
                 className="w-full rounded-lg border border-zinc-700 object-contain"
                 style={{ aspectRatio: "9/16" }}
                 onLoad={() => setImageLoaded(true)}
@@ -135,7 +155,11 @@ export function InstagramShareModal({ isOpen, onClose, text, assistantType }: In
           <Button
             onClick={handleShare}
             disabled={isLoading && !useFallback}
-            className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-medium"
+            className="w-full"
+            style={{
+              background: platformColor,
+              color: "white",
+            }}
           >
             <Share className="mr-2 h-4 w-4" />
             Share
