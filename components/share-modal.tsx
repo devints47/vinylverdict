@@ -6,8 +6,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/use-toast"
 import { Facebook, Instagram, Mail, Copy, Share2, Linkedin, X, Share, MessageCircle } from "lucide-react"
-import { copyImageToClipboard, openSocialApp } from "@/lib/static-image-generator"
-import { generateShareImageUrl as generateShareImageUrlAction } from "@/lib/actions/generate-share-image"
+import { copyImageToClipboard, openSocialApp, generateImageFromElement, downloadImage } from "@/lib/html-to-image"
+import { ShareImageTemplate } from "./share-image-template"
+import ReactDOM from "react-dom"
 
 interface ShareModalProps {
   isOpen: boolean
@@ -38,43 +39,17 @@ const loadingMessages = [
 export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: ShareModalProps) {
   const [imageUrl, setImageUrl] = useState<string>("")
   const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null)
-  const [imageLoaded, setImageLoaded] = useState(false)
   const [showingImage, setShowingImage] = useState(false)
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0)
-  const [pollingAttempts, setPollingAttempts] = useState(0)
   const loadingIntervalRef = useRef<NodeJS.Timeout | null>(null)
-  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const imgRef = useRef<HTMLImageElement>(null)
-
-  // Maximum number of polling attempts (30 attempts * 1 second = 30 seconds max wait time)
-  const MAX_POLLING_ATTEMPTS = 30
+  const templateRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     if (isOpen) {
       // Reset states
-      setImageLoaded(false)
+      setImageUrl("")
       setShowingImage(false)
-      setPollingAttempts(0)
-
-      // Generate image URL using POST request
-      generateShareImageUrlAction(text, assistantType)
-        .then((url) => {
-          setImageUrl(url)
-          setImageLoaded(true)
-
-          // Add 1 second delay before showing the image
-          setTimeout(() => {
-            setShowingImage(true)
-          }, 1000)
-        })
-        .catch((error) => {
-          console.error("Error generating image:", error)
-          toast({
-            title: "Image generation failed",
-            description: "Could not generate share image. Please try again.",
-            variant: "destructive",
-          })
-        })
 
       // Start cycling through loading messages
       setLoadingMessageIndex(0)
@@ -85,34 +60,85 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       loadingIntervalRef.current = setInterval(() => {
         setLoadingMessageIndex((prev) => (prev + 1) % loadingMessages.length)
       }, 2000)
+
+      // Create a temporary container for the template
+      const container = document.createElement("div")
+      container.style.position = "absolute"
+      container.style.left = "-9999px"
+      container.style.top = "-9999px"
+      document.body.appendChild(container)
+
+      // Render the template with the roast content
+      ReactDOM.render(
+        <ShareImageTemplate assistantType={assistantType}>
+          <div
+            className="markdown-content text-sm sm:text-base md:text-lg"
+            dangerouslySetInnerHTML={{ __html: convertMarkdownToHtml(text) }}
+          />
+        </ShareImageTemplate>,
+        container,
+        async () => {
+          // Wait a bit for images to load
+          setTimeout(async () => {
+            try {
+              // Generate image from the rendered template
+              const imageUrl = await generateImageFromElement(container.firstChild as HTMLElement)
+              setImageUrl(imageUrl)
+              setShowingImage(true)
+
+              // Clean up
+              if (loadingIntervalRef.current) {
+                clearInterval(loadingIntervalRef.current)
+              }
+            } catch (error) {
+              console.error("Error generating image:", error)
+              toast({
+                title: "Image generation failed",
+                description: "Could not generate share image. Please try again.",
+                variant: "destructive",
+              })
+            } finally {
+              // Clean up the temporary container
+              document.body.removeChild(container)
+            }
+          }, 1000)
+        },
+      )
     }
 
     return () => {
-      // Clean up intervals and object URLs
+      // Clean up intervals
       if (loadingIntervalRef.current) {
         clearInterval(loadingIntervalRef.current)
-      }
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current)
-      }
-      // Clean up object URL when component unmounts
-      if (imageUrl && imageUrl.startsWith("blob:")) {
-        URL.revokeObjectURL(imageUrl)
       }
     }
   }, [isOpen, text, assistantType])
 
-  // Clear intervals when image is showing
-  useEffect(() => {
-    if (showingImage) {
-      if (loadingIntervalRef.current) {
-        clearInterval(loadingIntervalRef.current)
-      }
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current)
-      }
+  // Convert markdown to HTML with proper styling
+  const convertMarkdownToHtml = (markdown: string): string => {
+    // Basic markdown conversion (this is simplified - you might want to use a proper markdown parser)
+    let html = markdown
+      // Convert headers
+      .replace(/^# (.*$)/gm, '<h1 class="text-purple-gradient text-3xl font-bold mb-4">$1</h1>')
+      .replace(/^## (.*$)/gm, '<h2 class="text-purple-gradient text-2xl font-bold mb-3">$2</h2>')
+      .replace(/^### (.*$)/gm, '<h3 class="text-purple-gradient text-xl font-bold mb-2">$1</h3>')
+      // Convert bold and italic
+      .replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em class="text-zinc-400">$1</em>')
+      // Convert paragraphs
+      .replace(/\n\n/g, '</p><p class="mb-4">')
+      // Convert lists
+      .replace(/^- (.*$)/gm, '<li class="ml-4">$1</li>')
+      // Wrap in paragraph if not already
+      .replace(/^([^<].*)/gm, '<p class="mb-4">$1</p>')
+
+    // Ensure it starts with a paragraph
+    if (!html.startsWith("<h1") && !html.startsWith("<p")) {
+      html = `<p class="mb-4">${html}</p>`
     }
-  }, [showingImage])
+
+    return html
+  }
 
   const shareOptions: ShareOption[] = [
     {
@@ -252,7 +278,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
   }
 
   const handleShareAfterPreview = async () => {
-    if (!selectedPlatform) return
+    if (!selectedPlatform || !imageUrl) return
 
     try {
       await copyImageToClipboard(imageUrl)
@@ -269,6 +295,26 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       toast({
         title: "Sharing failed",
         description: "Failed to copy the image. Please try again.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleDownloadImage = async () => {
+    if (!imageUrl) return
+
+    try {
+      const filename = `vinylverdict-${assistantType}-${Date.now()}.png`
+      await downloadImage(imageUrl, filename)
+
+      toast({
+        title: "Image downloaded",
+        description: "Your image has been downloaded successfully!",
+      })
+    } catch (error) {
+      toast({
+        title: "Download failed",
+        description: "Failed to download the image. Please try again.",
         variant: "destructive",
       })
     }
@@ -303,7 +349,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
               <div className="relative">
                 <img
                   ref={imgRef}
-                  src={`${imageUrl}&cache=${Date.now()}`}
+                  src={imageUrl || "/placeholder.svg"}
                   alt={`${platform.name} preview`}
                   className="w-full rounded-lg border border-zinc-700 object-contain"
                   style={{ aspectRatio: "9/16" }}
@@ -329,21 +375,20 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
               <Share className="mr-2 h-4 w-4" />
               Share to {platform.name}
             </Button>
+
+            <Button
+              onClick={handleDownloadImage}
+              disabled={!showingImage}
+              variant="outline"
+              className="w-full text-white border-zinc-700 hover:bg-zinc-800"
+            >
+              Download Image
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
     )
   }
-
-  useEffect(() => {
-    if (selectedPlatform) {
-      setShowingImage(false)
-      // Add 1 second delay even if image is already loaded
-      setTimeout(() => {
-        setShowingImage(true)
-      }, 1000)
-    }
-  }, [selectedPlatform])
 
   return (
     <>
