@@ -39,13 +39,23 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
   const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null)
   const [imageLoaded, setImageLoaded] = useState(false)
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0)
+  const [pollingAttempts, setPollingAttempts] = useState(0)
   const loadingIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const imgRef = useRef<HTMLImageElement>(null)
+
+  // Maximum number of polling attempts (30 attempts * 1 second = 30 seconds max wait time)
+  const MAX_POLLING_ATTEMPTS = 30
 
   useEffect(() => {
     if (isOpen) {
+      // Reset states
+      setImageLoaded(false)
+      setPollingAttempts(0)
+
+      // Generate image URL with timestamp to prevent caching
       const url = generateShareImageUrl(text, assistantType)
       setImageUrl(url)
-      setImageLoaded(false)
 
       // Start cycling through loading messages
       setLoadingMessageIndex(0)
@@ -56,19 +66,77 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       loadingIntervalRef.current = setInterval(() => {
         setLoadingMessageIndex((prev) => (prev + 1) % loadingMessages.length)
       }, 2000)
+
+      // Start polling to check if image is ready
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current)
+      }
+
+      pollingIntervalRef.current = setInterval(() => {
+        checkImageAvailability(url)
+      }, 1000) // Poll every second
     }
 
     return () => {
+      // Clean up intervals
       if (loadingIntervalRef.current) {
         clearInterval(loadingIntervalRef.current)
+      }
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current)
       }
     }
   }, [isOpen, text, assistantType])
 
-  // Clear interval when image is loaded
+  // Function to check if the image is available
+  const checkImageAvailability = async (url: string) => {
+    try {
+      // Increment polling attempts
+      setPollingAttempts((prev) => {
+        const newAttempts = prev + 1
+
+        // If we've reached max attempts, stop polling and show error
+        if (newAttempts >= MAX_POLLING_ATTEMPTS && pollingIntervalRef.current) {
+          clearInterval(pollingIntervalRef.current)
+          toast({
+            title: "Image generation timeout",
+            description: "The image is taking longer than expected. Please try again.",
+            variant: "destructive",
+          })
+        }
+        return newAttempts
+      })
+
+      // Make a HEAD request to check if the image exists
+      const response = await fetch(url, { method: "HEAD" })
+
+      if (response.ok) {
+        // Image is ready, stop polling and set as loaded
+        if (pollingIntervalRef.current) {
+          clearInterval(pollingIntervalRef.current)
+        }
+
+        // Force reload the image to ensure it's the latest version
+        if (imgRef.current) {
+          imgRef.current.src = `${url}&cache=${Date.now()}`
+        }
+
+        setImageLoaded(true)
+      }
+    } catch (error) {
+      console.error("Error checking image availability:", error)
+    }
+  }
+
+  // Clear intervals when image is loaded
   useEffect(() => {
-    if (imageLoaded && loadingIntervalRef.current) {
-      clearInterval(loadingIntervalRef.current)
+    if (imageLoaded) {
+      if (loadingIntervalRef.current) {
+        clearInterval(loadingIntervalRef.current)
+      }
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current)
+      }
     }
   }, [imageLoaded])
 
@@ -241,11 +309,11 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
             ) : (
               <div className="relative">
                 <img
-                  src={imageUrl || "/placeholder.svg"}
+                  ref={imgRef}
+                  src={`${imageUrl}&cache=${Date.now()}`}
                   alt={`${platform.name} preview`}
                   className="w-full rounded-lg border border-zinc-700 object-contain"
                   style={{ aspectRatio: "9/16" }}
-                  onLoad={() => setImageLoaded(true)}
                   onError={() => {
                     toast({
                       title: "Preview failed",
