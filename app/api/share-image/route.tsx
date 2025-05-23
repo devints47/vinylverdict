@@ -1,12 +1,11 @@
-import type React from "react"
 import { ImageResponse } from "next/og"
 import type { NextRequest } from "next/server"
 
 export const runtime = "edge"
 
 // Enhanced markdown parser that preserves formatting like the original roast
-function parseRoastText(text: string): Array<{ type: string; content: string; style?: any; isMarkdown?: boolean }> {
-  const elements: Array<{ type: string; content: string; style?: any; isMarkdown?: boolean }> = []
+function parseRoastText(text: string): Array<{ type: string; content: string; style?: any }> {
+  const elements: Array<{ type: string; content: string; style?: any }> = []
 
   // Calculate dynamic font sizes based on text length and paragraph count
   const textLength = text.length
@@ -51,9 +50,11 @@ function parseRoastText(text: string): Array<{ type: string; content: string; st
         trimmedSection.startsWith("#") ||
         trimmedSection.includes("**"))
     ) {
+      // Remove markdown formatting for title
+      const cleanTitle = trimmedSection.replace(/\*\*/g, "").replace(/\*/g, "")
       elements.push({
         type: "title",
-        content: trimmedSection,
+        content: cleanTitle,
         style: {
           fontSize: `${titleFontSize}px`,
           fontWeight: "bold",
@@ -63,14 +64,15 @@ function parseRoastText(text: string): Array<{ type: string; content: string; st
           lineHeight: "1.2",
           padding: "0 16px",
         },
-        isMarkdown: true,
       })
     }
     // Handle score section
     else if (trimmedSection.toUpperCase().includes("SCORE:") || trimmedSection.includes("**SCORE")) {
+      // Remove markdown formatting for score
+      const cleanScore = trimmedSection.replace(/\*\*/g, "").replace(/\*/g, "")
       elements.push({
         type: "score",
-        content: trimmedSection,
+        content: cleanScore,
         style: {
           fontSize: `${scoreFontSize}px`,
           fontWeight: "bold",
@@ -79,7 +81,6 @@ function parseRoastText(text: string): Array<{ type: string; content: string; st
           marginBottom: "16px",
           textAlign: "center",
         },
-        isMarkdown: true,
       })
     }
     // Handle signature (lines starting with – or -)
@@ -95,13 +96,15 @@ function parseRoastText(text: string): Array<{ type: string; content: string; st
           textAlign: "right",
           padding: "0 16px",
         },
-        isMarkdown: false,
       })
     }
     // Handle regular paragraphs with markdown support
     else {
+      // Process markdown formatting
+      const processedText = processMarkdown(trimmedSection)
+
       // Split long paragraphs into smaller chunks for better readability
-      const lines = trimmedSection.split("\n").filter((line) => line.trim())
+      const lines = processedText.split("\n").filter((line) => line.trim())
 
       for (const line of lines) {
         if (line.trim()) {
@@ -115,7 +118,6 @@ function parseRoastText(text: string): Array<{ type: string; content: string; st
               lineHeight: "1.4",
               padding: "0 16px",
             },
-            isMarkdown: true,
           })
         }
       }
@@ -125,97 +127,22 @@ function parseRoastText(text: string): Array<{ type: string; content: string; st
   return elements
 }
 
-// Process markdown formatting for rendering
-function renderMarkdownElement(content: string): React.ReactNode[] {
-  // Split the content by potential markdown sections
-  const parts: React.ReactNode[] = []
-  let currentText = ""
-  let i = 0
+// Process markdown formatting
+function processMarkdown(text: string): string {
+  let processedText = text
 
-  while (i < content.length) {
-    // Check for bold text (**text**)
-    if (content.substring(i, i + 2) === "**" && i + 2 < content.length) {
-      // Add any text before the bold marker
-      if (currentText) {
-        parts.push(<span key={`text-${parts.length}`}>{currentText}</span>)
-        currentText = ""
-      }
+  // Handle bold text (**text** or __text__)
+  processedText = processedText.replace(/\*\*(.*?)\*\*/g, "$1")
+  processedText = processedText.replace(/__(.*?)__/g, "$1")
 
-      // Find the closing **
-      const boldStart = i + 2
-      const boldEnd = content.indexOf("**", boldStart)
+  // Handle italic text (*text* or _text_)
+  processedText = processedText.replace(/\*(.*?)\*/g, "$1")
+  processedText = processedText.replace(/_(.*?)_/g, "$1")
 
-      if (boldEnd !== -1) {
-        const boldText = content.substring(boldStart, boldEnd)
-        parts.push(
-          <span key={`bold-${parts.length}`} style={{ fontWeight: "bold" }}>
-            {boldText}
-          </span>,
-        )
-        i = boldEnd + 2 // Skip past the closing **
-      } else {
-        // No closing **, treat as normal text
-        currentText += "**"
-        i += 2
-      }
-    }
-    // Check for italic text (*text*)
-    else if (content[i] === "*" && i + 1 < content.length && content[i + 1] !== "*") {
-      // Add any text before the italic marker
-      if (currentText) {
-        parts.push(<span key={`text-${parts.length}`}>{currentText}</span>)
-        currentText = ""
-      }
+  // Handle code blocks (`text`)
+  processedText = processedText.replace(/`(.*?)`/g, "$1")
 
-      // Find the closing *
-      const italicStart = i + 1
-      const italicEnd = content.indexOf("*", italicStart)
-
-      if (italicEnd !== -1) {
-        const italicText = content.substring(italicStart, italicEnd)
-        parts.push(
-          <span key={`italic-${parts.length}`} style={{ fontStyle: "italic" }}>
-            {italicText}
-          </span>,
-        )
-        i = italicEnd + 1 // Skip past the closing *
-      } else {
-        // No closing *, treat as normal text
-        currentText += "*"
-        i += 1
-      }
-    }
-    // Check for hashtag titles
-    else if (content[i] === "#" && (i === 0 || content[i - 1] === " ")) {
-      // Add any text before the hashtag
-      if (currentText) {
-        parts.push(<span key={`text-${parts.length}`}>{currentText}</span>)
-        currentText = ""
-      }
-
-      // Count the number of consecutive #
-      let hashCount = 0
-      while (i + hashCount < content.length && content[i + hashCount] === "#") {
-        hashCount++
-      }
-
-      // Add the hashtags as they are
-      currentText += content.substring(i, i + hashCount)
-      i += hashCount
-    }
-    // Regular text
-    else {
-      currentText += content[i]
-      i++
-    }
-  }
-
-  // Add any remaining text
-  if (currentText) {
-    parts.push(<span key={`text-${parts.length}`}>{currentText}</span>)
-  }
-
-  return parts
+  return processedText
 }
 
 export async function GET(request: NextRequest) {
@@ -286,7 +213,12 @@ export async function GET(request: NextRequest) {
           </div>
 
           {/* Brand */}
-          <div style={{ display: "flex", flexDirection: "column" }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
             <div
               style={{
                 fontSize: "32px",
@@ -321,7 +253,6 @@ export async function GET(request: NextRequest) {
             border: `2px solid ${accentColor}`,
             flex: 1,
             overflow: "hidden",
-            // Fixed: Remove calc() and use a fixed pixel value instead
             maxHeight: "1600px",
           }}
         >
@@ -335,7 +266,7 @@ export async function GET(request: NextRequest) {
                 whiteSpace: "pre-wrap",
               }}
             >
-              {element.isMarkdown ? renderMarkdownElement(element.content) : element.content}
+              {element.content}
             </div>
           ))}
         </div>
