@@ -130,14 +130,23 @@ export async function validateAccessToken(): Promise<{
  */
 export async function checkAuthentication(): Promise<boolean> {
   try {
-    const { isValid, reason } = await validateAccessToken()
+    const accessToken = localStorage.getItem("accessToken")
 
-    if (!isValid) {
-      console.log(`Token invalid, reason: ${reason}`)
+    if (!accessToken) {
       return false
     }
 
-    return true
+    // Check if token needs refreshing
+    await refreshTokenIfNeeded()
+
+    // Validate the token
+    const response = await fetch("/api/auth/validate", {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    })
+
+    return response.ok
   } catch (error) {
     console.error("Error checking authentication:", error)
     return false
@@ -185,5 +194,52 @@ export async function getCurrentUser() {
   } catch (error) {
     console.error("Error getting current user:", error)
     return null
+  }
+}
+
+/**
+ * Refresh the access token if needed
+ */
+export async function refreshTokenIfNeeded(): Promise<boolean> {
+  try {
+    // Check if token is about to expire (within 10 minutes)
+    const expiresAt = localStorage.getItem("expiresAt")
+
+    if (!expiresAt) {
+      return false
+    }
+
+    const expiresAtMs = Number.parseInt(expiresAt, 10)
+    const now = Date.now()
+
+    // If token expires in less than 10 minutes, refresh it
+    if (expiresAtMs - now < 10 * 60 * 1000) {
+      console.log("Token is about to expire, refreshing...")
+
+      const response = await fetch("/api/auth/refresh", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+
+        // Update token in localStorage
+        localStorage.setItem("accessToken", data.accessToken)
+        localStorage.setItem("refreshToken", data.refreshToken)
+        localStorage.setItem("expiresAt", (Date.now() + data.expiresIn * 1000).toString())
+
+        return true
+      }
+
+      return false
+    }
+
+    return true
+  } catch (error) {
+    console.error("Error refreshing token:", error)
+    return false
   }
 }
