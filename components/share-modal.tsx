@@ -6,7 +6,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/use-toast"
 import { Facebook, Instagram, Mail, Copy, Share2, Linkedin, X, Share, MessageCircle } from "lucide-react"
-import { generateShareImageUrl, copyImageToClipboard, openSocialApp } from "@/lib/static-image-generator"
+import { copyImageToClipboard, openSocialApp } from "@/lib/static-image-generator"
+import { generateShareImageUrl as generateShareImageUrlAction } from "@/lib/actions/generate-share-image"
 
 interface ShareModalProps {
   isOpen: boolean
@@ -55,9 +56,25 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       setShowingImage(false)
       setPollingAttempts(0)
 
-      // Generate image URL with timestamp to prevent caching
-      const url = generateShareImageUrl(text, assistantType)
-      setImageUrl(url)
+      // Generate image URL using POST request
+      generateShareImageUrlAction(text, assistantType)
+        .then((url) => {
+          setImageUrl(url)
+          setImageLoaded(true)
+
+          // Add 1 second delay before showing the image
+          setTimeout(() => {
+            setShowingImage(true)
+          }, 1000)
+        })
+        .catch((error) => {
+          console.error("Error generating image:", error)
+          toast({
+            title: "Image generation failed",
+            description: "Could not generate share image. Please try again.",
+            variant: "destructive",
+          })
+        })
 
       // Start cycling through loading messages
       setLoadingMessageIndex(0)
@@ -68,67 +85,22 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       loadingIntervalRef.current = setInterval(() => {
         setLoadingMessageIndex((prev) => (prev + 1) % loadingMessages.length)
       }, 2000)
-
-      // Start polling to check if image is ready
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current)
-      }
-
-      pollingIntervalRef.current = setInterval(() => {
-        checkImageAvailability(url)
-      }, 1000) // Poll every second
     }
 
     return () => {
-      // Clean up intervals
+      // Clean up intervals and object URLs
       if (loadingIntervalRef.current) {
         clearInterval(loadingIntervalRef.current)
       }
       if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current)
       }
+      // Clean up object URL when component unmounts
+      if (imageUrl && imageUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(imageUrl)
+      }
     }
   }, [isOpen, text, assistantType])
-
-  // Function to check if the image is available
-  const checkImageAvailability = async (url: string) => {
-    try {
-      // Increment polling attempts
-      setPollingAttempts((prev) => {
-        const newAttempts = prev + 1
-
-        // If we've reached max attempts, stop polling and show error
-        if (newAttempts >= MAX_POLLING_ATTEMPTS && pollingIntervalRef.current) {
-          clearInterval(pollingIntervalRef.current)
-          toast({
-            title: "Image generation timeout",
-            description: "The image is taking longer than expected. Please try again.",
-            variant: "destructive",
-          })
-        }
-        return newAttempts
-      })
-
-      // Make a HEAD request to check if the image exists
-      const response = await fetch(url, { method: "HEAD" })
-
-      if (response.ok) {
-        // Image is ready, stop polling
-        if (pollingIntervalRef.current) {
-          clearInterval(pollingIntervalRef.current)
-        }
-
-        setImageLoaded(true)
-
-        // Add 1 second delay before showing the image
-        setTimeout(() => {
-          setShowingImage(true)
-        }, 1000)
-      }
-    } catch (error) {
-      console.error("Error checking image availability:", error)
-    }
-  }
 
   // Clear intervals when image is showing
   useEffect(() => {
