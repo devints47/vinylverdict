@@ -81,17 +81,21 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
 
       // Calculate optimal font size based on text length
       const textLength = text.length
-      let fontSize = 28 // Default large font size
+      let fontSize = 36 // Increased base font size
 
-      // Adjust font size based on text length
-      if (textLength > 1000) {
-        fontSize = 20
-      } else if (textLength > 500) {
-        fontSize = 22
-      } else if (textLength > 300) {
+      // Adjust font size based on text length - more aggressive scaling
+      if (textLength > 2000) {
         fontSize = 24
-      } else if (textLength > 100) {
+      } else if (textLength > 1500) {
         fontSize = 26
+      } else if (textLength > 1000) {
+        fontSize = 28
+      } else if (textLength > 700) {
+        fontSize = 30
+      } else if (textLength > 500) {
+        fontSize = 32
+      } else if (textLength > 300) {
+        fontSize = 34
       }
 
       // Create header (larger, more prominent)
@@ -99,8 +103,8 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       header.style.display = "flex"
       header.style.alignItems = "center"
       header.style.justifyContent = "center"
-      header.style.marginBottom = "60px" // Increased margin
-      header.style.marginTop = "40px" // Added top margin
+      header.style.marginBottom = "40px" // Reduced from 60px
+      header.style.marginTop = "20px" // Reduced from 40px
 
       // Logo placeholder
       const logoContainer = document.createElement("div")
@@ -111,27 +115,22 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       const logoImg = document.createElement("img")
       logoImg.src = "/vinyl-favicon.png"
       logoImg.alt = "VinylVerdict Logo"
-      logoImg.style.height = "100px" // Larger logo
+      logoImg.style.height = "100px"
       logoImg.style.width = "100px"
 
       const titleContainer = document.createElement("div")
 
       const title = document.createElement("h1")
       title.textContent = "VinylVerdict.FM"
-      title.style.fontSize = "60px" // Larger title
+      title.style.fontSize = "60px"
       title.style.fontWeight = "bold"
-      title.style.background = "linear-gradient(135deg, #9333ea, #a855f7, #c026d3, #a855f7, #9333ea)"
-      title.style.backgroundSize = "200% 200%"
-      title.style.webkitBackgroundClip = "text"
-      title.style.webkitTextFillColor = "transparent"
-      title.style.backgroundClip = "text"
+      title.style.color = "#c026d3" // Solid pinkish-purple color from the gradient
       title.style.margin = "0"
       title.style.padding = "0"
-      // Removed the purple box by not setting a background color
 
       const subtitle = document.createElement("p")
       subtitle.textContent = getAssistantTitle(assistantType)
-      subtitle.style.fontSize = "24px" // Larger subtitle
+      subtitle.style.fontSize = "24px"
       subtitle.style.color = "#d4d4d8"
       subtitle.style.margin = "0"
       subtitle.style.padding = "0"
@@ -143,62 +142,73 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       header.appendChild(logoContainer)
       templateContainer.appendChild(header)
 
-      // Create content area (reduced height to about 2/3)
+      // Create content area (increased by 25%)
       const content = document.createElement("div")
-      content.style.flex = "0.65" // Reduced from 1 to 0.65 (about 2/3)
+      content.style.flex = "0.8125" // Increased from 0.65 to 0.8125 (25% increase)
       content.style.backgroundColor = "rgba(24, 24, 27, 0.8)"
       content.style.borderRadius = "12px"
-      content.style.padding = "40px" // Increased padding
+      content.style.padding = "40px"
       content.style.overflowY = "auto"
       content.style.border = "1px solid rgba(147, 51, 234, 0.3)"
       content.style.display = "flex"
       content.style.flexDirection = "column"
-      content.style.justifyContent = "center" // Center content vertically
+      content.style.justifyContent = "flex-start" // Changed from center to flex-start
 
       // Convert markdown to HTML with the calculated font size
       content.innerHTML = convertMarkdownToHtml(text, fontSize)
       templateContainer.appendChild(content)
 
-      // Create footer (larger, more prominent)
+      // Create footer with fixed dimensions
       const footer = document.createElement("div")
-      footer.style.marginTop = "60px" // Increased margin
-      footer.style.marginBottom = "40px" // Added bottom margin
+      footer.style.marginTop = "40px" // Reduced from 60px
+      footer.style.marginBottom = "20px" // Reduced from 40px
       footer.style.display = "flex"
       footer.style.alignItems = "center"
       footer.style.justifyContent = "center"
-      footer.style.flex = "0.15" // Give it some flex space
+      footer.style.height = "80px" // Fixed height
 
       const footerContent = document.createElement("div")
       footerContent.style.display = "flex"
       footerContent.style.alignItems = "center"
-      footerContent.style.gap = "16px"
+      footerContent.style.gap = "12px" // Reduced gap
       footerContent.style.backgroundColor = "rgba(0, 0, 0, 0.5)"
-      footerContent.style.padding = "16px 32px" // Larger padding
+      footerContent.style.padding = "12px 24px"
       footerContent.style.borderRadius = "9999px"
-      footerContent.style.width = "auto" // Let it size naturally
-      footerContent.style.maxWidth = "80%" // Limit width
+      footerContent.style.height = "60px" // Fixed height for content
+      footerContent.style.maxWidth = "600px" // Limit width
 
       const builtUsing = document.createElement("span")
       builtUsing.textContent = "Built Using the"
-      builtUsing.style.fontSize = "24px" // Larger text
+      builtUsing.style.fontSize = "20px" // Reduced from 24px
       builtUsing.style.color = "white"
       builtUsing.style.whiteSpace = "nowrap"
+
+      // Create a container for the Spotify logo with fixed dimensions
+      const spotifyLogoContainer = document.createElement("div")
+      spotifyLogoContainer.style.height = "32px" // Fixed height
+      spotifyLogoContainer.style.width = "140px" // Fixed width
+      spotifyLogoContainer.style.display = "flex"
+      spotifyLogoContainer.style.alignItems = "center"
+      spotifyLogoContainer.style.justifyContent = "center"
 
       const spotifyLogo = document.createElement("img")
       spotifyLogo.src = "/spotify_full_logo.svg"
       spotifyLogo.alt = "Spotify"
-      spotifyLogo.style.height = "40px" // Larger logo
-      spotifyLogo.style.maxWidth = "180px" // Limit width
-      spotifyLogo.style.objectFit = "contain" // Ensure proper scaling
+      spotifyLogo.style.height = "100%" // Fill container height
+      spotifyLogo.style.width = "100%" // Fill container width
+      spotifyLogo.style.objectFit = "contain" // Maintain aspect ratio
+      spotifyLogo.style.maxHeight = "32px" // Ensure it doesn't exceed container
+
+      spotifyLogoContainer.appendChild(spotifyLogo)
 
       const webApi = document.createElement("span")
       webApi.textContent = "Web API"
-      webApi.style.fontSize = "24px" // Larger text
+      webApi.style.fontSize = "20px" // Reduced from 24px
       webApi.style.color = "white"
       webApi.style.whiteSpace = "nowrap"
 
       footerContent.appendChild(builtUsing)
-      footerContent.appendChild(spotifyLogo)
+      footerContent.appendChild(spotifyLogoContainer)
       footerContent.appendChild(webApi)
       footer.appendChild(footerContent)
       templateContainer.appendChild(footer)
@@ -286,33 +296,39 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       // Convert headers
       .replace(
         /^# (.*$)/gm,
-        `<h1 style="color: #a855f7; font-size: ${fontSize * 1.4}px; font-weight: bold; margin-bottom: 16px;">$1</h1>`,
+        `<h1 style="color: #c026d3; font-size: ${fontSize * 1.4}px; font-weight: bold; margin-bottom: 20px; line-height: 1.3;">$1</h1>`,
       )
       .replace(
         /^## (.*$)/gm,
-        `<h2 style="color: #a855f7; font-size: ${fontSize * 1.2}px; font-weight: bold; margin-bottom: 12px;">$1</h2>`,
+        `<h2 style="color: #c026d3; font-size: ${fontSize * 1.2}px; font-weight: bold; margin-bottom: 16px; line-height: 1.3;">$1</h2>`,
       )
       .replace(
         /^### (.*$)/gm,
-        `<h3 style="color: #a855f7; font-size: ${fontSize * 1.1}px; font-weight: bold; margin-bottom: 8px;">$1</h3>`,
+        `<h3 style="color: #c026d3; font-size: ${fontSize * 1.1}px; font-weight: bold; margin-bottom: 12px; line-height: 1.3;">$1</h3>`,
       )
       // Convert bold and italic
-      .replace(/\*\*(.*?)\*\*/g, `<strong style="color: white;">$1</strong>`)
-      .replace(/\*(.*?)\*/g, `<em style="color: #a1a1aa;">$1</em>`)
+      .replace(/\*\*(.*?)\*\*/g, `<strong style="color: white; font-weight: bold;">$1</strong>`)
+      .replace(/\*(.*?)\*/g, `<em style="color: #d4d4d8; font-style: italic;">$1</em>`)
       // Convert paragraphs with dynamic font size
-      .replace(/\n\n/g, `</p><p style="margin-bottom: 16px; color: #e4e4e7; font-size: ${fontSize}px;">`)
+      .replace(
+        /\n\n/g,
+        `</p><p style="margin-bottom: 20px; color: #e4e4e7; font-size: ${fontSize}px; line-height: 1.5;">`,
+      )
       // Convert lists
-      .replace(/^- (.*$)/gm, `<li style="margin-left: 16px; color: #e4e4e7; font-size: ${fontSize}px;">$1</li>`)
+      .replace(
+        /^- (.*$)/gm,
+        `<li style="margin-left: 20px; color: #e4e4e7; font-size: ${fontSize}px; line-height: 1.5;">$1</li>`,
+      )
 
     // Wrap in paragraph if not already
     if (!html.startsWith("<h1") && !html.startsWith("<p")) {
-      html = `<p style="margin-bottom: 16px; color: #e4e4e7; font-size: ${fontSize}px;">${html}</p>`
+      html = `<p style="margin-bottom: 20px; color: #e4e4e7; font-size: ${fontSize}px; line-height: 1.5;">${html}</p>`
     }
 
     // If we extracted a title, add it back at the top with larger font
     if (title) {
       html =
-        `<h1 style="color: #a855f7; font-size: ${fontSize * 1.5}px; font-weight: bold; margin-bottom: 24px; text-align: center;">${title}</h1>` +
+        `<h1 style="color: #c026d3; font-size: ${fontSize * 1.6}px; font-weight: bold; margin-bottom: 30px; text-align: center; line-height: 1.3;">${title}</h1>` +
         html
     }
 
