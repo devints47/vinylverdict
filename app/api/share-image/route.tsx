@@ -3,47 +3,45 @@ import type { NextRequest } from "next/server"
 
 export const runtime = "edge"
 
-// Function to truncate text if needed
-function maybeTruncateText(text: string, maxLength: number): string {
-  if (text.length <= maxLength) return text
-  return text.substring(0, maxLength - 3) + "..."
-}
-
 // Enhanced markdown parser that preserves formatting like the original roast
 function parseRoastText(text: string): Array<{ type: string; content: string; style?: any }> {
   const elements: Array<{ type: string; content: string; style?: any }> = []
 
-  // Don't truncate text - use the full text and adjust font size
+  // Don't truncate text - use the full text
   const fullText = text
 
   // Calculate dynamic font sizes based on text length and paragraph count
   const textLength = fullText.length
   const paragraphCount = fullText.split("\n\n").filter((p) => p.trim()).length
 
-  // More aggressive font size reduction for longer texts
+  // Base font size calculation - start with larger sizes and scale down for longer texts
+  // Significantly increased base font sizes
   let baseFontSize =
     textLength > 3000
-      ? 16
+      ? 22
       : textLength > 2500
-        ? 18
+        ? 24
         : textLength > 2000
-          ? 20
+          ? 26
           : textLength > 1500
-            ? 22
+            ? 28
             : textLength > 1000
-              ? 24
-              : 26
+              ? 30
+              : 32
 
-  // Further reduce font size if there are many paragraphs
+  // Further adjust based on paragraph count
   if (paragraphCount > 10) {
-    baseFontSize = Math.max(baseFontSize - 4, 14)
+    baseFontSize = Math.max(baseFontSize - 2, 20)
   } else if (paragraphCount > 7) {
-    baseFontSize = Math.max(baseFontSize - 2, 16)
+    baseFontSize = Math.max(baseFontSize - 1, 22)
+  } else if (paragraphCount < 4) {
+    // For very short roasts, increase font size further
+    baseFontSize += 4
   }
 
-  const titleFontSize = Math.max(baseFontSize + 10, 32)
-  const scoreFontSize = Math.max(baseFontSize + 6, 28)
-  const signatureFontSize = Math.max(baseFontSize - 2, 18)
+  const titleFontSize = Math.max(baseFontSize + 12, 38)
+  const scoreFontSize = Math.max(baseFontSize + 8, 36)
+  const signatureFontSize = Math.max(baseFontSize - 2, 24)
 
   // Split by double line breaks to get paragraphs
   const sections = fullText.split("\n\n").filter((section) => section.trim())
