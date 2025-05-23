@@ -185,24 +185,16 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     if (!platform) return null
 
     return (
-      <div className="fixed inset-0 bg-black/80 z-50 flex flex-col items-center justify-center p-4">
-        <div className="bg-zinc-900 rounded-lg max-w-md w-full p-4 space-y-4">
-          <div className="flex items-center justify-between">
+      <Dialog open={!!selectedPlatform} onOpenChange={() => setSelectedPlatform(null)}>
+        <DialogContent className="sm:max-w-md bg-zinc-900 border-zinc-800">
+          <DialogHeader>
             <div className="flex items-center gap-2">
               <div className={`w-8 h-8 rounded-full ${platform.color} flex items-center justify-center text-white`}>
                 {platform.icon}
               </div>
-              <h3 className="text-lg font-medium text-white">Share to {platform.name}</h3>
+              <DialogTitle className="text-white">Share to {platform.name}</DialogTitle>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setSelectedPlatform(null)}
-              className="text-zinc-400 hover:text-white"
-            >
-              Back
-            </Button>
-          </div>
+          </DialogHeader>
 
           <div className="relative mx-auto max-w-[240px]">
             {!imageLoaded && (
@@ -246,8 +238,8 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
               Download Image
             </Button>
           </div>
-        </div>
-      </div>
+        </DialogContent>
+      </Dialog>
     )
   }
 
@@ -297,7 +289,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
         </DialogContent>
       </Dialog>
 
-      {selectedPlatform && renderPreview()}
+      {renderPreview()}
     </>
   )
 }

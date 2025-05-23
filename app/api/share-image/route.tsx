@@ -19,11 +19,13 @@ function parseRoastText(text: string): Array<{ type: string; content: string; st
         type: "title",
         content: trimmedSection,
         style: {
-          fontSize: "36px",
+          fontSize: "52px", // Increased from 36px
           fontWeight: "bold",
           color: "#c084fc",
-          marginBottom: "24px",
+          marginBottom: "40px", // Increased from 24px
           textAlign: "center",
+          lineHeight: "1.2",
+          padding: "0 20px",
         },
       })
     }
@@ -33,11 +35,12 @@ function parseRoastText(text: string): Array<{ type: string; content: string; st
         type: "score",
         content: trimmedSection,
         style: {
-          fontSize: "32px",
+          fontSize: "48px", // Increased from 32px
           fontWeight: "bold",
           color: "#c084fc",
-          marginTop: "24px",
-          marginBottom: "16px",
+          marginTop: "40px", // Increased from 24px
+          marginBottom: "30px", // Increased from 16px
+          textAlign: "center",
         },
       })
     }
@@ -47,11 +50,12 @@ function parseRoastText(text: string): Array<{ type: string; content: string; st
         type: "signature",
         content: trimmedSection,
         style: {
-          fontSize: "20px",
+          fontSize: "32px", // Increased from 20px
           color: "#a855f7",
           fontStyle: "italic",
-          marginTop: "16px",
+          marginTop: "40px", // Increased from 16px
           textAlign: "right",
+          padding: "0 20px",
         },
       })
     }
@@ -66,10 +70,11 @@ function parseRoastText(text: string): Array<{ type: string; content: string; st
             type: "paragraph",
             content: line.trim(),
             style: {
-              fontSize: "22px",
+              fontSize: "36px", // Increased from 22px
               color: "#ffffff",
-              marginBottom: "16px",
-              lineHeight: "1.5",
+              marginBottom: "30px", // Increased from 16px
+              lineHeight: "1.4",
+              padding: "0 20px",
             },
           })
         }
@@ -109,8 +114,9 @@ export async function GET(request: NextRequest) {
           width: "100%",
           height: "100%",
           backgroundColor: "#000000",
-          padding: "40px",
+          padding: "60px 40px", // Increased padding
           fontFamily: "system-ui, -apple-system, sans-serif",
+          justifyContent: "space-between", // Distribute content evenly
         }}
       >
         {/* Header */}
@@ -118,18 +124,18 @@ export async function GET(request: NextRequest) {
           style={{
             display: "flex",
             alignItems: "center",
-            marginBottom: "30px",
+            marginBottom: "50px", // Increased from 30px
           }}
         >
           {/* Vinyl Record Icon */}
           <div
             style={{
-              width: "50px",
-              height: "50px",
+              width: "70px", // Increased from 50px
+              height: "70px", // Increased from 50px
               borderRadius: "50%",
               backgroundColor: "#1a1a1a",
-              border: "2px solid #333",
-              marginRight: "16px",
+              border: "3px solid #333", // Increased from 2px
+              marginRight: "20px", // Increased from 16px
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -138,8 +144,8 @@ export async function GET(request: NextRequest) {
           >
             <div
               style={{
-                width: "16px",
-                height: "16px",
+                width: "24px", // Increased from 16px
+                height: "24px", // Increased from 16px
                 borderRadius: "50%",
                 backgroundColor: accentColor,
               }}
@@ -150,7 +156,7 @@ export async function GET(request: NextRequest) {
           <div style={{ display: "flex", flexDirection: "column" }}>
             <div
               style={{
-                fontSize: "28px",
+                fontSize: "42px", // Increased from 28px
                 fontWeight: "bold",
                 background: `linear-gradient(45deg, ${accentColor}, #9333ea)`,
                 backgroundClip: "text",
@@ -162,7 +168,7 @@ export async function GET(request: NextRequest) {
             </div>
             <div
               style={{
-                fontSize: "14px",
+                fontSize: "20px", // Increased from 14px
                 color: "#888",
               }}
             >
@@ -177,11 +183,10 @@ export async function GET(request: NextRequest) {
             display: "flex",
             flexDirection: "column",
             backgroundColor: "rgba(255, 255, 255, 0.05)",
-            borderRadius: "16px",
-            padding: "32px",
-            border: `2px solid ${accentColor}`,
+            borderRadius: "24px", // Increased from 16px
+            padding: "50px 30px", // Increased from 32px
+            border: `3px solid ${accentColor}`, // Increased from 2px
             flex: 1,
-            maxHeight: "1400px",
             overflow: "hidden",
           }}
         >
@@ -206,13 +211,13 @@ export async function GET(request: NextRequest) {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            marginTop: "24px",
-            marginBottom: "16px",
+            marginTop: "40px", // Increased from 24px
+            marginBottom: "20px", // Increased from 16px
           }}
         >
           <div
             style={{
-              fontSize: "16px",
+              fontSize: "22px", // Increased from 16px
               color: "#888",
               marginRight: "12px",
             }}
@@ -225,13 +230,13 @@ export async function GET(request: NextRequest) {
               display: "flex",
               alignItems: "center",
               backgroundColor: "#1DB954",
-              borderRadius: "20px",
-              padding: "8px 16px",
+              borderRadius: "24px", // Increased from 20px
+              padding: "10px 20px", // Increased from 8px 16px
             }}
           >
             <div
               style={{
-                fontSize: "18px",
+                fontSize: "24px", // Increased from 18px
                 fontWeight: "bold",
                 color: "#000000",
               }}
@@ -241,7 +246,7 @@ export async function GET(request: NextRequest) {
           </div>
           <div
             style={{
-              fontSize: "16px",
+              fontSize: "22px", // Increased from 16px
               color: "#888",
               marginLeft: "8px",
             }}
@@ -256,11 +261,12 @@ export async function GET(request: NextRequest) {
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
+            marginTop: "20px", // Added margin
           }}
         >
           <div
             style={{
-              fontSize: "18px",
+              fontSize: "24px", // Increased from 18px
               color: "#666",
             }}
           >
@@ -275,7 +281,7 @@ export async function GET(request: NextRequest) {
             bottom: "0",
             left: "0",
             right: "0",
-            height: "6px",
+            height: "10px", // Increased from 6px
             background: `linear-gradient(90deg, ${accentColor}, #9333ea, ${accentColor})`,
             opacity: 0.6,
           }}
