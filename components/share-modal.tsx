@@ -66,7 +66,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       templateContainer.style.left = "-9999px"
       templateContainer.style.top = "-9999px"
       templateContainer.style.width = "1080px"
-      templateContainer.style.height = "1920px"
+      templateContainer.style.minHeight = "1920px" // Changed from fixed height to minHeight
       templateContainer.style.backgroundColor = "#121212"
       templateContainer.style.backgroundImage = "url(/waveform-bg.png)"
       templateContainer.style.backgroundSize = "cover"
@@ -81,30 +81,33 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
 
       // Calculate optimal font size based on text length
       const textLength = text.length
-      let fontSize = 36 // Increased base font size
+      let fontSize = 32 // Default font size
 
-      // Adjust font size based on text length - more aggressive scaling
-      if (textLength > 2000) {
-        fontSize = 24
+      // Adjust font size based on text length - more nuanced scaling
+      if (textLength > 3000) {
+        fontSize = 18
+      } else if (textLength > 2500) {
+        fontSize = 20
+      } else if (textLength > 2000) {
+        fontSize = 22
       } else if (textLength > 1500) {
-        fontSize = 26
+        fontSize = 24
       } else if (textLength > 1000) {
-        fontSize = 28
+        fontSize = 26
       } else if (textLength > 700) {
-        fontSize = 30
+        fontSize = 28
       } else if (textLength > 500) {
-        fontSize = 32
-      } else if (textLength > 300) {
-        fontSize = 34
+        fontSize = 30
       }
 
-      // Create header (larger, more prominent)
+      // Create header
       const header = document.createElement("div")
       header.style.display = "flex"
       header.style.alignItems = "center"
       header.style.justifyContent = "center"
-      header.style.marginBottom = "40px" // Reduced from 60px
-      header.style.marginTop = "20px" // Reduced from 40px
+      header.style.marginBottom = "40px"
+      header.style.marginTop = "20px"
+      header.style.flexShrink = "0" // Prevent header from shrinking
 
       // Logo placeholder
       const logoContainer = document.createElement("div")
@@ -124,7 +127,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       title.textContent = "VinylVerdict.FM"
       title.style.fontSize = "60px"
       title.style.fontWeight = "bold"
-      title.style.color = "#c026d3" // Solid pinkish-purple color from the gradient
+      title.style.color = "#c026d3" // Solid pinkish-purple color
       title.style.margin = "0"
       title.style.padding = "0"
 
@@ -142,79 +145,76 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       header.appendChild(logoContainer)
       templateContainer.appendChild(header)
 
-      // Create content area (increased by 25%)
+      // Create content area with dynamic height
       const content = document.createElement("div")
-      content.style.flex = "0.8125" // Increased from 0.65 to 0.8125 (25% increase)
       content.style.backgroundColor = "rgba(24, 24, 27, 0.8)"
       content.style.borderRadius = "12px"
       content.style.padding = "40px"
-      content.style.overflowY = "auto"
       content.style.border = "1px solid rgba(147, 51, 234, 0.3)"
-      content.style.display = "flex"
-      content.style.flexDirection = "column"
-      content.style.justifyContent = "flex-start" // Changed from center to flex-start
+      content.style.marginBottom = "40px"
+      content.style.flexGrow = "1" // Allow content to grow
+      content.style.flexShrink = "0" // Prevent content from shrinking
+      content.style.minHeight = "0" // Allow content to be as small as needed
+      content.style.width = "100%"
+      content.style.boxSizing = "border-box"
 
       // Convert markdown to HTML with the calculated font size
       content.innerHTML = convertMarkdownToHtml(text, fontSize)
       templateContainer.appendChild(content)
 
-      // Create footer with fixed dimensions
+      // Create footer with proper sizing
       const footer = document.createElement("div")
-      footer.style.marginTop = "40px" // Reduced from 60px
-      footer.style.marginBottom = "20px" // Reduced from 40px
+      footer.style.marginTop = "auto" // Push footer to bottom
+      footer.style.marginBottom = "20px"
       footer.style.display = "flex"
       footer.style.alignItems = "center"
       footer.style.justifyContent = "center"
-      footer.style.height = "80px" // Fixed height
+      footer.style.flexShrink = "0" // Prevent footer from shrinking
+      footer.style.height = "80px" // Fixed height for footer
 
       const footerContent = document.createElement("div")
       footerContent.style.display = "flex"
       footerContent.style.alignItems = "center"
-      footerContent.style.gap = "12px" // Reduced gap
+      footerContent.style.gap = "12px"
       footerContent.style.backgroundColor = "rgba(0, 0, 0, 0.5)"
       footerContent.style.padding = "12px 24px"
       footerContent.style.borderRadius = "9999px"
-      footerContent.style.height = "60px" // Fixed height for content
-      footerContent.style.maxWidth = "600px" // Limit width
+      footerContent.style.height = "60px"
+      footerContent.style.boxSizing = "border-box"
 
       const builtUsing = document.createElement("span")
       builtUsing.textContent = "Built Using the"
-      builtUsing.style.fontSize = "20px" // Reduced from 24px
+      builtUsing.style.fontSize = "20px"
       builtUsing.style.color = "white"
       builtUsing.style.whiteSpace = "nowrap"
 
-      // Create a container for the Spotify logo with fixed dimensions
-      const spotifyLogoContainer = document.createElement("div")
-      spotifyLogoContainer.style.height = "32px" // Fixed height
-      spotifyLogoContainer.style.width = "140px" // Fixed width
-      spotifyLogoContainer.style.display = "flex"
-      spotifyLogoContainer.style.alignItems = "center"
-      spotifyLogoContainer.style.justifyContent = "center"
-
+      // Load and handle Spotify logo differently
       const spotifyLogo = document.createElement("img")
       spotifyLogo.src = "/spotify_full_logo.svg"
       spotifyLogo.alt = "Spotify"
-      spotifyLogo.style.height = "100%" // Fill container height
-      spotifyLogo.style.width = "100%" // Fill container width
-      spotifyLogo.style.objectFit = "contain" // Maintain aspect ratio
-      spotifyLogo.style.maxHeight = "32px" // Ensure it doesn't exceed container
-
-      spotifyLogoContainer.appendChild(spotifyLogo)
+      spotifyLogo.style.height = "28px" // Smaller height
+      spotifyLogo.style.width = "auto" // Auto width to maintain aspect ratio
+      spotifyLogo.style.display = "block"
+      spotifyLogo.style.objectFit = "contain"
 
       const webApi = document.createElement("span")
       webApi.textContent = "Web API"
-      webApi.style.fontSize = "20px" // Reduced from 24px
+      webApi.style.fontSize = "20px"
       webApi.style.color = "white"
       webApi.style.whiteSpace = "nowrap"
 
       footerContent.appendChild(builtUsing)
-      footerContent.appendChild(spotifyLogoContainer)
+      footerContent.appendChild(spotifyLogo)
       footerContent.appendChild(webApi)
       footer.appendChild(footerContent)
       templateContainer.appendChild(footer)
 
-      // Wait for images to load
+      // Wait for images to load and content to render
       setTimeout(() => {
+        // Adjust container height based on actual content
+        const actualHeight = templateContainer.scrollHeight
+        templateContainer.style.height = `${Math.max(actualHeight, 1920)}px`
+
         // Generate image from the template
         html2canvas(templateContainer, {
           allowTaint: true,
@@ -222,6 +222,8 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
           scale: 2,
           logging: false,
           backgroundColor: null,
+          height: Math.max(actualHeight, 1920),
+          windowHeight: Math.max(actualHeight, 1920),
         })
           .then((canvas) => {
             // Convert canvas to data URL
@@ -246,9 +248,11 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
             })
 
             // Remove the template container
-            document.body.removeChild(templateContainer)
+            if (templateContainer && templateContainer.parentNode) {
+              document.body.removeChild(templateContainer)
+            }
           })
-      }, 1000)
+      }, 1500) // Increased timeout to ensure everything loads
     }
 
     return () => {
@@ -259,8 +263,8 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
 
       // Clean up any template containers that might be left
       const templateContainer = document.getElementById("share-image-template")
-      if (templateContainer) {
-        document.body.removeChild(templateContainer)
+      if (templateContainer && templateContainer.parentNode) {
+        templateContainer.parentNode.removeChild(templateContainer)
       }
     }
   }, [isOpen, text, assistantType])
@@ -296,15 +300,15 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       // Convert headers
       .replace(
         /^# (.*$)/gm,
-        `<h1 style="color: #c026d3; font-size: ${fontSize * 1.4}px; font-weight: bold; margin-bottom: 20px; line-height: 1.3;">$1</h1>`,
+        `<h1 style="color: #c026d3; font-size: ${fontSize * 1.3}px; font-weight: bold; margin-bottom: 20px; line-height: 1.4;">$1</h1>`,
       )
       .replace(
         /^## (.*$)/gm,
-        `<h2 style="color: #c026d3; font-size: ${fontSize * 1.2}px; font-weight: bold; margin-bottom: 16px; line-height: 1.3;">$1</h2>`,
+        `<h2 style="color: #c026d3; font-size: ${fontSize * 1.15}px; font-weight: bold; margin-bottom: 16px; line-height: 1.4;">$1</h2>`,
       )
       .replace(
         /^### (.*$)/gm,
-        `<h3 style="color: #c026d3; font-size: ${fontSize * 1.1}px; font-weight: bold; margin-bottom: 12px; line-height: 1.3;">$1</h3>`,
+        `<h3 style="color: #c026d3; font-size: ${fontSize * 1.05}px; font-weight: bold; margin-bottom: 12px; line-height: 1.4;">$1</h3>`,
       )
       // Convert bold and italic
       .replace(/\*\*(.*?)\*\*/g, `<strong style="color: white; font-weight: bold;">$1</strong>`)
@@ -312,23 +316,23 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       // Convert paragraphs with dynamic font size
       .replace(
         /\n\n/g,
-        `</p><p style="margin-bottom: 20px; color: #e4e4e7; font-size: ${fontSize}px; line-height: 1.5;">`,
+        `</p><p style="margin-bottom: ${fontSize * 0.8}px; color: #e4e4e7; font-size: ${fontSize}px; line-height: 1.6;">`,
       )
       // Convert lists
       .replace(
         /^- (.*$)/gm,
-        `<li style="margin-left: 20px; color: #e4e4e7; font-size: ${fontSize}px; line-height: 1.5;">$1</li>`,
+        `<li style="margin-left: 20px; color: #e4e4e7; font-size: ${fontSize}px; line-height: 1.6;">$1</li>`,
       )
 
     // Wrap in paragraph if not already
     if (!html.startsWith("<h1") && !html.startsWith("<p")) {
-      html = `<p style="margin-bottom: 20px; color: #e4e4e7; font-size: ${fontSize}px; line-height: 1.5;">${html}</p>`
+      html = `<p style="margin-bottom: ${fontSize * 0.8}px; color: #e4e4e7; font-size: ${fontSize}px; line-height: 1.6;">${html}</p>`
     }
 
     // If we extracted a title, add it back at the top with larger font
     if (title) {
       html =
-        `<h1 style="color: #c026d3; font-size: ${fontSize * 1.6}px; font-weight: bold; margin-bottom: 30px; text-align: center; line-height: 1.3;">${title}</h1>` +
+        `<h1 style="color: #c026d3; font-size: ${fontSize * 1.5}px; font-weight: bold; margin-bottom: ${fontSize}px; text-align: center; line-height: 1.3;">${title}</h1>` +
         html
     }
 
