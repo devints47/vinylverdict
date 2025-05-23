@@ -15,6 +15,9 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
+// Changed from 5 minutes to 1 hour
+const SESSION_REFRESH_INTERVAL = 60 * 60 * 1000 // 1 hour in milliseconds
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
   const [user, setUser] = useState<any | null>(null)
@@ -42,7 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  // Check authentication status on mount
+  // Check authentication status on mount and set up periodic checks
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -77,7 +80,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
 
+    // Initial auth check
     checkAuth()
+
+    // Set up periodic authentication checks every hour instead of every 5 minutes
+    const intervalId = setInterval(checkAuth, SESSION_REFRESH_INTERVAL)
+
+    return () => clearInterval(intervalId)
   }, [])
 
   // Handle login

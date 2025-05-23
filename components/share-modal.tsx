@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/use-toast"
@@ -24,18 +24,53 @@ interface ShareOption {
   description: string
 }
 
+const loadingMessages = [
+  "Generating your image...",
+  "Making it look perfect...",
+  "Adding some vinyl magic...",
+  "Preparing your share...",
+  "Almost ready...",
+  "Finalizing your verdict...",
+  "Crafting your story...",
+]
+
 export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: ShareModalProps) {
   const [imageUrl, setImageUrl] = useState<string>("")
   const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null)
   const [imageLoaded, setImageLoaded] = useState(false)
+  const [loadingMessageIndex, setLoadingMessageIndex] = useState(0)
+  const loadingIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     if (isOpen) {
       const url = generateShareImageUrl(text, assistantType)
       setImageUrl(url)
       setImageLoaded(false)
+
+      // Start cycling through loading messages
+      setLoadingMessageIndex(0)
+      if (loadingIntervalRef.current) {
+        clearInterval(loadingIntervalRef.current)
+      }
+
+      loadingIntervalRef.current = setInterval(() => {
+        setLoadingMessageIndex((prev) => (prev + 1) % loadingMessages.length)
+      }, 2000)
+    }
+
+    return () => {
+      if (loadingIntervalRef.current) {
+        clearInterval(loadingIntervalRef.current)
+      }
     }
   }, [isOpen, text, assistantType])
+
+  // Clear interval when image is loaded
+  useEffect(() => {
+    if (imageLoaded && loadingIntervalRef.current) {
+      clearInterval(loadingIntervalRef.current)
+    }
+  }, [imageLoaded])
 
   const shareOptions: ShareOption[] = [
     {
@@ -196,30 +231,35 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
             </div>
           </DialogHeader>
 
-          <div className="relative mx-auto max-w-[240px]">
-            {!imageLoaded && (
-              <div className="absolute inset-0 aspect-[9/16] bg-zinc-800 rounded-lg flex items-center justify-center z-10">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
+          <div className="relative mx-auto w-full" style={{ maxWidth: "280px" }}>
+            {!imageLoaded ? (
+              <div className="aspect-[9/16] bg-zinc-800 rounded-lg flex flex-col items-center justify-center p-4 text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mb-4"></div>
+                <p className="text-purple-300 font-medium text-lg">{loadingMessages[loadingMessageIndex]}</p>
+                <p className="text-zinc-400 text-sm mt-2">This may take a few moments</p>
+              </div>
+            ) : (
+              <div className="relative">
+                <img
+                  src={imageUrl || "/placeholder.svg"}
+                  alt={`${platform.name} preview`}
+                  className="w-full rounded-lg border border-zinc-700 object-contain"
+                  style={{ aspectRatio: "9/16" }}
+                  onLoad={() => setImageLoaded(true)}
+                  onError={() => {
+                    toast({
+                      title: "Preview failed",
+                      description: "Could not load image preview, but sharing should still work.",
+                      variant: "destructive",
+                    })
+                  }}
+                />
+                <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">1080×1920</div>
               </div>
             )}
-            <img
-              src={imageUrl || "/placeholder.svg"}
-              alt={`${platform.name} preview`}
-              className="w-full rounded-lg border border-zinc-700 object-contain"
-              style={{ aspectRatio: "9/16" }}
-              onLoad={() => setImageLoaded(true)}
-              onError={() => {
-                toast({
-                  title: "Preview failed",
-                  description: "Could not load image preview, but sharing should still work.",
-                  variant: "destructive",
-                })
-              }}
-            />
-            <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">1080×1920</div>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 mt-2">
             <Button
               onClick={handleShareAfterPreview}
               disabled={!imageLoaded}
