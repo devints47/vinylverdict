@@ -39,10 +39,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const router = useRouter()
 
   const checkAuth = async () => {
+    console.log("🚀 checkAuth function called!")
     try {
-      console.log("🔍 Checking authentication...")
+      console.log("🔍 About to call checkAuthentication...")
       const isAuthed = await checkAuthentication()
-      console.log("✅ Authentication result:", isAuthed)
+      console.log("✅ checkAuthentication returned:", isAuthed)
       setIsAuthenticated(isAuthed)
 
       if (isAuthed) {
@@ -53,21 +54,26 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       } else {
         setUser(null)
       }
-      setError(null) // Clear any previous errors
+      setError(null)
     } catch (error) {
-      console.error("❌ Error checking authentication:", error)
+      console.error("❌ Error in checkAuth:", error)
       setIsAuthenticated(false)
       setUser(null)
       setError(error instanceof Error ? error.message : "Authentication failed")
     } finally {
-      console.log("🏁 Auth check complete, setting loading to false")
+      console.log("🏁 Setting isLoading to false")
       setIsLoading(false)
     }
   }
 
   useEffect(() => {
-    console.log("🚀 AuthProvider mounted, starting auth check...")
-    checkAuth()
+    console.log("🎯 AuthProvider useEffect triggered!")
+
+    // Add a small delay to ensure everything is mounted
+    const timeoutId = setTimeout(() => {
+      console.log("⏰ Starting delayed auth check...")
+      checkAuth()
+    }, 100)
 
     // Set up interval to periodically check authentication
     const interval = setInterval(() => {
@@ -76,7 +82,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }, SESSION_REFRESH_INTERVAL)
 
     return () => {
-      console.log("🧹 Cleaning up auth interval")
+      console.log("🧹 Cleaning up auth timeout and interval")
+      clearTimeout(timeoutId)
       clearInterval(interval)
     }
   }, [])
