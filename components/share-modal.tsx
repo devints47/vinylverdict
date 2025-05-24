@@ -43,6 +43,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
   const loadingIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const imgRef = useRef<HTMLImageElement>(null)
   const templateRef = useRef<HTMLDivElement>(null)
+  const cleanupTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // Fetch user profile when modal opens - using same pattern as dashboard
   useEffect(() => {
@@ -105,6 +106,8 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       templateContainer.style.fontFamily = "'Inter', sans-serif"
       templateContainer.style.color = "white"
       templateContainer.style.zIndex = "-1000"
+      // Add a unique class for easier identification
+      templateContainer.className = "vinyl-verdict-share-template"
       document.body.appendChild(templateContainer)
 
       // Calculate optimal font size based on text length
@@ -184,6 +187,8 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       logoImg.alt = "VinylVerdict Logo"
       logoImg.style.height = "80px"
       logoImg.style.width = "80px"
+      // Ensure image loads properly for html2canvas
+      logoImg.crossOrigin = "anonymous"
 
       const title = document.createElement("h1")
       title.textContent = "VinylVerdict.FM"
@@ -199,20 +204,30 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       templateContainer.appendChild(footer)
 
       // Wait for images to load and content to render
-      setTimeout(() => {
-        // Adjust container height based on actual content
-        const actualHeight = templateContainer.scrollHeight
-        templateContainer.style.height = `${Math.max(actualHeight, 1920)}px`
+      const generateImage = () => {
+        // Double-check that the element still exists
+        const existingContainer = document.getElementById("share-image-template")
+        if (!existingContainer) {
+          console.warn("Template container not found during image generation")
+          return
+        }
 
-        // Generate image from the template
-        html2canvas(templateContainer, {
+        // Adjust container height based on actual content
+        const actualHeight = existingContainer.scrollHeight
+        existingContainer.style.height = `${Math.max(actualHeight, 1920)}px`
+
+        // Generate image from the template with improved options
+        html2canvas(existingContainer, {
           allowTaint: true,
           useCORS: true,
           scale: 2,
-          logging: false,
+          logging: false, // Disable html2canvas logging to reduce console noise
           backgroundColor: null,
           height: Math.max(actualHeight, 1920),
           windowHeight: Math.max(actualHeight, 1920),
+          // Add these options to improve stability
+          foreignObjectRendering: false,
+          removeContainer: false, // Don't let html2canvas remove the container
         })
           .then((canvas) => {
             // Convert canvas to data URL
@@ -220,13 +235,22 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
             setImageUrl(imageUrl)
             setShowingImage(true)
 
-            // Clean up
+            // Clean up intervals
             if (loadingIntervalRef.current) {
               clearInterval(loadingIntervalRef.current)
             }
 
-            // Remove the template container
-            document.body.removeChild(templateContainer)
+            // Schedule cleanup after a short delay to ensure html2canvas is completely done
+            cleanupTimeoutRef.current = setTimeout(() => {
+              const containerToRemove = document.getElementById("share-image-template")
+              if (containerToRemove && containerToRemove.parentNode) {
+                try {
+                  document.body.removeChild(containerToRemove)
+                } catch (error) {
+                  console.warn("Error removing template container:", error)
+                }
+              }
+            }, 100)
           })
           .catch((error) => {
             console.error("Error generating image:", error)
@@ -236,12 +260,33 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
               variant: "destructive",
             })
 
-            // Remove the template container
-            if (templateContainer && templateContainer.parentNode) {
-              document.body.removeChild(templateContainer)
+            // Clean up on error
+            const containerToRemove = document.getElementById("share-image-template")
+            if (containerToRemove && containerToRemove.parentNode) {
+              try {
+                document.body.removeChild(containerToRemove)
+              } catch (cleanupError) {
+                console.warn("Error removing template container after error:", cleanupError)
+              }
             }
           })
-      }, 1500)
+      }
+
+      // Wait for logo image to load before generating
+      logoImg.onload = () => {
+        setTimeout(generateImage, 500) // Additional delay to ensure everything is rendered
+      }
+
+      // Fallback in case image doesn't load
+      logoImg.onerror = () => {
+        console.warn("Logo image failed to load, proceeding with image generation")
+        setTimeout(generateImage, 500)
+      }
+
+      // If image is already cached, onload might not fire
+      if (logoImg.complete) {
+        setTimeout(generateImage, 500)
+      }
     }
 
     return () => {
@@ -250,13 +295,22 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
         clearInterval(loadingIntervalRef.current)
       }
 
+      // Clean up timeout
+      if (cleanupTimeoutRef.current) {
+        clearTimeout(cleanupTimeoutRef.current)
+      }
+
       // Clean up any template containers that might be left
       const templateContainer = document.getElementById("share-image-template")
       if (templateContainer && templateContainer.parentNode) {
-        templateContainer.parentNode.removeChild(templateContainer)
+        try {
+          templateContainer.parentNode.removeChild(templateContainer)
+        } catch (error) {
+          console.warn("Error cleaning up template container:", error)
+        }
       }
     }
-  }, [isOpen, text, assistantType, userProfile]) // Include userProfile in dependencies so it updates when available
+  }, [isOpen, text, assistantType, userProfile])
 
   // Get the personality name based on assistant type
   const getPersonalityName = (type: string): string => {
