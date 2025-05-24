@@ -74,7 +74,7 @@ function CollapsibleCriticInfo({ selectedVinyl }: { selectedVinyl: VinylDesign |
 
             {/* Desktop view - Always visible content */}
             <div className="hidden md:block overflow-hidden mt-1 py-1">
-              <p className="text-zinc-300 text-sm leading-relaxed">
+              <p className="text-zinc-300 text-base leading-relaxed">
                 <span className="font-bold text-purple-gradient">{selectedVinyl.name}:</span>{" "}
                 {selectedVinyl.description}
               </p>
