@@ -6,17 +6,20 @@
  */
 export async function getValidAccessToken(): Promise<string | null> {
   try {
+    console.log("🔑 Getting valid access token...")
     const response = await fetch("/api/auth/token")
+    console.log("🔑 Token response status:", response.status)
 
     if (!response.ok) {
-      console.error("Failed to get valid access token:", response.status)
+      console.error("❌ Failed to get valid access token:", response.status)
       return null
     }
 
     const data = await response.json()
+    console.log("🔑 Token data received:", data.accessToken ? "✅ Token present" : "❌ No token")
     return data.accessToken || null
   } catch (error) {
-    console.error("Error getting valid access token:", error)
+    console.error("❌ Error getting valid access token:", error)
     return null
   }
 }
@@ -26,10 +29,11 @@ export async function getValidAccessToken(): Promise<string | null> {
  */
 export async function redirectToSpotifyAuthorize() {
   try {
-    console.log("Initiating Spotify authorization...")
+    console.log("🎵 Initiating Spotify authorization...")
 
     // Call our server-side API to get the authorization URL
     const response = await fetch("/api/auth/authorize")
+    console.log("🎵 Authorize response status:", response.status)
 
     if (!response.ok) {
       const error = await response.json()
@@ -37,6 +41,7 @@ export async function redirectToSpotifyAuthorize() {
     }
 
     const { authUrl, codeVerifier, state } = await response.json()
+    console.log("🎵 Got auth URL, redirecting...")
 
     // Store code verifier and state in localStorage as a fallback for Safari iOS
     // This addresses the issue where Safari might drop cookies during redirects
@@ -44,9 +49,9 @@ export async function redirectToSpotifyAuthorize() {
       try {
         localStorage.setItem("spotify_code_verifier_fallback", codeVerifier)
         localStorage.setItem("spotify_auth_state_fallback", state)
-        console.log("Stored auth fallback values in localStorage")
+        console.log("💾 Stored auth fallback values in localStorage")
       } catch (storageError) {
-        console.warn("Could not store auth fallback in localStorage:", storageError)
+        console.warn("⚠️ Could not store auth fallback in localStorage:", storageError)
         // Continue even if localStorage fails - we'll still have cookies for most browsers
       }
     }
@@ -54,7 +59,7 @@ export async function redirectToSpotifyAuthorize() {
     // Redirect to Spotify's authorization page
     window.location.href = authUrl
   } catch (error) {
-    console.error("Error starting authorization:", error)
+    console.error("❌ Error starting authorization:", error)
     throw error
   }
 }
@@ -64,7 +69,7 @@ export async function redirectToSpotifyAuthorize() {
  */
 export async function exchangeCodeForTokens(code: string, fallbackVerifier?: string): Promise<boolean> {
   try {
-    console.log("Exchanging code for tokens...")
+    console.log("🔄 Exchanging code for tokens...")
 
     const payload: { code: string; codeVerifier?: string } = { code }
 
@@ -72,7 +77,7 @@ export async function exchangeCodeForTokens(code: string, fallbackVerifier?: str
     // This allows the server to use it if the cookie is missing
     if (fallbackVerifier) {
       payload.codeVerifier = fallbackVerifier
-      console.log("Using fallback code verifier")
+      console.log("🔄 Using fallback code verifier")
     }
 
     const response = await fetch("/api/auth/token", {
@@ -82,6 +87,8 @@ export async function exchangeCodeForTokens(code: string, fallbackVerifier?: str
       },
       body: JSON.stringify(payload),
     })
+
+    console.log("🔄 Token exchange response status:", response.status)
 
     if (!response.ok) {
       // Try to parse the error response
@@ -97,9 +104,10 @@ export async function exchangeCodeForTokens(code: string, fallbackVerifier?: str
     }
 
     const result = await response.json()
+    console.log("🔄 Token exchange result:", result.success ? "✅ Success" : "❌ Failed")
     return result.success
   } catch (error) {
-    console.error("Error exchanging code for tokens:", error)
+    console.error("❌ Error exchanging code for tokens:", error)
     throw error // Re-throw to allow the caller to handle it
   }
 }
@@ -112,15 +120,20 @@ export async function validateAccessToken(): Promise<{
   reason?: string
 }> {
   try {
+    console.log("✅ Validating access token...")
     const response = await fetch("/api/auth/validate")
+    console.log("✅ Validate response status:", response.status)
 
     if (!response.ok) {
+      console.log("❌ Token validation failed - request failed")
       return { isValid: false, reason: "request_failed" }
     }
 
-    return await response.json()
+    const result = await response.json()
+    console.log("✅ Token validation result:", result)
+    return result
   } catch (error) {
-    console.error("Error validating access token:", error)
+    console.error("❌ Error validating access token:", error)
     return { isValid: false, reason: "request_failed" }
   }
 }
@@ -130,16 +143,18 @@ export async function validateAccessToken(): Promise<{
  */
 export async function checkAuthentication(): Promise<boolean> {
   try {
+    console.log("🔍 Starting authentication check...")
     const { isValid, reason } = await validateAccessToken()
 
     if (!isValid) {
-      console.log(`Token invalid, reason: ${reason}`)
+      console.log(`❌ Token invalid, reason: ${reason}`)
       return false
     }
 
+    console.log("✅ Authentication check passed")
     return true
   } catch (error) {
-    console.error("Error checking authentication:", error)
+    console.error("❌ Error checking authentication:", error)
     return false
   }
 }
@@ -149,11 +164,13 @@ export async function checkAuthentication(): Promise<boolean> {
  */
 export async function logout(): Promise<boolean> {
   try {
+    console.log("👋 Logging out...")
     // Clear any localStorage fallback values
     if (typeof window !== "undefined") {
       try {
         localStorage.removeItem("spotify_code_verifier_fallback")
         localStorage.removeItem("spotify_auth_state_fallback")
+        console.log("🧹 Cleared localStorage fallback values")
       } catch (e) {
         // Ignore localStorage errors
       }
@@ -163,9 +180,10 @@ export async function logout(): Promise<boolean> {
       method: "POST",
     })
 
+    console.log("👋 Logout response status:", response.status)
     return response.ok
   } catch (error) {
-    console.error("Error logging out:", error)
+    console.error("❌ Error logging out:", error)
     return false
   }
 }
@@ -175,15 +193,20 @@ export async function logout(): Promise<boolean> {
  */
 export async function getCurrentUser() {
   try {
+    console.log("👤 Getting current user...")
     const response = await fetch("/api/auth/me")
+    console.log("👤 User response status:", response.status)
 
     if (!response.ok) {
+      console.log("❌ Failed to get current user")
       return null
     }
 
-    return await response.json()
+    const userData = await response.json()
+    console.log("👤 User data received:", userData ? "✅ Success" : "❌ No data")
+    return userData
   } catch (error) {
-    console.error("Error getting current user:", error)
+    console.error("❌ Error getting current user:", error)
     return null
   }
 }
