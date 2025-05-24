@@ -47,7 +47,7 @@ function CollapsibleCriticInfo({ selectedVinyl }: { selectedVinyl: VinylDesign |
   }
 
   return (
-    <div className="bg-zinc-900/50 rounded-xl border border-zinc-800 overflow-hidden h-full">
+    <div className="bg-zinc-900/50 rounded-xl border border-zinc-800 overflow-hidden h-[132px]">
       {selectedVinyl ? (
         <>
           <div className="p-4 h-full flex flex-col justify-center">
@@ -105,7 +105,7 @@ function UserProfileCard({
   if (!profile) return null
 
   return (
-    <div className="w-full bg-gradient-to-r from-zinc-900 to-black rounded-xl border border-zinc-800 overflow-hidden shadow-lg">
+    <div className="w-full bg-gradient-to-r from-zinc-900 to-black rounded-xl border border-zinc-800 overflow-hidden shadow-lg h-[132px]">
       <div className="grid grid-cols-5 p-3">
         {/* Left Column - User Info */}
         <div className="col-span-3 pr-2">
