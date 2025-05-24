@@ -34,7 +34,7 @@ interface ResponseStore {
 
 // Create a session storage key
 const SESSION_STORAGE_KEY = "vinylVerdict_responses"
-const RESPONSE_EXPIRATION_TIME = 5 * 60 * 1000 // 5 minutes in milliseconds
+const RESPONSE_EXPIRATION_TIME = 60 * 60 * 1000 // 1 hour in milliseconds
 
 export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, selectedVinyl }: RoastMeProps) {
   const [isLoading, setIsLoading] = useState(false)
