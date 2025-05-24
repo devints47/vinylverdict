@@ -8,6 +8,7 @@ interface AuthContextType {
   isAuthenticated: boolean
   isLoading: boolean
   user: any | null
+  error: string | null // Add error property
   login: () => void
   logout: () => void
 }
@@ -16,6 +17,7 @@ const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
   isLoading: true,
   user: null,
+  error: null, // Add default error value
   login: () => {},
   logout: () => {},
 })
@@ -33,35 +35,50 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [user, setUser] = useState<any>(null)
+  const [error, setError] = useState<string | null>(null) // Add error state
   const router = useRouter()
 
   const checkAuth = async () => {
     try {
+      console.log("🔍 Checking authentication...")
       const isAuthed = await checkAuthentication()
+      console.log("✅ Authentication result:", isAuthed)
       setIsAuthenticated(isAuthed)
 
       if (isAuthed) {
+        console.log("👤 Fetching user data...")
         const userData = await getCurrentUser()
+        console.log("✅ User data:", userData ? "loaded" : "failed")
         setUser(userData)
       } else {
         setUser(null)
       }
+      setError(null) // Clear any previous errors
     } catch (error) {
-      console.error("Error checking authentication:", error)
+      console.error("❌ Error checking authentication:", error)
       setIsAuthenticated(false)
       setUser(null)
+      setError(error instanceof Error ? error.message : "Authentication failed")
     } finally {
+      console.log("🏁 Auth check complete, setting loading to false")
       setIsLoading(false)
     }
   }
 
   useEffect(() => {
+    console.log("🚀 AuthProvider mounted, starting auth check...")
     checkAuth()
 
     // Set up interval to periodically check authentication
-    const interval = setInterval(checkAuth, SESSION_REFRESH_INTERVAL)
+    const interval = setInterval(() => {
+      console.log("⏰ Periodic auth check...")
+      checkAuth()
+    }, SESSION_REFRESH_INTERVAL)
 
-    return () => clearInterval(interval)
+    return () => {
+      console.log("🧹 Cleaning up auth interval")
+      clearInterval(interval)
+    }
   }, [])
 
   const handleLogin = () => {
@@ -81,6 +98,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         isAuthenticated,
         isLoading,
         user,
+        error, // Add error to context
         login: handleLogin,
         logout: handleLogout,
       }}

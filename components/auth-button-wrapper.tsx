@@ -8,17 +8,48 @@ import { usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
 
 export function AuthButtonWrapper() {
-  const { isAuthenticated, logout, isLoading } = useAuth()
+  const { isAuthenticated, logout, isLoading, error } = useAuth()
   const pathname = usePathname()
   const [mounted, setMounted] = useState(false)
 
   // Only show auth buttons after hydration to prevent layout shift
   useEffect(() => {
     setMounted(true)
-  }, [])
+    console.log("🔧 AuthButtonWrapper mounted, auth state:", { isAuthenticated, isLoading, error })
+  }, [isAuthenticated, isLoading, error])
 
   // Before hydration, render a placeholder with the same dimensions
-  if (!mounted || isLoading) {
+  if (!mounted) {
+    return (
+      <div className="flex items-center gap-4">
+        <button
+          disabled
+          className="relative overflow-hidden btn-gradient holographic-shimmer text-white font-bold py-2 px-6 text-base rounded-full transition-all duration-300 flex items-center gap-2 shadow-lg min-w-[120px] justify-center"
+        >
+          <Loader2 size={18} className="animate-spin" />
+          <span>Loading</span>
+        </button>
+      </div>
+    )
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="flex items-center gap-4">
+        <button
+          onClick={() => window.location.reload()}
+          className="relative overflow-hidden bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 text-base rounded-full transition-all duration-300 flex items-center gap-2 shadow-lg min-w-[120px] justify-center"
+          title={error}
+        >
+          <span>Retry</span>
+        </button>
+      </div>
+    )
+  }
+
+  // Show loading state
+  if (isLoading) {
     return (
       <div className="flex items-center gap-4">
         <button
