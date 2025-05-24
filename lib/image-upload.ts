@@ -1,18 +1,12 @@
-export async function uploadRoastImage(imageBlob: Blob): Promise<string> {
+export async function uploadRoastImage(blob: Blob): Promise<string> {
   try {
-    // Generate unique filename
-    const timestamp = Date.now()
-    const randomId = Math.random().toString(36).substring(2, 15)
-    const filename = `roast-${timestamp}-${randomId}.png`
-
-    // Upload to our API endpoint
-    const response = await fetch(`/api/upload-roast-image?filename=${filename}`, {
+    const response = await fetch("/api/upload-roast-image", {
       method: "POST",
-      body: imageBlob,
+      body: blob,
     })
 
     if (!response.ok) {
-      throw new Error("Failed to upload image")
+      throw new Error(`Upload failed: ${response.statusText}`)
     }
 
     const { url } = await response.json()

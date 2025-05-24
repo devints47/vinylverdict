@@ -3,17 +3,17 @@ import { type NextRequest, NextResponse } from "next/server"
 
 export async function POST(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const filename = searchParams.get("filename")
-
-    if (!filename) {
-      return NextResponse.json({ error: "Filename is required" }, { status: 400 })
-    }
-
-    // Get the image data from the request body
+    // Get the blob from the request
     const blob = await request.blob()
 
-    // Upload to Vercel Blob with a unique filename
+    if (!blob) {
+      return NextResponse.json({ error: "No image provided" }, { status: 400 })
+    }
+
+    // Generate a unique filename
+    const filename = `roast-${Date.now()}-${Math.random().toString(36).substring(2, 15)}.png`
+
+    // Upload to Vercel Blob
     const { url } = await put(filename, blob, {
       access: "public",
       contentType: "image/png",
