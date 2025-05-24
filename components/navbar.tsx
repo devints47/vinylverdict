@@ -46,7 +46,7 @@ export function Navbar() {
             <Link href="/" className="flex items-center gap-1">
               <VinylLogo size={48} />
               <div className="flex flex-col">
-                <span className="font-bold text-2xl text-purple-gradient tracking-tight">VinylVerdict</span>
+                <span className="font-bold text-2xl text-purple-gradient tracking-tight">VinylVerdict.FM</span>
                 <span className="text-xs text-zinc-400 -mt-1">Personalized Music Taste Critic</span>
               </div>
             </Link>

@@ -131,18 +131,36 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
         fontSize = 30
       }
 
-      // Create subtitle at the top
+      // Create header with vinyl logo
+      const header = document.createElement("div")
+      header.style.display = "flex"
+      header.style.flexDirection = "column"
+      header.style.alignItems = "center"
+      header.style.marginBottom = "40px"
+      header.style.width = "100%"
+      header.style.maxWidth = "800px"
+
+      // Add vinyl logo centered above subtitle
+      const vinylLogo = document.createElement("img")
+      vinylLogo.src = "/vinyl-favicon.png"
+      vinylLogo.alt = "VinylVerdict Logo"
+      vinylLogo.style.height = "120px"
+      vinylLogo.style.width = "120px"
+      vinylLogo.style.marginBottom = "20px"
+      vinylLogo.crossOrigin = "anonymous"
+
+      // Create subtitle with gradient colors
       const subtitle = document.createElement("div")
       subtitle.style.textAlign = "center"
-      subtitle.style.marginBottom = "40px"
       subtitle.style.width = "100%"
-      subtitle.style.maxWidth = "800px"
 
       const subtitleText = document.createElement("h2")
       const personalityName = getPersonalityName(assistantType)
-      // Use userProfile if available, otherwise fallback to generic text
       const username = userProfile?.display_name || userProfile?.id || "Your Music"
-      subtitleText.textContent = `${personalityName}'s analysis of ${username}`
+
+      // Create the subtitle with gradient styling for both personality and username
+      subtitleText.innerHTML = `<span style="background: linear-gradient(135deg, #c026d3 0%, #9333ea 50%, #7c3aed 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">${personalityName}</span>'s analysis of <span style="background: linear-gradient(135deg, #c026d3 0%, #9333ea 50%, #7c3aed 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">${username}</span>`
+
       subtitleText.style.fontSize = "32px"
       subtitleText.style.fontWeight = "600"
       subtitleText.style.color = "#d4d4d8"
@@ -151,7 +169,9 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       subtitleText.style.lineHeight = "1.4"
 
       subtitle.appendChild(subtitleText)
-      templateContainer.appendChild(subtitle)
+      header.appendChild(vinylLogo)
+      header.appendChild(subtitle)
+      templateContainer.appendChild(header)
 
       // Create content area with no minHeight - only as tall as content
       const content = document.createElement("div")
@@ -171,8 +191,8 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       // Create footer with logo and VinylVerdict.FM
       const footer = document.createElement("div")
       footer.style.display = "flex"
+      footer.style.flexDirection = "column"
       footer.style.alignItems = "center"
-      footer.style.justifyContent = "center"
       footer.style.width = "100%"
       footer.style.maxWidth = "800px"
 
@@ -181,26 +201,44 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       logoContainer.style.display = "flex"
       logoContainer.style.alignItems = "center"
       logoContainer.style.gap = "16px"
+      logoContainer.style.marginBottom = "16px"
 
       const logoImg = document.createElement("img")
       logoImg.src = "/vinyl-favicon.png"
       logoImg.alt = "VinylVerdict Logo"
-      logoImg.style.height = "80px"
-      logoImg.style.width = "80px"
-      // Ensure image loads properly for html2canvas
+      logoImg.style.height = "60px"
+      logoImg.style.width = "60px"
       logoImg.crossOrigin = "anonymous"
 
       const title = document.createElement("h1")
       title.textContent = "VinylVerdict.FM"
-      title.style.fontSize = "48px"
+      title.style.fontSize = "42px"
       title.style.fontWeight = "bold"
-      title.style.color = "#c026d3"
+      // Apply the same gradient as the site
+      title.style.background = "linear-gradient(135deg, #c026d3 0%, #9333ea 50%, #7c3aed 100%)"
+      title.style.webkitBackgroundClip = "text"
+      title.style.webkitTextFillColor = "transparent"
+      title.style.backgroundClip = "text"
       title.style.margin = "0"
       title.style.padding = "0"
+      title.style.lineHeight = "1"
+      title.style.display = "flex"
+      title.style.alignItems = "center"
+
+      // Add promotional sub-text
+      const promoText = document.createElement("p")
+      promoText.textContent = "Get your own personalized verdict at VinylVerdict.FM"
+      promoText.style.fontSize = "18px"
+      promoText.style.color = "#9ca3af"
+      promoText.style.margin = "0"
+      promoText.style.padding = "0"
+      promoText.style.textAlign = "center"
+      promoText.style.fontWeight = "400"
 
       logoContainer.appendChild(logoImg)
       logoContainer.appendChild(title)
       footer.appendChild(logoContainer)
+      footer.appendChild(promoText)
       templateContainer.appendChild(footer)
 
       // Wait for images to load and content to render
@@ -272,21 +310,42 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
           })
       }
 
-      // Wait for logo image to load before generating
-      logoImg.onload = () => {
-        setTimeout(generateImage, 500) // Additional delay to ensure everything is rendered
+      // Wait for both logo images to load before generating
+      let imagesLoaded = 0
+      const totalImages = 2
+
+      const checkImagesLoaded = () => {
+        imagesLoaded++
+        if (imagesLoaded === totalImages) {
+          setTimeout(generateImage, 500)
+        }
       }
 
-      // Fallback in case image doesn't load
+      // Header vinyl logo
+      vinylLogo.onload = checkImagesLoaded
+      vinylLogo.onerror = () => {
+        console.warn("Header vinyl logo failed to load")
+        checkImagesLoaded()
+      }
+
+      // Footer logo
+      logoImg.onload = checkImagesLoaded
       logoImg.onerror = () => {
-        console.warn("Logo image failed to load, proceeding with image generation")
-        setTimeout(generateImage, 500)
+        console.warn("Footer logo failed to load")
+        checkImagesLoaded()
       }
 
-      // If image is already cached, onload might not fire
-      if (logoImg.complete) {
-        setTimeout(generateImage, 500)
-      }
+      // If images are already cached, onload might not fire
+      if (vinylLogo.complete) checkImagesLoaded()
+      if (logoImg.complete) checkImagesLoaded()
+
+      // Fallback timeout in case images don't load
+      setTimeout(() => {
+        if (imagesLoaded < totalImages) {
+          console.warn("Some images didn't load, proceeding with image generation")
+          setTimeout(generateImage, 500)
+        }
+      }, 3000)
     }
 
     return () => {

@@ -99,7 +99,7 @@ export default function LandingPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div>
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-                  <span className="text-purple-gradient">VinylVerdict</span> - Your Music Taste Analyzer
+                  <span className="text-purple-gradient">VinylVerdict.FM</span> - Your Music Taste Personified
                 </h1>
                 <p className="text-xl text-zinc-400 mb-8 max-w-lg">
                   Connect your Spotify account and choose from multiple unique personalities to analyze your listening
