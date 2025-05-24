@@ -98,9 +98,10 @@ export default function LandingPage() {
           <div className="container mx-auto relative z-10">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div>
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-                  <span className="text-purple-gradient">VinylVerdict.FM</span> - Your Music Taste Personified
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 leading-tight">
+                  <span className="text-purple-gradient">VinylVerdict.FM</span>
                 </h1>
+                <h2 className="text-2xl mb-2md:text-3xl lg:text-4xl font-bold leading-tight">  Your Music Taste Personified</h2>
                 <p className="text-xl text-zinc-400 mb-8 max-w-lg">
                   Connect your Spotify account and choose from multiple unique personalities to analyze your listening
                   habits with distinct perspectives, from brutal honesty to historical insights.

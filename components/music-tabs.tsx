@@ -60,19 +60,10 @@ function TabButton({ isActive, onClick, icon, label }: TabButtonProps) {
       className={cn(
         "flex-1 py-3 px-4 flex items-center justify-center gap-2 transition-all duration-300 relative overflow-hidden",
         // Base styling for all tabs - adding a subtle background to inactive tabs
-        "bg-zinc-900/80 border-b-2",
+        "bg-zinc-900/80",
         // Active tab styling
-        isActive
-          ? "text-white font-medium border-bright-purple"
-          : "text-zinc-400 hover:text-white hover:bg-zinc-800 border-zinc-800 hover:border-zinc-600",
+        isActive ? "text-white font-medium" : "text-zinc-400 hover:text-white hover:bg-zinc-800",
       )}
-      style={{
-        borderLeftWidth: "1px",
-        borderRightWidth: "1px",
-        borderImageSource:
-          "linear-gradient(135deg, var(--purple-gradient-start), var(--purple-gradient-mid), var(--purple-gradient-end))",
-        borderImageSlice: "1",
-      }}
     >
       {/* Background gradient for active tab */}
       {isActive && <div className="absolute inset-0 bg-purple-gradient opacity-100"></div>}

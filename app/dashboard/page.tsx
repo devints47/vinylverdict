@@ -47,7 +47,7 @@ function CollapsibleCriticInfo({ selectedVinyl }: { selectedVinyl: VinylDesign |
   }
 
   return (
-    <div className="bg-zinc-900/50 rounded-xl border border-zinc-800 overflow-hidden h-[132px]">
+    <div className="bg-zinc-900/50 rounded-xl border border-zinc-800 overflow-hidden h-[132px] md:h-[132px]">
       {selectedVinyl ? (
         <>
           <div className="p-4 h-full flex flex-col justify-center">
@@ -55,7 +55,7 @@ function CollapsibleCriticInfo({ selectedVinyl }: { selectedVinyl: VinylDesign |
             <div className="md:hidden">
               <button
                 onClick={toggleExpand}
-                className="flex items-center justify-between w-full text-sm text-zinc-400 hover:text-white transition-colors"
+                className="flex items-center justify-between w-full text-sm text-zinc-400 hover:text-white transition-colors py-2"
                 aria-expanded={isExpanded}
               >
                 <span className="flex items-center">
@@ -66,7 +66,7 @@ function CollapsibleCriticInfo({ selectedVinyl }: { selectedVinyl: VinylDesign |
               </button>
 
               <div
-                className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? "max-h-96 mt-3 py-2" : "max-h-0"}`}
+                className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? "max-h-96 pb-2" : "max-h-0"}`}
               >
                 <p className="text-zinc-300">{selectedVinyl.description}</p>
               </div>
