@@ -140,16 +140,17 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       header.style.width = "100%"
       header.style.maxWidth = "800px"
 
-      // Add vinyl logo centered above subtitle
+      // Add vinyl logo centered above subtitle with purple glow
       const vinylLogo = document.createElement("img")
       vinylLogo.src = "/vinyl-favicon.png"
       vinylLogo.alt = "VinylVerdict Logo"
       vinylLogo.style.height = "120px"
       vinylLogo.style.width = "120px"
       vinylLogo.style.marginBottom = "20px"
+      vinylLogo.style.filter = "drop-shadow(0 0 20px rgba(147, 51, 234, 0.6))"
       vinylLogo.crossOrigin = "anonymous"
 
-      // Create subtitle with gradient colors
+      // Create subtitle with purple colors instead of gradient
       const subtitle = document.createElement("div")
       subtitle.style.textAlign = "center"
       subtitle.style.width = "100%"
@@ -158,8 +159,8 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       const personalityName = getPersonalityName(assistantType)
       const username = userProfile?.display_name || userProfile?.id || "Your Music"
 
-      // Create the subtitle with gradient styling for both personality and username
-      subtitleText.innerHTML = `<span style="background: linear-gradient(135deg, #c026d3 0%, #9333ea 50%, #7c3aed 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">${personalityName}</span>'s analysis of <span style="background: linear-gradient(135deg, #c026d3 0%, #9333ea 50%, #7c3aed 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">${username}</span>`
+      // Create the subtitle with purple styling for both personality and username
+      subtitleText.innerHTML = `<span style="color: #c026d3; font-weight: bold;">${personalityName}</span>'s analysis of <span style="color: #c026d3; font-weight: bold;">${username}</span>`
 
       subtitleText.style.fontSize = "32px"
       subtitleText.style.fontWeight = "600"
@@ -182,7 +183,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       content.style.width = "100%"
       content.style.maxWidth = "800px"
       content.style.boxSizing = "border-box"
-      content.style.marginBottom = "40px"
+      content.style.marginBottom = "30px" // Reduced from 40px to 30px
 
       // Convert markdown to HTML with the calculated font size
       content.innerHTML = convertMarkdownToHtml(text, fontSize)
@@ -214,16 +215,11 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       title.textContent = "VinylVerdict.FM"
       title.style.fontSize = "42px"
       title.style.fontWeight = "bold"
-      // Apply the same gradient as the site
-      title.style.background = "linear-gradient(135deg, #c026d3 0%, #9333ea 50%, #7c3aed 100%)"
-      title.style.webkitBackgroundClip = "text"
-      title.style.webkitTextFillColor = "transparent"
-      title.style.backgroundClip = "text"
+      title.style.color = "#c026d3" // Use solid purple color instead of gradient
       title.style.margin = "0"
       title.style.padding = "0"
       title.style.lineHeight = "1"
-      title.style.display = "flex"
-      title.style.alignItems = "center"
+      title.style.marginBottom = "8px" // Add margin bottom to align with logo center
 
       // Add promotional sub-text
       const promoText = document.createElement("p")
@@ -419,7 +415,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       )
       .replace(
         /^## (.*$)/gm,
-        `<h2 style="color: #c026d3; font-size: ${fontSize * 1.15}px; font-weight: bold; margin-bottom: 16px; line-height: 1.4;">$1</h2>`,
+        `<h2 style="color: #c026d3; font-size: ${fontSize * 1.15}px; font-weight: bold; margin-bottom: 16px; line-height: 1.4;">$2</h2>`,
       )
       .replace(
         /^### (.*$)/gm,
