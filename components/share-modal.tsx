@@ -44,24 +44,33 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
   const imgRef = useRef<HTMLImageElement>(null)
   const templateRef = useRef<HTMLDivElement>(null)
 
-  // Fetch user profile when modal opens
+  // Fetch user profile when modal opens - using same pattern as dashboard
   useEffect(() => {
     if (isOpen) {
-      fetch("/api/auth/me")
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.user) {
-            setUserProfile(data.user)
+      const fetchProfile = async () => {
+        try {
+          // Use the server API endpoint - same as dashboard
+          const response = await fetch("/api/auth/me")
+
+          if (!response.ok) {
+            console.warn(`Profile fetch failed with status: ${response.status}`)
+            return
           }
-        })
-        .catch((error) => {
-          console.error("Error fetching user profile:", error)
-        })
+
+          const data = await response.json()
+          setUserProfile(data) // Data is returned directly, not wrapped in user property
+        } catch (err) {
+          console.error("Error fetching profile:", err)
+          // Don't throw error, just continue without profile data
+        }
+      }
+
+      fetchProfile()
     }
   }, [isOpen])
 
   useEffect(() => {
-    if (isOpen && userProfile) {
+    if (isOpen) {
       // Reset states
       setImageUrl("")
       setShowingImage(false)
@@ -128,7 +137,8 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
 
       const subtitleText = document.createElement("h2")
       const personalityName = getPersonalityName(assistantType)
-      const username = userProfile.display_name || userProfile.id || "Your"
+      // Use userProfile if available, otherwise fallback to generic text
+      const username = userProfile?.display_name || userProfile?.id || "Your Music"
       subtitleText.textContent = `${personalityName}'s analysis of ${username}`
       subtitleText.style.fontSize = "32px"
       subtitleText.style.fontWeight = "600"
@@ -246,7 +256,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
         templateContainer.parentNode.removeChild(templateContainer)
       }
     }
-  }, [isOpen, text, assistantType, userProfile])
+  }, [isOpen, text, assistantType, userProfile]) // Include userProfile in dependencies so it updates when available
 
   // Get the personality name based on assistant type
   const getPersonalityName = (type: string): string => {
