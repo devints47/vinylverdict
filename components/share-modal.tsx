@@ -37,6 +37,7 @@ const loadingMessages = [
 
 export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: ShareModalProps) {
   const [imageUrl, setImageUrl] = useState<string>("")
+  const [blobUrl, setBlobUrl] = useState<string>("")
   const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null)
   const [showingImage, setShowingImage] = useState(false)
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0)
@@ -75,6 +76,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     if (isOpen) {
       // Reset states
       setImageUrl("")
+      setBlobUrl("")
       setShowingImage(false)
 
       // Start cycling through loading messages
@@ -183,10 +185,21 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
           foreignObjectRendering: false,
           removeContainer: false, // Don't let html2canvas remove the container
         })
-          .then((canvas) => {
+          .then(async (canvas) => {
             // Convert canvas to data URL
             const imageUrl = canvas.toDataURL("image/png", 1.0)
             setImageUrl(imageUrl)
+
+            // Upload to Vercel Blob immediately
+            try {
+              const response = await fetch(imageUrl)
+              const blob = await response.blob()
+              const uploadedUrl = await uploadRoastImage(blob)
+              setBlobUrl(uploadedUrl)
+            } catch (error) {
+              console.error("Error uploading to blob:", error)
+            }
+
             setShowingImage(true)
 
             // Clean up intervals
@@ -301,7 +314,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       )
       .replace(
         /^## (.*$)/gm,
-        `<h2 style="color: #c026d3; font-size: ${fontSize * 1.15}px; font-weight: bold; margin-bottom: 16px; line-height: 1.4;">$2</h2>`,
+        `<h2 style="color: #c026d3; font-size: ${fontSize * 1.15}px; font-weight: bold; margin-bottom: 16px; line-height: 1.4;">$1</h2>`,
       )
       .replace(
         /^### (.*$)/gm,
@@ -492,113 +505,82 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
   }
 
   const handleShareClick = (option: ShareOption) => {
-    // Handle special cases that don't need image preview
-    if (option.id === "email") {
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
-      const shareUrl = `${appUrl}/share?text=${encodeURIComponent(text.substring(0, 200))}&type=${assistantType}`
-      const subject = "Check out my music taste verdict from VinylVerdict.fm!"
-      const body = `I just got my music taste analyzed by VinylVerdict.fm and wanted to share it with you!\n\nCheck it out: ${shareUrl}\n\nGet your own music verdict at VinylVerdict.fm`
-      window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`)
-      onClose()
-      return
-    }
-
-    if (option.id === "copy") {
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
-      const shareUrl = `${appUrl}/share?text=${encodeURIComponent(text.substring(0, 200))}&type=${assistantType}`
-      navigator.clipboard.writeText(shareUrl)
-      toast({
-        title: "Link copied",
-        description: "Share link has been copied to clipboard!",
-      })
-      onClose()
-      return
-    }
-
-    if (option.id === "share" && navigator.share) {
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
-      const shareUrl = `${appUrl}/share?text=${encodeURIComponent(text.substring(0, 200))}&type=${assistantType}`
-      navigator.share({
-        title: "My Music Taste Verdict from VinylVerdict.fm",
-        text: "🎵 Just got my music taste analyzed! Check out what VinylVerdict.fm said about my playlist:",
-        url: shareUrl,
-      })
-      onClose()
-      return
-    }
-
-    if (option.id === "messages") {
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
-      const shareUrl = `${appUrl}/share?text=${encodeURIComponent(text.substring(0, 200))}&type=${assistantType}`
-      const smsText = `Check out my music taste verdict from VinylVerdict.fm! ${shareUrl}`
-      const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-
-      if (isMobile) {
-        window.open(`sms:?&body=${encodeURIComponent(smsText)}`, "_blank")
-      } else {
-        navigator.clipboard.writeText(smsText)
-        toast({
-          title: "Text copied",
-          description: "Message text has been copied to clipboard!",
-        })
-      }
-      onClose()
-      return
-    }
-
-    // For all other platforms, show the preview with image
+    // For all platforms, show the preview with image
     setSelectedPlatform(option.id)
   }
 
   const handleShareAfterPreview = async () => {
-    if (!selectedPlatform || !imageUrl) return
+    if (!selectedPlatform || !imageUrl || !blobUrl) return
 
     try {
-      // Convert data URL to blob
-      const response = await fetch(imageUrl)
-      const blob = await response.blob()
-
-      // Upload to Vercel Blob and get public URL
-      const publicImageUrl = await uploadRoastImage(blob)
-
-      // Generate unique share ID
-      const shareId = Math.random().toString(36).substring(2, 15)
-
-      // Extract title from text for better sharing
-      const titleMatch = text.match(/^# (.+)$/m)
-      const shareTitle = titleMatch ? titleMatch[1] : `My ${getPersonalityName(assistantType)} Verdict`
-
-      // Create share URL with proper parameters for Open Graph
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
-      const shareUrl = `${appUrl}/share/${shareId}?text=${encodeURIComponent(text)}&type=${assistantType}&imageUrl=${encodeURIComponent(publicImageUrl)}&title=${encodeURIComponent(shareTitle)}`
-
-      // For platforms that need image copying, still copy to clipboard
+      // For platforms that need image copying, copy to clipboard
       if (["instagram", "whatsapp"].includes(selectedPlatform)) {
         await copyImageToClipboard(imageUrl)
       }
 
-      // Open the appropriate platform with the share URL
+      // Open the appropriate platform with the direct image URL
       switch (selectedPlatform) {
         case "twitter":
           window.open(
-            `https://twitter.com/intent/tweet?text=${encodeURIComponent("🎵 Just got my music taste analyzed by VinylVerdict.fm! Check out what they said about my playlist:")}&url=${encodeURIComponent(shareUrl)}`,
+            `https://twitter.com/intent/tweet?text=${encodeURIComponent("🎵 Just got my music taste analyzed by VinylVerdict.fm!")}&url=${encodeURIComponent(blobUrl)}`,
             "_blank",
           )
           break
         case "facebook":
-          window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, "_blank")
+          window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(blobUrl)}`, "_blank")
           break
         case "linkedin":
-          window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`, "_blank")
+          window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(blobUrl)}`, "_blank")
           break
         case "whatsapp":
-          const whatsappText = `🎵 Just got my music taste analyzed by VinylVerdict.fm! Check out my verdict: ${shareUrl}`
+          const whatsappText = `🎵 Just got my music taste analyzed by VinylVerdict.fm! ${blobUrl}`
           window.open(`https://wa.me/?text=${encodeURIComponent(whatsappText)}`, "_blank")
           break
         case "instagram":
-          // Instagram still uses image copy method since no web share
+          // Instagram uses image copy method since no web share
           await copyImageToClipboard(imageUrl)
           openSocialApp(selectedPlatform)
+          break
+        case "email":
+          const subject = "Check out my music taste verdict from VinylVerdict.fm!"
+          const body = `I just got my music taste analyzed by VinylVerdict.fm!\n\nCheck out my verdict: ${blobUrl}\n\nGet your own music verdict at VinylVerdict.fm`
+          window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`)
+          break
+        case "copy":
+          navigator.clipboard.writeText(blobUrl)
+          toast({
+            title: "Image link copied",
+            description: "Direct image link has been copied to clipboard!",
+          })
+          break
+        case "share":
+          if (navigator.share) {
+            navigator.share({
+              title: "My Music Taste Verdict from VinylVerdict.fm",
+              text: "🎵 Just got my music taste analyzed!",
+              url: blobUrl,
+            })
+          } else {
+            navigator.clipboard.writeText(blobUrl)
+            toast({
+              title: "Image link copied",
+              description: "Direct image link has been copied to clipboard!",
+            })
+          }
+          break
+        case "messages":
+          const smsText = `Check out my music taste verdict from VinylVerdict.fm! ${blobUrl}`
+          const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+
+          if (isMobile) {
+            window.open(`sms:?&body=${encodeURIComponent(smsText)}`, "_blank")
+          } else {
+            navigator.clipboard.writeText(smsText)
+            toast({
+              title: "Text copied",
+              description: "Message text has been copied to clipboard!",
+            })
+          }
           break
         default:
           openSocialApp(selectedPlatform)
@@ -613,8 +595,8 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
         })
       } else {
         toast({
-          title: "Share link created",
-          description: `Opening ${platform?.name} with your shareable link!`,
+          title: "Image shared",
+          description: `Opening ${platform?.name} with your image!`,
         })
       }
 
@@ -623,7 +605,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       console.error("Sharing error:", error)
       toast({
         title: "Sharing failed",
-        description: "Failed to create share link. Please try again.",
+        description: "Failed to share image. Please try again.",
         variant: "destructive",
       })
     }
@@ -698,7 +680,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
           <div className="space-y-2 mt-2">
             <Button
               onClick={handleShareAfterPreview}
-              disabled={!showingImage}
+              disabled={!showingImage || !blobUrl}
               className={`w-full text-white font-medium ${platform.color.replace("hover:", "")}`}
             >
               <Share className="mr-2 h-4 w-4" />
