@@ -47,10 +47,10 @@ function CollapsibleCriticInfo({ selectedVinyl }: { selectedVinyl: VinylDesign |
   }
 
   return (
-    <div className="bg-zinc-900/50 rounded-xl border border-zinc-800 overflow-hidden">
+    <div className="bg-zinc-900/50 rounded-xl border border-zinc-800 overflow-hidden h-full">
       {selectedVinyl ? (
         <>
-          <div className="p-6">
+          <div className="p-4 h-full flex flex-col justify-center">
             {/* Mobile view - Collapsible content */}
             <div className="md:hidden">
               <button
@@ -73,8 +73,8 @@ function CollapsibleCriticInfo({ selectedVinyl }: { selectedVinyl: VinylDesign |
             </div>
 
             {/* Desktop view - Always visible content */}
-            <div className="hidden md:block overflow-hidden mt-2 py-2">
-              <p className="text-zinc-300">
+            <div className="hidden md:block overflow-hidden mt-1 py-1">
+              <p className="text-zinc-300 text-sm leading-relaxed">
                 <span className="font-bold text-purple-gradient">{selectedVinyl.name}:</span>{" "}
                 {selectedVinyl.description}
               </p>
