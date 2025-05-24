@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/use-toast"
 import { Facebook, Instagram, Mail, Copy, Share2, Linkedin, X, Share, MessageCircle } from "lucide-react"
 import html2canvas from "html2canvas"
+import { uploadRoastImage } from "@/lib/image-upload"
 
 interface ShareModalProps {
   isOpen: boolean
@@ -608,8 +609,10 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
   const handleShareClick = (option: ShareOption) => {
     // Handle special cases that don't need image preview
     if (option.id === "email") {
-      const subject = "My Music Taste Verdict from VinylVerdict.fm"
-      const body = `Check out my music taste verdict:\n\n${text}\n\nGet your own at vinylverdict.fm`
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
+      const shareUrl = `${appUrl}/share?text=${encodeURIComponent(text.substring(0, 200))}&type=${assistantType}`
+      const subject = "Check out my music taste verdict from VinylVerdict.fm!"
+      const body = `I just got my music taste analyzed by VinylVerdict.fm and wanted to share it with you!\n\nCheck it out: ${shareUrl}\n\nGet your own music verdict at VinylVerdict.fm`
       window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`)
       onClose()
       return
@@ -631,8 +634,8 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
       const shareUrl = `${appUrl}/share?text=${encodeURIComponent(text.substring(0, 200))}&type=${assistantType}`
       navigator.share({
-        title: "My Music Taste Verdict",
-        text: "Check out my music taste verdict!",
+        title: "My Music Taste Verdict from VinylVerdict.fm",
+        text: "🎵 Just got my music taste analyzed! Check out what VinylVerdict.fm said about my playlist:",
         url: shareUrl,
       })
       onClose()
@@ -640,13 +643,15 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     }
 
     if (option.id === "messages") {
-      const shareText = `Check out my music taste verdict from VinylVerdict.fm!\n\n${text.substring(0, 100)}...\n\nGet yours at vinylverdict.fm`
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
+      const shareUrl = `${appUrl}/share?text=${encodeURIComponent(text.substring(0, 200))}&type=${assistantType}`
+      const smsText = `Check out my music taste verdict from VinylVerdict.fm! ${shareUrl}`
       const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
 
       if (isMobile) {
-        window.open(`sms:?body=${encodeURIComponent(shareText)}`, "_blank")
+        window.open(`sms:?&body=${encodeURIComponent(smsText)}`, "_blank")
       } else {
-        navigator.clipboard.writeText(shareText)
+        navigator.clipboard.writeText(smsText)
         toast({
           title: "Text copied",
           description: "Message text has been copied to clipboard!",
@@ -664,20 +669,72 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     if (!selectedPlatform || !imageUrl) return
 
     try {
-      await copyImageToClipboard(imageUrl)
-      openSocialApp(selectedPlatform)
+      // Convert data URL to blob
+      const response = await fetch(imageUrl)
+      const blob = await response.blob()
+
+      // Upload to Vercel Blob and get public URL
+      const publicImageUrl = await uploadRoastImage(blob)
+
+      // Generate unique share ID
+      const shareId = Math.random().toString(36).substring(2, 15)
+
+      // Create share URL with image URL as parameter
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
+      const shareUrl = `${appUrl}/share/${shareId}?text=${encodeURIComponent(text.substring(0, 200))}&type=${assistantType}&imageUrl=${encodeURIComponent(publicImageUrl)}`
+
+      // For platforms that need image copying, still copy to clipboard
+      if (["instagram", "whatsapp"].includes(selectedPlatform)) {
+        await copyImageToClipboard(imageUrl)
+      }
+
+      // Open the appropriate platform with the share URL
+      switch (selectedPlatform) {
+        case "twitter":
+          window.open(
+            `https://twitter.com/intent/tweet?text=${encodeURIComponent("🎵 Just got my music taste roasted by VinylVerdict.fm! Check out what they said about my playlist:")}&url=${encodeURIComponent(shareUrl)}`,
+            "_blank",
+          )
+          break
+        case "facebook":
+          window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, "_blank")
+          break
+        case "linkedin":
+          window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`, "_blank")
+          break
+        case "whatsapp":
+          const whatsappText = `🎵 Just got my music taste analyzed by VinylVerdict.fm! Check out my verdict: ${shareUrl}`
+          window.open(`https://wa.me/?text=${encodeURIComponent(whatsappText)}`, "_blank")
+          break
+        case "instagram":
+          // Instagram still uses image copy method since no web share
+          await copyImageToClipboard(imageUrl)
+          openSocialApp(selectedPlatform)
+          break
+        default:
+          openSocialApp(selectedPlatform)
+      }
 
       const platform = shareOptions.find((opt) => opt.id === selectedPlatform)
-      toast({
-        title: "Image copied",
-        description: `The image has been copied. You can now paste it into ${platform?.name}!`,
-      })
+
+      if (["instagram", "whatsapp"].includes(selectedPlatform)) {
+        toast({
+          title: "Image copied",
+          description: `The image has been copied. You can now paste it into ${platform?.name}!`,
+        })
+      } else {
+        toast({
+          title: "Share link created",
+          description: `Opening ${platform?.name} with your shareable link!`,
+        })
+      }
 
       onClose()
     } catch (error) {
+      console.error("Sharing error:", error)
       toast({
         title: "Sharing failed",
-        description: "Failed to copy the image. Please try again.",
+        description: "Failed to create share link. Please try again.",
         variant: "destructive",
       })
     }
