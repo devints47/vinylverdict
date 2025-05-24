@@ -1,54 +1,39 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
 import "./globals.css"
 import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from "@/contexts/auth-context"
-import { VinylProvider } from "@/contexts/vinyl-context"
-
-const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "VinylVerdict.fm - Your Music Taste Personified",
+  title: "VinylVerdict.FM - Your Music Taste Personified",
   description:
-    "Connect your Spotify account and get your music taste analyzed by unique personalities, from brutal honesty to historical insights.",
+    "Connect your Spotify account and get personalized music critiques from unique AI personalities. Discover insights about your listening habits with brutal honesty, historical context, and expert analysis.",
+  generator: "Next.js",
+  keywords: ["music", "spotify", "ai", "critique", "analysis", "taste", "recommendations"],
+  authors: [{ name: "VinylVerdict" }],
   openGraph: {
-    title: "VinylVerdict.fm - Your Music Taste Personified",
-    description:
-      "Connect your Spotify account and get your music taste analyzed by unique personalities, from brutal honesty to historical insights.",
-    url: "https://vinylverdict.fm",
-    siteName: "VinylVerdict.fm",
-    images: [
-      {
-        url: "https://vinylverdict.fm/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "VinylVerdict.fm - Your Music Taste Personified",
-      },
-    ],
-    locale: "en_US",
+    title: "VinylVerdict.FM - Your Music Taste Personified",
+    description: "Connect your Spotify account and get personalized music critiques from unique AI personalities.",
     type: "website",
+    url: "https://vinylverdict.fm",
   },
   twitter: {
     card: "summary_large_image",
-    title: "VinylVerdict.fm - Your Music Taste Personified",
-    description:
-      "Connect your Spotify account and get your music taste analyzed by unique personalities, from brutal honesty to historical insights.",
-    images: ["https://vinylverdict.fm/og-image.png"],
+    title: "VinylVerdict.FM - Your Music Taste Personified",
+    description: "Connect your Spotify account and get personalized music critiques from unique AI personalities.",
   },
-    generator: 'v0.dev'
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode
+}>) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        <AuthProvider>
-          <VinylProvider>
-            {children}
-            <Toaster />
-          </VinylProvider>
-        </AuthProvider>
+      <body>
+        <AuthProvider>{children}</AuthProvider>
+        <Toaster />
       </body>
     </html>
   )

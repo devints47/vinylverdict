@@ -1,169 +1,273 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
-import { VinylRecord } from "@/components/vinyl-record"
-import { useVinyl, vinylOptions } from "@/contexts/vinyl-context"
+import { useState, useEffect } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
+import { VinylRecord } from "./vinyl-record"
+import { useVinyl } from "@/contexts/vinyl-context"
 
+// Define vinyl design type for better type safety
 export interface VinylDesign {
   id: string
   name: string
+  labelColor: string
+  faceType: "snob" | "happy" | "cool" | "surprised"
+  labelText: string
   description: string
-  color: string
-  assistantType: string
-  labelColor?: string
+  assistantType?: string // Add assistant type to identify which assistant to use
 }
 
-interface VinylCollectionProps {
-  onSelectVinyl?: (vinyl: VinylDesign) => void
-}
+// Define flip direction for animation
+type FlipDirection = "left" | "right" | "none"
 
-export function VinylCollection({ onSelectVinyl }: VinylCollectionProps) {
-  const { selectedVinyl, handleVinylSelect } = useVinyl()
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const [isAnimating, setIsAnimating] = useState(false)
-  const containerRef = useRef<HTMLDivElement>(null)
-  const [containerWidth, setContainerWidth] = useState(0)
+export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: VinylDesign) => void }) {
+  const [activeIndex, setActiveIndex] = useState(0)
+  const [isTransitioning, setIsTransitioning] = useState(false)
+  const [flipDirection, setFlipDirection] = useState<FlipDirection>("none")
+  const { selectedVinyl, setSelectedVinyl } = useVinyl()
 
-  // Update container width on resize
-  useEffect(() => {
-    const updateWidth = () => {
-      if (containerRef.current) {
-        setContainerWidth(containerRef.current.offsetWidth)
-      }
-    }
+  // Define our vinyl designs
+  const vinylDesigns: VinylDesign[] = [
+    {
+      id: "music-snob",
+      name: "Music Snob",
+      labelColor: "purple",
+      faceType: "snob",
+      labelText: "VINYLVERDICT • PREMIUM VINYL • AUDIOPHILE EDITION •",
+      description:
+        "The most discerning and judgmental of our critics. Music Snob has strong opinions about everything from production quality to lyrical depth. Prepare for a thorough dissection of your musical choices with zero mercy.",
+      assistantType: "snob", // This is the Music Snob assistant
+    },
+    {
+      id: "taste-validator",
+      name: "Taste Validator",
+      labelColor: "teal",
+      faceType: "happy",
+      labelText: "VALIDATION • APPRECIATION • AFFIRMATION • PRAISE •",
+      description:
+        "The ultimate music enthusiast who sees the beauty in every genre and artist. Taste Validator celebrates your musical journey with genuine excitement and positivity, finding the artistic merit in even your most questionable choices.",
+      assistantType: "worshipper", // Keep the assistantType the same for API compatibility
+    },
+    {
+      id: "indie-vibes",
+      name: "The Historian",
+      labelColor: "blue",
+      faceType: "cool",
+      labelText: "INDIE • ALTERNATIVE • UNDERGROUND • EXCLUSIVE •",
+      description:
+        "An ancient keeper of musical secrets who unveils the mysterious and forgotten lore behind your listening habits. The Historian analyzes your taste through an esoteric lens, revealing hidden connections and mythical knowledge about your musical journey.",
+      assistantType: "historian", // Added assistantType for The Historian
+    },
+    {
+      id: "pop-hits",
+      name: "Pop Sensation",
+      labelColor: "pink",
+      faceType: "happy",
+      labelText: "TOP CHARTS • DANCE HITS • PARTY ANTHEMS • REMIX •",
+      description:
+        "Enthusiastic about all things mainstream and catchy. Pop Sensation judges your playlist based on its danceability, chart performance, and viral potential. Expects maximum energy and hooks.",
+    },
+    {
+      id: "classic-rock",
+      name: "Rock Legend",
+      labelColor: "red",
+      faceType: "surprised",
+      labelText: "CLASSIC ROCK • GUITAR SOLOS • HEADBANGERS • LIVE •",
+      description:
+        "A true believer in the power of electric guitars and drum solos. Rock Legend evaluates your music based on its raw energy, instrumental prowess, and authenticity. Expects music that makes you want to headbang.",
+    },
+  ]
 
-    // Initial measurement
-    updateWidth()
-
-    // Set up resize observer
-    const resizeObserver = new ResizeObserver(updateWidth)
-    if (containerRef.current) {
-      resizeObserver.observe(containerRef.current)
-    }
-
-    return () => {
-      resizeObserver.disconnect()
-    }
-  }, [])
-
-  // Set initial index based on selected vinyl
+  // Set the initial active index based on the selected vinyl from context
   useEffect(() => {
     if (selectedVinyl) {
-      const index = vinylOptions.findIndex((vinyl) => vinyl.id === selectedVinyl.id)
+      const index = vinylDesigns.findIndex(
+        (design) => design.assistantType === selectedVinyl.assistantType || design.id === selectedVinyl.id,
+      )
+
       if (index !== -1) {
-        setCurrentIndex(index)
+        setActiveIndex(index)
       }
     }
   }, [selectedVinyl])
 
-  const handlePrevious = () => {
-    if (isAnimating) return
-    setIsAnimating(true)
-    const newIndex = (currentIndex - 1 + vinylOptions.length) % vinylOptions.length
-    setCurrentIndex(newIndex)
-
-    // Use the context's handleVinylSelect to update the selected vinyl
-    const selectedVinyl = vinylOptions[newIndex]
-    console.log("Previous clicked, selecting vinyl:", selectedVinyl)
-    handleVinylSelect(selectedVinyl)
-
-    // If onSelectVinyl prop is provided, call it too
-    if (onSelectVinyl) {
+  // Set the initial vinyl on mount
+  useEffect(() => {
+    // Only set if not already set from localStorage
+    if (!selectedVinyl || !selectedVinyl.assistantType) {
+      const initialVinyl = vinylDesigns[activeIndex]
+      setSelectedVinyl(initialVinyl)
+      if (onSelectVinyl) {
+        onSelectVinyl(initialVinyl)
+      }
+    } else if (onSelectVinyl) {
+      // If we already have a selected vinyl from localStorage, still call onSelectVinyl
       onSelectVinyl(selectedVinyl)
     }
+  }, []) // Empty dependency array ensures this only runs once on mount
 
-    setTimeout(() => setIsAnimating(false), 500)
+  // Navigation functions
+  const nextVinyl = () => {
+    if (isTransitioning) return
+    setIsTransitioning(true)
+    setFlipDirection("right")
+    const newIndex = (activeIndex + 1) % vinylDesigns.length
+
+    // Delay the actual index change to allow for animation
+    setTimeout(() => {
+      setActiveIndex(newIndex)
+      const newVinyl = vinylDesigns[newIndex]
+      console.log("VinylCollection - Next vinyl selected:", newVinyl)
+      setSelectedVinyl(newVinyl)
+      if (onSelectVinyl) {
+        onSelectVinyl(newVinyl)
+      }
+    }, 250) // Half of the transition time
+
+    // Reset transition state after animation completes
+    setTimeout(() => {
+      setIsTransitioning(false)
+      setFlipDirection("none")
+    }, 500)
   }
 
-  const handleNext = () => {
-    if (isAnimating) return
-    setIsAnimating(true)
-    const newIndex = (currentIndex + 1) % vinylOptions.length
-    setCurrentIndex(newIndex)
+  const prevVinyl = () => {
+    if (isTransitioning) return
+    setIsTransitioning(true)
+    setFlipDirection("left")
+    const newIndex = (activeIndex - 1 + vinylDesigns.length) % vinylDesigns.length
 
-    // Use the context's handleVinylSelect to update the selected vinyl
-    const selectedVinyl = vinylOptions[newIndex]
-    console.log("Next clicked, selecting vinyl:", selectedVinyl)
-    handleVinylSelect(selectedVinyl)
+    // Delay the actual index change to allow for animation
+    setTimeout(() => {
+      setActiveIndex(newIndex)
+      const newVinyl = vinylDesigns[newIndex]
+      console.log("VinylCollection - Previous vinyl selected:", newVinyl)
+      setSelectedVinyl(newVinyl)
+      if (onSelectVinyl) {
+        onSelectVinyl(newVinyl)
+      }
+    }, 250) // Half of the transition time
 
-    // If onSelectVinyl prop is provided, call it too
-    if (onSelectVinyl) {
-      onSelectVinyl(selectedVinyl)
-    }
-
-    setTimeout(() => setIsAnimating(false), 500)
+    // Reset transition state after animation completes
+    setTimeout(() => {
+      setIsTransitioning(false)
+      setFlipDirection("none")
+    }, 500)
   }
 
-  const handleDotClick = (index: number) => {
-    if (isAnimating || index === currentIndex) return
-    setIsAnimating(true)
-    setCurrentIndex(index)
+  const selectVinyl = (index: number) => {
+    if (isTransitioning || index === activeIndex) return
+    setIsTransitioning(true)
 
-    // Use the context's handleVinylSelect to update the selected vinyl
-    const selectedVinyl = vinylOptions[index]
-    console.log("Dot clicked, selecting vinyl:", selectedVinyl)
-    handleVinylSelect(selectedVinyl)
+    // Determine flip direction based on index difference
+    const direction = index > activeIndex ? "right" : "left"
+    setFlipDirection(direction)
 
-    // If onSelectVinyl prop is provided, call it too
-    if (onSelectVinyl) {
-      onSelectVinyl(selectedVinyl)
-    }
+    // Delay the actual index change to allow for animation
+    setTimeout(() => {
+      setActiveIndex(index)
+      const newVinyl = vinylDesigns[index]
+      console.log("VinylCollection - Vinyl selected by index:", newVinyl)
+      setSelectedVinyl(newVinyl)
+      if (onSelectVinyl) {
+        onSelectVinyl(newVinyl)
+      }
+    }, 250) // Half of the transition time
 
-    setTimeout(() => setIsAnimating(false), 500)
+    // Reset transition state after animation completes
+    setTimeout(() => {
+      setIsTransitioning(false)
+      setFlipDirection("none")
+    }, 500)
   }
-
-  // Calculate vinyl size based on container width
-  const vinylSize = Math.min(containerWidth * 0.8, 300)
 
   return (
-    <div className="w-full flex flex-col items-center justify-center">
-      <div className="relative w-full" ref={containerRef}>
-        <div className="flex justify-center items-center relative">
-          <button
-            onClick={handlePrevious}
-            className="absolute left-0 z-10 bg-zinc-900/50 hover:bg-zinc-800/70 rounded-full p-1 transition-colors"
-            aria-label="Previous vinyl"
+    <div className="flex flex-col items-center">
+      {/* Vinyl Record Container - ensures proper centering and containment */}
+      <div className="flex justify-center items-center w-full mb-4">
+        {/* Fixed size container to prevent layout shifts */}
+        <div
+          className="vinyl-container relative"
+          style={{
+            width: "300px",
+            height: "300px",
+            contain: "layout",
+            overflow: "visible",
+          }}
+        >
+          {/* Vinyl sizing wrapper with 3D perspective */}
+          <div
+            className="w-full h-full perspective-1000 group" // Added group class for hover targeting
+            style={{
+              transformStyle: "preserve-3d",
+              transform:
+                flipDirection === "none"
+                  ? "rotateY(0deg)"
+                  : flipDirection === "right"
+                    ? `rotateY(${isTransitioning ? "90deg" : "0deg"})`
+                    : `rotateY(${isTransitioning ? "-90deg" : "0deg"})`,
+              transition: "transform 500ms ease",
+            }}
           >
-            <ChevronLeft className="h-6 w-6 text-white" />
-          </button>
-
-          <div className="relative" style={{ width: `${vinylSize}px`, height: `${vinylSize}px` }}>
             <VinylRecord
-              size={vinylSize}
-              color={vinylOptions[currentIndex].color}
-              labelColor={vinylOptions[currentIndex].labelColor || "purple"}
-              isPlaying={false}
-              className="transition-all duration-500"
+              design={vinylDesigns[activeIndex]}
+              key={vinylDesigns[activeIndex].id}
+              flipDirection={flipDirection}
+              isTransitioning={isTransitioning}
+              onClick={nextVinyl}
+              className="transition-all duration-300 group-hover:scale-[1.02]" // Added subtle scale effect on hover
             />
           </div>
-
-          <button
-            onClick={handleNext}
-            className="absolute right-0 z-10 bg-zinc-900/50 hover:bg-zinc-800/70 rounded-full p-1 transition-colors"
-            aria-label="Next vinyl"
-          >
-            <ChevronRight className="h-6 w-6 text-white" />
-          </button>
         </div>
       </div>
 
-      <div className="mt-4 text-center">
-        <h3 className="text-xl font-bold text-purple-gradient">{vinylOptions[currentIndex].name}</h3>
-      </div>
+      {/* Vinyl Selection Controls with fixed positioning */}
+      <div className="flex flex-col items-center mt-2">
+        {/* Title and Navigation Buttons with fixed width container */}
+        <div className="relative flex items-center justify-center w-full mb-2">
+          {/* Fixed width container for consistent layout */}
+          <div className="w-64 h-10 flex items-center justify-between">
+            {/* Left button with fixed position */}
+            <button
+              onClick={prevVinyl}
+              disabled={isTransitioning}
+              className="bg-zinc-800/50 hover:bg-zinc-700/70 rounded-full p-2 transition-colors disabled:opacity-50 absolute left-0"
+              aria-label="Previous vinyl"
+            >
+              <ChevronLeft className="h-5 w-5 text-white" />
+            </button>
 
-      <div className="flex justify-center mt-2 space-x-2">
-        {vinylOptions.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => handleDotClick(index)}
-            className={`w-2 h-2 rounded-full transition-colors ${
-              index === currentIndex ? "bg-purple-500" : "bg-zinc-600 hover:bg-zinc-500"
-            }`}
-            aria-label={`Select ${vinylOptions[index].name}`}
-            aria-current={index === currentIndex ? "true" : "false"}
-          />
-        ))}
+            {/* Title with fixed width and centered */}
+            <div className="w-full text-center px-10">
+              <h3 className="text-xl font-bold text-purple-gradient truncate">{vinylDesigns[activeIndex].name}</h3>
+            </div>
+
+            {/* Right button with fixed position */}
+            <button
+              onClick={nextVinyl}
+              disabled={isTransitioning}
+              className="bg-zinc-800/50 hover:bg-zinc-700/70 rounded-full p-2 transition-colors disabled:opacity-50 absolute right-0"
+              aria-label="Next vinyl"
+            >
+              <ChevronRight className="h-5 w-5 text-white" />
+            </button>
+          </div>
+        </div>
+
+        {/* Indicator Dots */}
+        <div className="flex gap-2 mb-4">
+          {vinylDesigns.map((design, index) => (
+            <button
+              key={design.id}
+              onClick={() => selectVinyl(index)}
+              disabled={isTransitioning}
+              className={`h-2 w-2 rounded-full transition-colors ${
+                index === activeIndex ? "bg-bright-purple" : "bg-zinc-600 hover:bg-zinc-500"
+              } disabled:opacity-50`}
+              aria-label={`Select ${design.name}`}
+              aria-current={index === activeIndex ? "true" : "false"}
+            />
+          ))}
+        </div>
       </div>
     </div>
   )
