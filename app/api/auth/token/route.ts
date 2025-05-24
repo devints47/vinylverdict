@@ -57,13 +57,13 @@ export async function POST(request: NextRequest) {
       sameSite: "lax" as const,
     }
 
-    // Calculate expiry time (subtract 5 minutes for safety margin)
-    const expiryTime = Date.now() + (tokenData.expires_in - 300) * 1000
+    // Calculate expiry time (subtract 1 hour for safety margin)
+    const expiryTime = Date.now() + (tokenData.expires_in - 3600) * 1000
 
     // Set cookies
     cookieStore.set("spotify_access_token", tokenData.access_token, {
       ...cookieOptions,
-      maxAge: tokenData.expires_in - 300, // Expires_in minus 5 minutes in seconds
+      maxAge: tokenData.expires_in - 3600, // Expires_in minus 1 hour in seconds
     })
 
     cookieStore.set("spotify_refresh_token", tokenData.refresh_token, {
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
 
     cookieStore.set("spotify_token_expiry", expiryTime.toString(), {
       ...cookieOptions,
-      maxAge: tokenData.expires_in - 300,
+      maxAge: tokenData.expires_in - 3600,
     })
 
     // Clear the code verifier and state cookies as they're no longer needed

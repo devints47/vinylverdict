@@ -47,10 +47,10 @@ function CollapsibleCriticInfo({ selectedVinyl }: { selectedVinyl: VinylDesign |
   }
 
   return (
-    <div className="bg-zinc-900/50 rounded-xl border border-zinc-800 overflow-hidden">
+    <div className="bg-zinc-900/50 rounded-xl border border-zinc-800 overflow-hidden h-full flex flex-col">
       {selectedVinyl ? (
         <>
-          <div className="p-6">
+          <div className="p-6 flex-1 flex flex-col justify-center">
             {/* Mobile view - Collapsible content */}
             <div className="md:hidden">
               <button
@@ -82,7 +82,7 @@ function CollapsibleCriticInfo({ selectedVinyl }: { selectedVinyl: VinylDesign |
           </div>
         </>
       ) : (
-        <div className="p-6 flex items-center justify-center">
+        <div className="p-6 flex items-center justify-center flex-1">
           <p className="text-zinc-400 text-center">Select a personality to see their description</p>
         </div>
       )}
