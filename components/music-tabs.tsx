@@ -60,7 +60,7 @@ function TabButton({ isActive, onClick, icon, label }: TabButtonProps) {
       className={cn(
         "flex-1 py-3 px-4 flex items-center justify-center gap-2 transition-all duration-300 relative overflow-hidden",
         // Base styling for all tabs - adding a subtle background to inactive tabs
-        "bg-zinc-900/80",
+        "bg-zinc-900/80 border-l border-r border-zinc-700/50",
         // Active tab styling
         isActive ? "text-white font-medium" : "text-zinc-400 hover:text-white hover:bg-zinc-800",
       )}

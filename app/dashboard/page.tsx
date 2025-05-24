@@ -338,7 +338,9 @@ function TopTracksContent({
               </CardDescription>
             </div>
           </div>
-          <TimeRangeSelector selectedRange={timeRange} onChange={handleTimeRangeChange} />
+          <div className="flex justify-center md:justify-end w-full md:w-auto">
+            <TimeRangeSelector selectedRange={timeRange} onChange={handleTimeRangeChange} />
+          </div>
         </div>
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-xs pointer-events-none z-0">
           <AudioWave />
@@ -433,7 +435,9 @@ function TopArtistsContent({
               </CardDescription>
             </div>
           </div>
-          <TimeRangeSelector selectedRange={timeRange} onChange={handleTimeRangeChange} />
+          <div className="flex justify-center md:justify-end w-full md:w-auto">
+            <TimeRangeSelector selectedRange={timeRange} onChange={handleTimeRangeChange} />
+          </div>
         </div>
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-xs pointer-events-none z-0">
           <AudioWave />
