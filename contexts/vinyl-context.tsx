@@ -71,7 +71,6 @@ export function VinylProvider({ children }: { children: React.ReactNode }) {
     if (typeof window !== "undefined") {
       try {
         const savedVinylId = localStorage.getItem(STORAGE_KEY)
-        console.log("VinylContext - Loading from localStorage:", savedVinylId)
         if (savedVinylId) {
           // First try to find by assistantType (more reliable)
           let savedVinyl = vinylOptions.find((vinyl) => vinyl.assistantType === savedVinylId)
@@ -82,7 +81,6 @@ export function VinylProvider({ children }: { children: React.ReactNode }) {
           }
 
           if (savedVinyl) {
-            console.log("VinylContext - Found saved vinyl:", savedVinyl)
             setSelectedVinylState(savedVinyl)
           }
         }
@@ -94,14 +92,12 @@ export function VinylProvider({ children }: { children: React.ReactNode }) {
 
   // Custom setter that also saves to localStorage
   const setSelectedVinyl = (vinyl: (typeof vinylOptions)[0]) => {
-    console.log("VinylContext - Setting selected vinyl:", vinyl)
     setSelectedVinylState(vinyl)
 
     // Save to localStorage - use assistantType as it's more reliable
     if (typeof window !== "undefined" && vinyl.assistantType) {
       try {
         localStorage.setItem(STORAGE_KEY, vinyl.assistantType)
-        console.log("VinylContext - Saved to localStorage:", vinyl.assistantType)
       } catch (err) {
         console.error("Error saving vinyl selection:", err)
       }

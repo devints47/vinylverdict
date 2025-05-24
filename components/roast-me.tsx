@@ -54,12 +54,6 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
   // Current assistant type
   const assistantType = selectedVinyl?.assistantType || "snob"
 
-  // Add logging to track selectedVinyl changes
-  useEffect(() => {
-    console.log("RoastMe - selectedVinyl prop changed:", selectedVinyl)
-    console.log("RoastMe - assistantType derived:", assistantType)
-  }, [selectedVinyl, assistantType])
-
   // Get current response from store based on assistant type
   const currentResponse = responseStore[assistantType] || { content: "", isComplete: false }
 
@@ -267,9 +261,6 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
       setError(null)
       setIsFallback(false)
 
-      console.log("RoastMe - Starting request with assistantType:", assistantType)
-      console.log("RoastMe - selectedVinyl at request time:", selectedVinyl)
-
       // Generate a unique ID for this request
       const requestId = `request_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
 
@@ -307,7 +298,6 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
           viewType = "top tracks"
       }
 
-      console.log("RoastMe - Making API call with assistantType:", assistantType)
       // Call the API through our service with the assistant type
       const response = await getRoast(formattedData, viewType, assistantType)
 

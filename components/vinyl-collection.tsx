@@ -116,7 +116,6 @@ export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: Vi
     setTimeout(() => {
       setActiveIndex(newIndex)
       const newVinyl = vinylDesigns[newIndex]
-      console.log("VinylCollection - Next vinyl selected:", newVinyl)
       setSelectedVinyl(newVinyl)
       if (onSelectVinyl) {
         onSelectVinyl(newVinyl)
@@ -140,7 +139,6 @@ export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: Vi
     setTimeout(() => {
       setActiveIndex(newIndex)
       const newVinyl = vinylDesigns[newIndex]
-      console.log("VinylCollection - Previous vinyl selected:", newVinyl)
       setSelectedVinyl(newVinyl)
       if (onSelectVinyl) {
         onSelectVinyl(newVinyl)
@@ -166,7 +164,6 @@ export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: Vi
     setTimeout(() => {
       setActiveIndex(index)
       const newVinyl = vinylDesigns[index]
-      console.log("VinylCollection - Vinyl selected by index:", newVinyl)
       setSelectedVinyl(newVinyl)
       if (onSelectVinyl) {
         onSelectVinyl(newVinyl)
