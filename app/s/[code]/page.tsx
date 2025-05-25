@@ -1,42 +1,21 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 
-interface UrlMapping {
-  originalUrl: string
-  createdAt: number
-  expiresAt: number
-}
-
 interface PageProps {
   params: { code: string }
 }
 
-// Helper function to fetch URL mapping
-async function getUrlMapping(code: string): Promise<UrlMapping | null> {
+// Helper function to decode the URL
+function decodeShareCode(code: string): { imageUrl: string; timestamp: number } | null {
   try {
-    // Construct the blob URL directly
-    const blobUrl = `https://${process.env.BLOB_READ_WRITE_TOKEN?.split("_")[1]}.public.blob.vercel-storage.com/url-mapping-${code}.json`
-
-    const response = await fetch(blobUrl, {
-      headers: {
-        "Cache-Control": "no-cache",
-      },
-    })
-
-    if (!response.ok) {
-      return null
+    const decodedData = Buffer.from(code, "base64").toString("utf-8")
+    const [timestamp, imageUrl] = decodedData.split("|")
+    return {
+      imageUrl,
+      timestamp: Number.parseInt(timestamp, 10),
     }
-
-    const mapping: UrlMapping = await response.json()
-
-    // Check if the URL has expired
-    if (mapping.expiresAt < Date.now()) {
-      return null
-    }
-
-    return mapping
   } catch (error) {
-    console.error("Error retrieving URL mapping:", error)
+    console.error("Error decoding share code:", error)
     return null
   }
 }
@@ -45,7 +24,6 @@ async function getUrlMapping(code: string): Promise<UrlMapping | null> {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   try {
     const code = params.code
-
     if (!code) {
       return {
         title: "VinylVerdict.fm",
@@ -53,9 +31,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       }
     }
 
-    const mapping = await getUrlMapping(code)
-
-    if (!mapping) {
+    const decoded = decodeShareCode(code)
+    if (!decoded) {
       return {
         title: "VinylVerdict.fm",
         description: "Personalized Music Taste Analysis",
@@ -71,7 +48,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         description: "Check out my personalized music taste analysis from VinylVerdict.fm!",
         images: [
           {
-            url: mapping.originalUrl,
+            url: decoded.imageUrl,
             width: 1080,
             height: 1920,
             alt: "Music Taste Verdict",
@@ -84,7 +61,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         card: "summary_large_image",
         title: "My Music Taste Verdict - VinylVerdict.fm",
         description: "Check out my personalized music taste analysis from VinylVerdict.fm!",
-        images: [mapping.originalUrl],
+        images: [decoded.imageUrl],
       },
     }
   } catch (error) {
@@ -99,14 +76,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function SharedImagePage({ params }: PageProps) {
   try {
     const code = params.code
-
     if (!code) {
       notFound()
     }
 
-    const mapping = await getUrlMapping(code)
+    const decoded = decodeShareCode(code)
+    if (!decoded) {
+      notFound()
+    }
 
-    if (!mapping) {
+    // Check if the URL has expired (30 days)
+    if (Date.now() - decoded.timestamp > 30 * 24 * 60 * 60 * 1000) {
       notFound()
     }
 
@@ -123,7 +103,7 @@ export default async function SharedImagePage({ params }: PageProps) {
           {/* Image Container */}
           <div className="relative bg-zinc-900 rounded-lg overflow-hidden border border-zinc-800">
             <img
-              src={mapping.originalUrl || "/placeholder.svg"}
+              src={decoded.imageUrl || "/placeholder.svg"}
               alt="Music Taste Verdict"
               className="w-full h-auto"
               style={{ maxHeight: "80vh", objectFit: "contain" }}
