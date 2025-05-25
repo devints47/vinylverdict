@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
+import { SharedImageDisplay } from "./shared-image-display"
 
 interface PageProps {
   params: {
@@ -109,31 +110,10 @@ export default function SharedVerdictPage({ params }: PageProps) {
           <div className="mb-8 text-center">
             <h1 className="text-3xl font-bold mb-2 text-purple-500">Music Taste Verdict</h1>
             <p className="text-zinc-400">Shared from VinylVerdict.fm</p>
-            {/* Debug info - remove in production */}
-            <div className="mt-4 p-4 bg-zinc-800 rounded text-xs text-left">
-              <p>
-                <strong>Debug Info:</strong>
-              </p>
-              <p>Code: {code}</p>
-              <p>Decoded URL: {decoded.imageUrl}</p>
-              <p>Timestamp: {decoded.timestamp}</p>
-              <p>Date: {new Date(decoded.timestamp).toISOString()}</p>
-            </div>
           </div>
 
           <div className="relative rounded-lg overflow-hidden mb-8 border border-zinc-800">
-            {/* Use a regular img tag with error handling */}
-            <img
-              src={decoded.imageUrl || "/placeholder.svg"}
-              alt="Music Taste Verdict"
-              className="w-full h-auto"
-              style={{ maxHeight: "80vh", objectFit: "contain" }}
-              onError={(e) => {
-                console.error("Image failed to load:", decoded.imageUrl)
-                // @ts-ignore - this is valid in the browser
-                e.target.src = "/placeholder.svg"
-              }}
-            />
+            <SharedImageDisplay imageUrl={decoded.imageUrl} />
           </div>
 
           <div className="text-center mb-8">
