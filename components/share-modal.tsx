@@ -467,9 +467,9 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
         throw new Error("Invalid image data")
       }
 
-      // Generate timestamp ONCE for both filename and encoding
+      // Generate timestamp for filename (still needed for unique filenames)
       const timestamp = Date.now()
-      console.log("Using timestamp:", timestamp)
+      console.log("Using timestamp for filename:", timestamp)
 
       // Call our server action to upload the image
       const response = await fetch("/api/upload-image", {
@@ -479,7 +479,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
         },
         body: JSON.stringify({
           imageData: dataUrl,
-          timestamp: timestamp, // Pass the timestamp to the API
+          timestamp: timestamp, // Still pass timestamp for filename generation
         }),
       })
 
@@ -494,39 +494,20 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       const { url } = await response.json()
       console.log("Image uploaded successfully:", url)
 
-      // Get the current URL without www. prefix
-      const currentUrl = window.location.href
-      // Extract the base domain (without www)
-      const urlObj = new URL(currentUrl)
-      // Remove www. prefix for consistency
-      const baseDomain = urlObj.origin.replace(/^https?:\/\/(www\.)?/, "https://")
-
-      // Use the base domain for generating the share URL
-      console.log("Base domain for sharing:", baseDomain)
-
-      // Use the SAME timestamp for encoding
-      const data = `${timestamp}|${url}`
-      console.log("Data to encode:", data)
-
-      // Use URL-safe base64 encoding (replace + with -, / with _, and remove =)
-      const encoded = Buffer.from(data).toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "")
-
-      console.log("Encoded data:", encoded)
-
-      const shortUrl = `${baseDomain}/s/${encoded}`
+      // Use the new generateShortUrl function (no timestamp in URL)
+      const { generateShortUrl } = await import("../lib/generate-short-url")
+      const shortUrl = generateShortUrl(url)
       console.log("Short URL generated:", shortUrl)
 
       // Test decode immediately
       try {
-        // When testing, we need to restore the proper base64 format
-        const testData = encoded.replace(/-/g, "+").replace(/_/g, "/")
+        // Test the new decoding logic
+        const testCode = shortUrl.split("/s/")[1]
+        let testBase64 = testCode.replace(/-/g, "+").replace(/_/g, "/")
+        if (testBase64.length % 4 === 2) testBase64 += "=="
+        else if (testBase64.length % 4 === 3) testBase64 += "="
 
-        // Add padding if needed
-        let padding = ""
-        if (testData.length % 4 === 2) padding = "=="
-        else if (testData.length % 4 === 3) padding = "="
-
-        const testDecode = Buffer.from(testData + padding, "base64").toString("utf-8")
+        const testDecode = Buffer.from(testBase64, "base64").toString("utf-8")
         console.log("Test decode:", testDecode)
       } catch (error) {
         console.error("Test decode failed:", error)
