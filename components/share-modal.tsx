@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/use-toast"
-import { Facebook, Instagram, Mail, Copy, Share2, Linkedin, X, Share, MessageCircle } from "lucide-react"
+import { Instagram, Mail, Copy, Share2, X, Share } from "lucide-react"
 import html2canvas from "html2canvas"
 
 interface ShareModalProps {
@@ -664,25 +664,11 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       description: "Share to Twitter",
     },
     {
-      id: "facebook",
-      name: "Facebook",
-      icon: <Facebook className="h-6 w-6" />,
-      color: "bg-[#1877F2] hover:bg-[#166fe5]",
-      description: "Share to Facebook",
-    },
-    {
       id: "instagram",
       name: "Instagram",
       icon: <Instagram className="h-6 w-6" />,
       color: "bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] hover:opacity-90",
       description: "Copy image for Instagram",
-    },
-    {
-      id: "linkedin",
-      name: "LinkedIn",
-      icon: <Linkedin className="h-6 w-6" />,
-      color: "bg-[#0077B5] hover:bg-[#006399]",
-      description: "Share to LinkedIn",
     },
     {
       id: "whatsapp",
@@ -701,13 +687,6 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       icon: <Copy className="h-6 w-6" />,
       color: "bg-purple-600 hover:bg-purple-700",
       description: "Copy image to clipboard",
-    },
-    {
-      id: "messages",
-      name: "Messages",
-      icon: <MessageCircle className="h-6 w-6" />,
-      color: "bg-[#007AFF] hover:bg-[#0056CC]",
-      description: "Share via Messages",
     },
     {
       id: "email",
@@ -770,7 +749,44 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     if (option.id === "email") {
       const subject = "Check out my music taste verdict from VinylVerdict.fm!"
       const body = `Check out my music taste verdict from VinylVerdict.fm!\n\n${text.substring(0, 200)}...\n\nGet your own at ${process.env.NEXT_PUBLIC_APP_URL || "https://vinylverdict.fm"}`
-      window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`)
+
+      // Create mailto link
+      const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+
+      // Try to open in email client
+      try {
+        // Create a temporary link element and click it
+        const link = document.createElement("a")
+        link.href = mailtoLink
+        link.style.display = "none"
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+
+        // Show success message
+        toast({
+          title: "Email client opened",
+          description: "Your default email app should open with the message ready to send.",
+        })
+      } catch (error) {
+        // Fallback: copy to clipboard if mailto fails
+        navigator.clipboard
+          .writeText(`${subject}\n\n${body}`)
+          .then(() => {
+            toast({
+              title: "Email content copied",
+              description: "The email content has been copied to your clipboard since no email client was found.",
+            })
+          })
+          .catch(() => {
+            toast({
+              title: "Email failed",
+              description: "Could not open email client or copy content. Please try another sharing method.",
+              variant: "destructive",
+            })
+          })
+      }
+
       onClose()
       return
     }
@@ -908,7 +924,17 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
             <Button
               onClick={handleShareAfterPreview}
               disabled={!showingImage || isUploading}
-              className={`w-full text-white font-medium ${platform.color.replace("hover:", "")}`}
+              className={`w-full text-white font-medium ${
+                platform.id === "twitter"
+                  ? "bg-black hover:bg-zinc-800"
+                  : platform.id === "whatsapp"
+                    ? "bg-[#25D366] hover:bg-[#22c55e]"
+                    : platform.id === "email"
+                      ? "bg-[#D44638] hover:bg-[#c13e31]"
+                      : platform.id === "instagram"
+                        ? "bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] hover:opacity-90"
+                        : "bg-zinc-700 hover:bg-zinc-600"
+              }`}
             >
               {isUploading ? (
                 <>
@@ -955,7 +981,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
             </DialogDescription>
           </DialogHeader>
 
-          <div className="grid grid-cols-3 gap-3 py-4">
+          <div className="grid grid-cols-2 gap-3 py-4">
             {shareOptions.map((option) => (
               <button
                 key={option.id}
