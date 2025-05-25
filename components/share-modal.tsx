@@ -270,8 +270,8 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
           removeContainer: false, // Don't let html2canvas remove the container
         })
           .then((canvas) => {
-            // Convert canvas to data URL
-            const imageUrl = canvas.toDataURL("image/png", 1.0)
+            // Convert canvas to JPEG data URL with 85% quality for smaller file size
+            const imageUrl = canvas.toDataURL("image/jpeg", 0.85)
             setImageUrl(imageUrl)
             setShowingImage(true)
 
@@ -471,7 +471,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       const timestamp = Date.now()
       console.log("Using timestamp for filename:", timestamp)
 
-      // Call our server action to upload the image
+      // Call our server action to upload the image with custom prefix and JPEG format
       const response = await fetch("/api/upload-image", {
         method: "POST",
         headers: {
@@ -479,7 +479,9 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
         },
         body: JSON.stringify({
           imageData: dataUrl,
-          timestamp: timestamp, // Still pass timestamp for filename generation
+          timestamp: timestamp,
+          prefix: "vinyl-verdict-gen-image", // Custom prefix for easy identification
+          format: "jpeg", // Use JPEG format for smaller file size
         }),
       })
 
@@ -491,8 +493,8 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
         throw new Error(`Failed to upload image: ${response.status} ${response.statusText}`)
       }
 
-      const { url } = await response.json()
-      console.log("Image uploaded successfully:", url)
+      const { url, format } = await response.json()
+      console.log("Image uploaded successfully:", url, "Format:", format)
 
       // Use the new generateShortUrl function (no timestamp in URL)
       const { generateShortUrl } = await import("../lib/generate-short-url")
@@ -509,6 +511,16 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
 
         const testDecode = Buffer.from(testBase64, "base64").toString("utf-8")
         console.log("Test decode:", testDecode)
+
+        // Test reconstruction
+        const parts = testDecode.split("|")
+        if (parts.length === 2) {
+          const [blobId, filename] = parts
+          const reconstructedUrl = `https://${blobId}.public.blob.vercel-storage.com/${filename}`
+          console.log("Reconstructed URL:", reconstructedUrl)
+          console.log("Original URL:", url)
+          console.log("URLs match:", reconstructedUrl === url)
+        }
       } catch (error) {
         console.error("Test decode failed:", error)
       }
@@ -829,7 +841,8 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     if (!imageUrl) return
 
     try {
-      const filename = `vinylverdict-${assistantType}-${Date.now()}.png`
+      // Use .jpg extension for JPEG files
+      const filename = `vinylverdict-${assistantType}-${Date.now()}.jpg`
       await downloadImage(imageUrl, filename)
 
       toast({
