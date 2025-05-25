@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/use-toast"
 import { Facebook, Instagram, Mail, Copy, Share2, Linkedin, X, Share, MessageCircle } from "lucide-react"
 import html2canvas from "html2canvas"
+import { put } from "@vercel/blob"
 
 interface ShareModalProps {
   isOpen: boolean
@@ -36,10 +37,12 @@ const loadingMessages = [
 
 export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: ShareModalProps) {
   const [imageUrl, setImageUrl] = useState<string>("")
+  const [blobUrl, setBlobUrl] = useState<string>("")
   const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null)
   const [showingImage, setShowingImage] = useState(false)
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0)
   const [userProfile, setUserProfile] = useState<any>(null)
+  const [isUploading, setIsUploading] = useState(false)
   const loadingIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const imgRef = useRef<HTMLImageElement>(null)
   const templateRef = useRef<HTMLDivElement>(null)
@@ -74,7 +77,9 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     if (isOpen) {
       // Reset states
       setImageUrl("")
+      setBlobUrl("")
       setShowingImage(false)
+      setIsUploading(false)
 
       // Start cycling through loading messages
       setLoadingMessageIndex(0)
@@ -450,6 +455,34 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     return html
   }
 
+  // Upload image to Vercel Blob
+  const uploadImageToBlob = async (dataUrl: string): Promise<string> => {
+    try {
+      setIsUploading(true)
+
+      // Convert data URL to blob
+      const response = await fetch(dataUrl)
+      const blob = await response.blob()
+
+      // Generate a unique filename
+      const filename = `vinyl-verdict-${assistantType}-${Date.now()}.png`
+
+      // Upload to Vercel Blob
+      const { url } = await put(filename, blob, {
+        access: "public",
+        contentType: "image/png",
+      })
+
+      setIsUploading(false)
+      setBlobUrl(url)
+      return url
+    } catch (error) {
+      console.error("Error uploading to Vercel Blob:", error)
+      setIsUploading(false)
+      throw new Error("Failed to upload image")
+    }
+  }
+
   // Function to copy image to clipboard
   const copyImageToClipboard = async (dataUrl: string): Promise<void> => {
     try {
@@ -605,7 +638,31 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     }
   }
 
-  const handleShareClick = (option: ShareOption) => {
+  const handleShareClick = async (option: ShareOption) => {
+    // For options that need the image URL from Vercel Blob
+    if (["twitter", "facebook", "linkedin", "whatsapp", "share"].includes(option.id)) {
+      if (!blobUrl && imageUrl) {
+        try {
+          // Upload to Vercel Blob if not already uploaded
+          const url = await uploadImageToBlob(imageUrl)
+
+          // Share with the blob URL
+          shareWithBlobUrl(option.id, url)
+        } catch (error) {
+          toast({
+            title: "Upload failed",
+            description: "Could not upload image. Please try again.",
+            variant: "destructive",
+          })
+        }
+        return
+      } else if (blobUrl) {
+        // Use existing blob URL if available
+        shareWithBlobUrl(option.id, blobUrl)
+        return
+      }
+    }
+
     // Handle special cases that don't need image preview
     if (option.id === "email") {
       const subject = "My Music Taste Verdict from VinylVerdict.fm"
@@ -616,37 +673,64 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     }
 
     if (option.id === "copy") {
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
-      const shareUrl = `${appUrl}/share?text=${encodeURIComponent(text.substring(0, 200))}&type=${assistantType}`
-      navigator.clipboard.writeText(shareUrl)
-      toast({
-        title: "Link copied",
-        description: "Share link has been copied to clipboard!",
-      })
-      onClose()
-      return
-    }
-
-    if (option.id === "share" && navigator.share) {
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
-      const shareUrl = `${appUrl}/share?text=${encodeURIComponent(text.substring(0, 200))}&type=${assistantType}`
-      navigator.share({
-        title: "My Music Taste Verdict",
-        text: "Check out my music taste verdict!",
-        url: shareUrl,
-      })
+      if (blobUrl) {
+        navigator.clipboard.writeText(blobUrl)
+        toast({
+          title: "Image URL copied",
+          description: "Image URL has been copied to clipboard!",
+        })
+      } else if (imageUrl) {
+        try {
+          const url = await uploadImageToBlob(imageUrl)
+          navigator.clipboard.writeText(url)
+          toast({
+            title: "Image URL copied",
+            description: "Image URL has been copied to clipboard!",
+          })
+        } catch (error) {
+          toast({
+            title: "Upload failed",
+            description: "Could not upload image. Please try again.",
+            variant: "destructive",
+          })
+        }
+      }
       onClose()
       return
     }
 
     if (option.id === "messages") {
-      const shareText = `Check out my music taste verdict from VinylVerdict.fm!\n\n${text.substring(0, 100)}...\n\nGet yours at vinylverdict.fm`
+      const shareText = `Check out my music taste verdict from VinylVerdict.fm!`
       const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
 
       if (isMobile) {
-        window.open(`sms:?body=${encodeURIComponent(shareText)}`, "_blank")
+        if (blobUrl) {
+          window.open(`sms:?body=${encodeURIComponent(shareText + "\n\n" + blobUrl)}`, "_blank")
+        } else if (imageUrl) {
+          try {
+            const url = await uploadImageToBlob(imageUrl)
+            window.open(`sms:?body=${encodeURIComponent(shareText + "\n\n" + url)}`, "_blank")
+          } catch (error) {
+            toast({
+              title: "Upload failed",
+              description: "Could not upload image. Please try again.",
+              variant: "destructive",
+            })
+          }
+        }
       } else {
-        navigator.clipboard.writeText(shareText)
+        if (blobUrl) {
+          navigator.clipboard.writeText(shareText + "\n\n" + blobUrl)
+        } else if (imageUrl) {
+          try {
+            const url = await uploadImageToBlob(imageUrl)
+            navigator.clipboard.writeText(shareText + "\n\n" + url)
+          } catch (error) {
+            navigator.clipboard.writeText(shareText)
+          }
+        } else {
+          navigator.clipboard.writeText(shareText)
+        }
         toast({
           title: "Text copied",
           description: "Message text has been copied to clipboard!",
@@ -660,24 +744,76 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     setSelectedPlatform(option.id)
   }
 
+  // Share with blob URL for social media platforms
+  const shareWithBlobUrl = (platform: string, url: string) => {
+    const shareText = "Check out my music taste verdict from VinylVerdict.fm!"
+
+    switch (platform) {
+      case "twitter":
+        window.open(
+          `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(url)}`,
+          "_blank",
+        )
+        break
+      case "facebook":
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, "_blank")
+        break
+      case "linkedin":
+        window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`, "_blank")
+        break
+      case "whatsapp":
+        window.open(`https://wa.me/?text=${encodeURIComponent(shareText + "\n\n" + url)}`, "_blank")
+        break
+      case "share":
+        if (navigator.share) {
+          navigator
+            .share({
+              title: "My Music Taste Verdict",
+              text: shareText,
+              url: url,
+            })
+            .catch((err) => console.error("Share failed:", err))
+        } else {
+          navigator.clipboard.writeText(url)
+          toast({
+            title: "URL copied",
+            description: "Image URL has been copied to clipboard!",
+          })
+        }
+        break
+    }
+
+    onClose()
+  }
+
   const handleShareAfterPreview = async () => {
     if (!selectedPlatform || !imageUrl) return
 
     try {
-      await copyImageToClipboard(imageUrl)
-      openSocialApp(selectedPlatform)
+      // For Instagram and similar platforms that need the image in clipboard
+      if (["instagram"].includes(selectedPlatform)) {
+        await copyImageToClipboard(imageUrl)
+        openSocialApp(selectedPlatform)
 
-      const platform = shareOptions.find((opt) => opt.id === selectedPlatform)
-      toast({
-        title: "Image copied",
-        description: `The image has been copied. You can now paste it into ${platform?.name}!`,
-      })
+        toast({
+          title: "Image copied",
+          description: `The image has been copied. You can now paste it into ${selectedPlatform}!`,
+        })
+      } else {
+        // For platforms that can use the blob URL
+        if (!blobUrl) {
+          const url = await uploadImageToBlob(imageUrl)
+          shareWithBlobUrl(selectedPlatform, url)
+        } else {
+          shareWithBlobUrl(selectedPlatform, blobUrl)
+        }
+      }
 
       onClose()
     } catch (error) {
       toast({
         title: "Sharing failed",
-        description: "Failed to copy the image. Please try again.",
+        description: "Failed to share the image. Please try again.",
         variant: "destructive",
       })
     }
@@ -752,11 +888,20 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
           <div className="space-y-2 mt-2">
             <Button
               onClick={handleShareAfterPreview}
-              disabled={!showingImage}
+              disabled={!showingImage || isUploading}
               className={`w-full text-white font-medium ${platform.color.replace("hover:", "")}`}
             >
-              <Share className="mr-2 h-4 w-4" />
-              Share to {platform.name}
+              {isUploading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Uploading...
+                </>
+              ) : (
+                <>
+                  <Share className="mr-2 h-4 w-4" />
+                  Share to {platform.name}
+                </>
+              )}
             </Button>
 
             <Button

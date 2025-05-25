@@ -567,50 +567,8 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
   // Function to handle sharing
   const handleShare = async (platform: string) => {
     try {
-      // Get the app URL from environment variable or use a default
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
-
-      // Create the share URL
-      const shareText = encodeURIComponent(currentResponse.content.substring(0, 300))
-      const shareUrl = `${appUrl}/share?text=${shareText}&type=${assistantType}`
-
-      // Handle different sharing platforms
-      switch (platform) {
-        case "twitter":
-          window.open(
-            `https://twitter.com/intent/tweet?text=${encodeURIComponent("Check out my music taste verdict from VinylVerdict.fm!")}&url=${encodeURIComponent(shareUrl)}`,
-            "_blank",
-          )
-          break
-        case "facebook":
-          window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, "_blank")
-          break
-        case "linkedin":
-          window.open(
-            `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent("My Music Taste Verdict")}`,
-            "_blank",
-          )
-          break
-        case "email":
-          window.open(
-            `mailto:?subject=${encodeURIComponent("My Music Taste Verdict from VinylVerdict.fm")}&body=${encodeURIComponent("Check out my music taste verdict:\n\n" + shareUrl)}`,
-            "_blank",
-          )
-          break
-        case "instagram":
-          // For Instagram, we'll use the same preview modal
-          // No special handling needed as it's handled in the ShareModal
-          break
-        case "copy":
-          await navigator.clipboard.writeText(shareUrl)
-          toast({
-            title: "Link copied to clipboard",
-            description: "Share it with your friends!",
-          })
-          break
-        default:
-          break
-      }
+      // Open the share modal
+      setShowShareModal(true)
     } catch (error) {
       console.error("Error sharing:", error)
       toast({
