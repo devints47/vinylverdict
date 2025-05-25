@@ -467,6 +467,10 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
         throw new Error("Invalid image data")
       }
 
+      // Generate timestamp ONCE for both filename and encoding
+      const timestamp = Date.now()
+      console.log("Using timestamp:", timestamp)
+
       // Call our server action to upload the image
       const response = await fetch("/api/upload-image", {
         method: "POST",
@@ -475,6 +479,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
         },
         body: JSON.stringify({
           imageData: dataUrl,
+          timestamp: timestamp, // Pass the timestamp to the API
         }),
       })
 
@@ -489,21 +494,33 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       const { url } = await response.json()
       console.log("Image uploaded successfully:", url)
 
-      // Generate a short URL for the blob URL
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://vinylverdict.fm"
-      const timestamp = Date.now()
+      // Get the current URL without www. prefix
+      const currentUrl = window.location.href
+      // Extract the base domain (without www)
+      const urlObj = new URL(currentUrl)
+      // Remove www. prefix for consistency
+      const baseDomain = urlObj.origin.replace(/^https?:\/\/(www\.)?/, "https://")
+
+      // Use the base domain for generating the share URL
+      console.log("Base domain for sharing:", baseDomain)
+
+      // Use the SAME timestamp for encoding
       const data = `${timestamp}|${url}`
       console.log("Data to encode:", data)
 
       const encoded = Buffer.from(data).toString("base64")
       console.log("Encoded data:", encoded)
 
-      const shortUrl = `${baseUrl}/s/${encoded}`
+      const shortUrl = `${baseDomain}/s/${encoded}`
       console.log("Short URL generated:", shortUrl)
 
       // Test decode immediately
-      const testDecode = Buffer.from(encoded, "base64").toString("utf-8")
-      console.log("Test decode:", testDecode)
+      try {
+        const testDecode = Buffer.from(encoded, "base64").toString("utf-8")
+        console.log("Test decode:", testDecode)
+      } catch (error) {
+        console.error("Test decode failed:", error)
+      }
 
       setIsUploading(false)
       setBlobUrl(url)

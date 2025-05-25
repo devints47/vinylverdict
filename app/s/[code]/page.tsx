@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
-import { SharedImageDisplay } from "./shared-image-display"
 
 interface PageProps {
   params: {
@@ -14,8 +13,16 @@ function decodeShareCode(code: string): { imageUrl: string; timestamp: number } 
     console.log("Decoding share code:", code)
     const decodedData = Buffer.from(code, "base64").toString("utf-8")
     console.log("Decoded data:", decodedData)
-    const [timestamp, imageUrl] = decodedData.split("|")
+    const parts = decodedData.split("|")
+
+    if (parts.length !== 2) {
+      console.error("Invalid format: Decoded data doesn't have two parts separated by |")
+      return null
+    }
+
+    const [timestamp, imageUrl] = parts
     console.log("Parsed timestamp:", timestamp, "imageUrl:", imageUrl)
+
     return {
       imageUrl,
       timestamp: Number.parseInt(timestamp, 10),
@@ -115,7 +122,18 @@ export default function SharedVerdictPage({ params }: PageProps) {
           </div>
 
           <div className="relative rounded-lg overflow-hidden mb-8 border border-zinc-800">
-            <SharedImageDisplay imageUrl={decoded.imageUrl} />
+            {/* Use a regular img tag with error handling */}
+            <img
+              src={decoded.imageUrl || "/placeholder.svg"}
+              alt="Music Taste Verdict"
+              className="w-full h-auto"
+              style={{ maxHeight: "80vh", objectFit: "contain" }}
+              onError={(e) => {
+                console.error("Image failed to load:", decoded.imageUrl)
+                // @ts-ignore - this is valid in the browser
+                e.target.src = "/placeholder.svg"
+              }}
+            />
           </div>
 
           <div className="text-center mb-8">

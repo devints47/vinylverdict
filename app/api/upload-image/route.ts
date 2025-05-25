@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
     console.log("Upload image API called")
 
     const body = await request.json()
-    const { imageData } = body
+    const { imageData, timestamp } = body
 
     if (!imageData) {
       console.error("No image data provided")
@@ -14,6 +14,7 @@ export async function POST(request: NextRequest) {
     }
 
     console.log("Image data received, length:", imageData.length)
+    console.log("Timestamp received:", timestamp)
 
     // Validate that it's a proper data URL
     if (!imageData.startsWith("data:image/")) {
@@ -27,9 +28,9 @@ export async function POST(request: NextRequest) {
 
     console.log("Buffer created, size:", buffer.length)
 
-    // Generate a unique filename
-    const timestamp = Date.now()
-    const filename = `vinyl-verdict-${timestamp}.png`
+    // Use the provided timestamp or generate a new one
+    const finalTimestamp = timestamp || Date.now()
+    const filename = `vinyl-verdict-${finalTimestamp}.png`
 
     console.log("Uploading to Vercel Blob with filename:", filename)
 

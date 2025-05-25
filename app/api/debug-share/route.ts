@@ -11,18 +11,40 @@ export async function GET(request: NextRequest) {
   try {
     // Decode the share code
     const decodedData = Buffer.from(code, "base64").toString("utf-8")
-    const [timestamp, imageUrl] = decodedData.split("|")
+    const parts = decodedData.split("|")
+
+    if (parts.length !== 2) {
+      return NextResponse.json(
+        {
+          error: "Invalid format",
+          decodedData,
+          reason: "Decoded data doesn't have two parts separated by |",
+        },
+        { status: 400 },
+      )
+    }
+
+    const [timestamp, imageUrl] = parts
 
     // Test if the image URL is accessible
-    const imageResponse = await fetch(imageUrl, { method: "HEAD" })
+    let imageAccessible = false
+    let imageStatus = 0
+
+    try {
+      const imageResponse = await fetch(imageUrl, { method: "HEAD" })
+      imageAccessible = imageResponse.ok
+      imageStatus = imageResponse.status
+    } catch (fetchError) {
+      console.error("Error testing image accessibility:", fetchError)
+    }
 
     return NextResponse.json({
       code,
       decodedData,
       timestamp: Number.parseInt(timestamp),
       imageUrl,
-      imageAccessible: imageResponse.ok,
-      imageStatus: imageResponse.status,
+      imageAccessible,
+      imageStatus,
       date: new Date(Number.parseInt(timestamp)).toISOString(),
     })
   } catch (error) {
