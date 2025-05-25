@@ -466,6 +466,50 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     }
   }
 
+  // Create short URL and share
+  const createAndShare = async (platform: string) => {
+    try {
+      setIsUploading(true)
+
+      // Upload image if not already uploaded
+      let finalImageUrl = blobUrl
+      if (!finalImageUrl && imageUrl) {
+        finalImageUrl = await uploadImageToBlob(imageUrl)
+      }
+
+      // Create short URL via API
+      const response = await fetch("/api/share", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          text,
+          type: assistantType,
+          imageUrl: finalImageUrl,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to create share link")
+      }
+
+      const { url: shortUrl } = await response.json()
+
+      setIsUploading(false)
+
+      // Share the short URL
+      shareWithUrl(platform, shortUrl)
+    } catch (error) {
+      setIsUploading(false)
+      toast({
+        title: "Sharing failed",
+        description: "Could not create share link. Please try again.",
+        variant: "destructive",
+      })
+    }
+  }
+
   const handleShareClick = async (option: ShareOption) => {
     // Handle copy image option
     if (option.id === "copy-image") {
@@ -523,36 +567,10 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       return
     }
 
-    // For options that need the image URL from Vercel Blob, create a shareable page
+    // For options that need the short URL
     if (["twitter", "facebook", "linkedin", "whatsapp", "share"].includes(option.id)) {
-      if (!blobUrl && imageUrl) {
-        try {
-          // Upload to Vercel Blob if not already uploaded
-          const url = await uploadImageToBlob(imageUrl)
-
-          // Create a unique share ID and share URL
-          const shareId = Date.now().toString()
-          const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
-          const shareUrl = `${appUrl}/share/${shareId}?text=${encodeURIComponent(text)}&type=${assistantType}&image=${encodeURIComponent(url)}`
-
-          // Share with the page URL that has proper meta tags
-          shareWithUrl(option.id, shareUrl)
-        } catch (error) {
-          toast({
-            title: "Upload failed",
-            description: "Could not upload image. Please try again.",
-            variant: "destructive",
-          })
-        }
-        return
-      } else if (blobUrl) {
-        // Use existing blob URL if available
-        const shareId = Date.now().toString()
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
-        const shareUrl = `${appUrl}/share/${shareId}?text=${encodeURIComponent(text)}&type=${assistantType}&image=${encodeURIComponent(blobUrl)}`
-        shareWithUrl(option.id, shareUrl)
-        return
-      }
+      await createAndShare(option.id)
+      return
     }
 
     // Handle special cases that don't need image preview
@@ -568,34 +586,49 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       const shareText = `Check out my music taste verdict from VinylVerdict.fm!`
       const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
 
-      if (isMobile) {
-        if (blobUrl) {
-          const shareId = Date.now().toString()
-          const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
-          const shareUrl = `${appUrl}/share/${shareId}?text=${encodeURIComponent(text)}&type=${assistantType}&image=${encodeURIComponent(blobUrl)}`
-          window.open(`sms:?&body=${encodeURIComponent(shareText + " " + shareUrl)}`, "_blank")
-        } else if (imageUrl) {
-          try {
-            const url = await uploadImageToBlob(imageUrl)
-            const shareId = Date.now().toString()
-            const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
-            const shareUrl = `${appUrl}/share/${shareId}?text=${encodeURIComponent(text)}&type=${assistantType}&image=${encodeURIComponent(url)}`
-            window.open(`sms:?&body=${encodeURIComponent(shareText + " " + shareUrl)}`, "_blank")
-          } catch (error) {
-            toast({
-              title: "Upload failed",
-              description: "Could not upload image. Please try again.",
-              variant: "destructive",
-            })
-          }
+      try {
+        // Create short URL
+        let finalImageUrl = blobUrl
+        if (!finalImageUrl && imageUrl) {
+          finalImageUrl = await uploadImageToBlob(imageUrl)
         }
-      } else {
-        navigator.clipboard.writeText(shareText)
-        toast({
-          title: "Text copied",
-          description: "Message text has been copied to clipboard!",
+
+        const response = await fetch("/api/share", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            text,
+            type: assistantType,
+            imageUrl: finalImageUrl,
+          }),
         })
+
+        const { url: shortUrl } = await response.json()
+
+        if (isMobile) {
+          window.open(`sms:?&body=${encodeURIComponent(shareText + " " + shortUrl)}`, "_blank")
+        } else {
+          navigator.clipboard.writeText(shareText + " " + shortUrl)
+          toast({
+            title: "Text copied",
+            description: "Message text with short URL has been copied to clipboard!",
+          })
+        }
+      } catch (error) {
+        // Fallback to text only
+        if (isMobile) {
+          window.open(`sms:?&body=${encodeURIComponent(shareText)}`, "_blank")
+        } else {
+          navigator.clipboard.writeText(shareText)
+          toast({
+            title: "Text copied",
+            description: "Message text has been copied to clipboard!",
+          })
+        }
       }
+
       onClose()
       return
     }
