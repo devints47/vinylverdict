@@ -493,10 +493,17 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://vinylverdict.fm"
       const timestamp = Date.now()
       const data = `${timestamp}|${url}`
-      const encoded = Buffer.from(data).toString("base64")
-      const shortUrl = `${baseUrl}/s/${encoded}`
+      console.log("Data to encode:", data)
 
+      const encoded = Buffer.from(data).toString("base64")
+      console.log("Encoded data:", encoded)
+
+      const shortUrl = `${baseUrl}/s/${encoded}`
       console.log("Short URL generated:", shortUrl)
+
+      // Test decode immediately
+      const testDecode = Buffer.from(encoded, "base64").toString("utf-8")
+      console.log("Test decode:", testDecode)
 
       setIsUploading(false)
       setBlobUrl(url)

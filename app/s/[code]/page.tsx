@@ -11,8 +11,11 @@ interface PageProps {
 // Helper function to decode the URL
 function decodeShareCode(code: string): { imageUrl: string; timestamp: number } | null {
   try {
+    console.log("Decoding share code:", code)
     const decodedData = Buffer.from(code, "base64").toString("utf-8")
+    console.log("Decoded data:", decodedData)
     const [timestamp, imageUrl] = decodedData.split("|")
+    console.log("Parsed timestamp:", timestamp, "imageUrl:", imageUrl)
     return {
       imageUrl,
       timestamp: Number.parseInt(timestamp, 10),
@@ -99,6 +102,16 @@ export default function SharedVerdictPage({ params }: PageProps) {
           <div className="mb-8 text-center">
             <h1 className="text-3xl font-bold mb-2 text-purple-500">Music Taste Verdict</h1>
             <p className="text-zinc-400">Shared from VinylVerdict.fm</p>
+            {/* Debug info - remove in production */}
+            <div className="mt-4 p-4 bg-zinc-800 rounded text-xs text-left">
+              <p>
+                <strong>Debug Info:</strong>
+              </p>
+              <p>Code: {code}</p>
+              <p>Decoded URL: {decoded.imageUrl}</p>
+              <p>Timestamp: {decoded.timestamp}</p>
+              <p>Date: {new Date(decoded.timestamp).toISOString()}</p>
+            </div>
           </div>
 
           <div className="relative rounded-lg overflow-hidden mb-8 border border-zinc-800">
