@@ -8,12 +8,21 @@ interface PageProps {
   }
 }
 
-// Helper function to decode the URL
+// Helper function to decode the URL with URL-safe base64
 function decodeShareCode(code: string): { imageUrl: string; timestamp: number } | null {
   try {
     console.log("Decoding share code:", code)
-    const decodedData = Buffer.from(code, "base64").toString("utf-8")
+
+    // Convert URL-safe base64 back to standard base64
+    let base64Data = code.replace(/-/g, "+").replace(/_/g, "/")
+
+    // Add padding if needed
+    if (base64Data.length % 4 === 2) base64Data += "=="
+    else if (base64Data.length % 4 === 3) base64Data += "="
+
+    const decodedData = Buffer.from(base64Data, "base64").toString("utf-8")
     console.log("Decoded data:", decodedData)
+
     const parts = decodedData.split("|")
 
     if (parts.length !== 2) {

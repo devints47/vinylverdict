@@ -7,45 +7,47 @@ interface SharedImageDisplayProps {
 }
 
 export function SharedImageDisplay({ imageUrl }: SharedImageDisplayProps) {
-  const [imageError, setImageError] = useState(false)
-  const [imageLoading, setImageLoading] = useState(true)
-
-  const handleImageError = () => {
-    console.error("Image failed to load:", imageUrl)
-    setImageError(true)
-    setImageLoading(false)
-  }
-
-  const handleImageLoad = () => {
-    setImageLoading(false)
-  }
-
-  if (imageError) {
-    return (
-      <div className="w-full aspect-[9/16] bg-zinc-800 rounded-lg flex flex-col items-center justify-center p-8 text-center">
-        <div className="text-6xl mb-4">🎵</div>
-        <h3 className="text-xl font-semibold mb-2 text-white">Image Not Available</h3>
-        <p className="text-zinc-400 mb-4">This shared verdict image could not be loaded.</p>
-        <p className="text-sm text-zinc-500">The image may have expired or been removed.</p>
-      </div>
-    )
-  }
+  const [isLoading, setIsLoading] = useState(true)
+  const [hasError, setHasError] = useState(false)
 
   return (
-    <div className="relative">
-      {imageLoading && (
-        <div className="absolute inset-0 bg-zinc-800 rounded-lg flex items-center justify-center">
+    <div className="relative w-full">
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-zinc-900">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
         </div>
       )}
-      <img
-        src={imageUrl || "/placeholder.svg"}
-        alt="Music Taste Verdict"
-        className="w-full h-auto"
-        style={{ maxHeight: "80vh", objectFit: "contain" }}
-        onError={handleImageError}
-        onLoad={handleImageLoad}
-      />
+
+      {hasError ? (
+        <div className="w-full aspect-[9/16] bg-zinc-900 flex flex-col items-center justify-center p-4">
+          <svg className="w-16 h-16 text-red-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
+          </svg>
+          <p className="text-white text-lg font-medium mb-2">Failed to load image</p>
+          <p className="text-zinc-400 text-sm text-center">The image may have been removed or the link is invalid</p>
+          <div className="mt-4 p-2 bg-zinc-800 rounded text-xs text-left max-w-full overflow-hidden">
+            <p className="truncate">{imageUrl}</p>
+          </div>
+        </div>
+      ) : (
+        <img
+          src={imageUrl || "/placeholder.svg"}
+          alt="Music Taste Verdict"
+          className="w-full h-auto"
+          style={{ maxHeight: "80vh", objectFit: "contain" }}
+          onLoad={() => setIsLoading(false)}
+          onError={() => {
+            setIsLoading(false)
+            setHasError(true)
+            console.error("Image failed to load:", imageUrl)
+          }}
+        />
+      )}
     </div>
   )
 }

@@ -508,7 +508,9 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       const data = `${timestamp}|${url}`
       console.log("Data to encode:", data)
 
-      const encoded = Buffer.from(data).toString("base64")
+      // Use URL-safe base64 encoding (replace + with -, / with _, and remove =)
+      const encoded = Buffer.from(data).toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "")
+
       console.log("Encoded data:", encoded)
 
       const shortUrl = `${baseDomain}/s/${encoded}`
@@ -516,7 +518,15 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
 
       // Test decode immediately
       try {
-        const testDecode = Buffer.from(encoded, "base64").toString("utf-8")
+        // When testing, we need to restore the proper base64 format
+        const testData = encoded.replace(/-/g, "+").replace(/_/g, "/")
+
+        // Add padding if needed
+        let padding = ""
+        if (testData.length % 4 === 2) padding = "=="
+        else if (testData.length % 4 === 3) padding = "="
+
+        const testDecode = Buffer.from(testData + padding, "base64").toString("utf-8")
         console.log("Test decode:", testDecode)
       } catch (error) {
         console.error("Test decode failed:", error)

@@ -7,8 +7,8 @@ export function generateShortUrl(imageUrl: string): string {
   // Create a string with timestamp and image URL
   const data = `${Date.now()}|${imageUrl}`
 
-  // Encode as base64
-  const encoded = Buffer.from(data).toString("base64")
+  // Encode as URL-safe base64 (replace + with -, / with _, and remove =)
+  const encoded = Buffer.from(data).toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "")
 
   // Get the base URL from environment or default
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://vinylverdict.fm"
