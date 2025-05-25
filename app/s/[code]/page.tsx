@@ -1,159 +1,107 @@
-import type { Metadata } from "next"
 import { notFound } from "next/navigation"
+import Image from "next/image"
+import Link from "next/link"
+import type { Metadata } from "next"
+import { Check } from "lucide-react"
 
 interface PageProps {
-  params: { code: string }
-}
-
-// Helper function to decode the URL
-function decodeShareCode(code: string): { imageUrl: string; timestamp: number } | null {
-  try {
-    const decodedData = Buffer.from(code, "base64").toString("utf-8")
-    const [timestamp, imageUrl] = decodedData.split("|")
-    return {
-      imageUrl,
-      timestamp: Number.parseInt(timestamp, 10),
-    }
-  } catch (error) {
-    console.error("Error decoding share code:", error)
-    return null
+  params: {
+    code: string
   }
 }
 
-// Generate metadata for social sharing
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   try {
-    const code = params.code
-    if (!code) {
+    // Decode the URL
+    const decoded = Buffer.from(params.code, "base64").toString()
+    const [timestamp, imageUrl] = decoded.split("|")
+
+    // Check if URL has expired (30 days)
+    const urlTimestamp = Number.parseInt(timestamp)
+    const now = Date.now()
+    const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000
+
+    if (now - urlTimestamp > thirtyDaysInMs) {
       return {
-        title: "VinylVerdict.fm",
-        description: "Personalized Music Taste Analysis",
+        title: "Verdict Not Found | VinylVerdict.fm",
+        description: "This shared verdict may have expired or doesn't exist.",
       }
     }
 
-    const decoded = decodeShareCode(code)
-    if (!decoded) {
-      return {
-        title: "VinylVerdict.fm",
-        description: "Personalized Music Taste Analysis",
-      }
-    }
-
-    // Return metadata with the image
     return {
-      title: "My Music Taste Verdict - VinylVerdict.fm",
-      description: "Check out my personalized music taste analysis from VinylVerdict.fm!",
+      title: "Music Taste Verdict | VinylVerdict.fm",
+      description: "Check out this personalized music taste verdict from VinylVerdict.fm!",
       openGraph: {
-        title: "My Music Taste Verdict - VinylVerdict.fm",
-        description: "Check out my personalized music taste analysis from VinylVerdict.fm!",
-        images: [
-          {
-            url: decoded.imageUrl,
-            width: 1080,
-            height: 1920,
-            alt: "Music Taste Verdict",
-          },
-        ],
-        type: "website",
+        images: [imageUrl],
+        title: "Music Taste Verdict | VinylVerdict.fm",
+        description: "Check out this personalized music taste verdict from VinylVerdict.fm!",
+        url: `https://vinylverdict.fm/s/${params.code}`,
         siteName: "VinylVerdict.fm",
+        type: "website",
       },
       twitter: {
         card: "summary_large_image",
-        title: "My Music Taste Verdict - VinylVerdict.fm",
-        description: "Check out my personalized music taste analysis from VinylVerdict.fm!",
-        images: [decoded.imageUrl],
+        title: "Music Taste Verdict | VinylVerdict.fm",
+        description: "Check out this personalized music taste verdict from VinylVerdict.fm!",
+        images: [imageUrl],
       },
     }
   } catch (error) {
-    console.error("Error in generateMetadata:", error)
     return {
-      title: "VinylVerdict.fm",
-      description: "Personalized Music Taste Analysis",
+      title: "Verdict Not Found | VinylVerdict.fm",
+      description: "This shared verdict may have expired or doesn't exist.",
     }
   }
 }
 
-export default async function SharedImagePage({ params }: PageProps) {
+export default function SharedVerdictPage({ params }: PageProps) {
   try {
-    const code = params.code
-    if (!code) {
+    // Decode the URL
+    const decoded = Buffer.from(params.code, "base64").toString()
+    const [timestamp, imageUrl] = decoded.split("|")
+
+    // Check if URL has expired (30 days)
+    const urlTimestamp = Number.parseInt(timestamp)
+    const now = Date.now()
+    const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000
+
+    if (now - urlTimestamp > thirtyDaysInMs) {
       notFound()
     }
 
-    const decoded = decodeShareCode(code)
-    if (!decoded) {
-      notFound()
-    }
-
-    // Check if the URL has expired (30 days)
-    if (Date.now() - decoded.timestamp > 30 * 24 * 60 * 60 * 1000) {
-      notFound()
-    }
-
-    // Return a page that displays the image
     return (
-      <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4">
-        <div className="max-w-2xl w-full">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-white mb-2">Music Taste Verdict</h1>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white p-4">
+        <div className="max-w-4xl w-full">
+          <div className="mb-8 text-center">
+            <h1 className="text-3xl font-bold mb-2 text-purple-500">Music Taste Verdict</h1>
             <p className="text-zinc-400">Shared from VinylVerdict.fm</p>
           </div>
 
-          {/* Image Container */}
-          <div className="relative bg-zinc-900 rounded-lg overflow-hidden border border-zinc-800">
-            <img
-              src={decoded.imageUrl || "/placeholder.svg"}
+          <div className="relative rounded-lg overflow-hidden mb-8 border border-zinc-800">
+            <Image
+              src={imageUrl || "/placeholder.svg"}
               alt="Music Taste Verdict"
+              width={1080}
+              height={1920}
               className="w-full h-auto"
-              style={{ maxHeight: "80vh", objectFit: "contain" }}
+              priority
             />
           </div>
 
-          {/* Footer */}
-          <div className="text-center mt-8 space-y-4">
-            <p className="text-zinc-400">Want your own personalized music taste analysis?</p>
-            <a
+          <div className="text-center mb-8">
+            <p className="text-lg mb-4">Want to get your own personalized music taste verdict?</p>
+            <Link
               href="/"
-              className="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+              className="inline-flex items-center justify-center bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-6 rounded-lg transition-colors"
             >
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-              </svg>
+              <Check className="mr-2 h-5 w-5" />
               Get Your Verdict at VinylVerdict.fm
-            </a>
-
-            {/* Social sharing buttons */}
-            <div className="flex justify-center gap-4 pt-4">
-              <a
-                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent("Check out my music taste verdict from VinylVerdict.fm!")}&url=${encodeURIComponent(`https://vinylverdict.fm/s/${code}`)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-zinc-400 hover:text-white transition-colors"
-                aria-label="Share on Twitter"
-              >
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                </svg>
-              </a>
-              <a
-                href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`https://vinylverdict.fm/s/${code}`)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-zinc-400 hover:text-white transition-colors"
-                aria-label="Share on Facebook"
-              >
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                </svg>
-              </a>
-            </div>
+            </Link>
           </div>
         </div>
       </div>
     )
   } catch (error) {
-    console.error("Error in SharedImagePage:", error)
     notFound()
   }
 }
