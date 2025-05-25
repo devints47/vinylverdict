@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/use-toast"
 import { Facebook, Instagram, Mail, Copy, Share2, Linkedin, X, Share, MessageCircle } from "lucide-react"
 import html2canvas from "html2canvas"
-import {/*put*/} from "@vercel/blob"
 
 interface ShareModalProps {
   isOpen: boolean
@@ -558,6 +557,52 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     }
   }
 
+  // Share with blob URL for social media platforms
+  const shareWithBlobUrl = (platform: string, url: string) => {
+    const shareText = "Check out my music taste verdict from VinylVerdict.fm!"
+
+    switch (platform) {
+      case "twitter":
+        // Twitter: https://twitter.com/intent/tweet?text=Your+text+here&url=https://yourdomain.com
+        window.open(
+          `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(url)}`,
+          "_blank",
+        )
+        break
+      case "facebook":
+        // Facebook: https://www.facebook.com/sharer/sharer.php?u=https://yourdomain.com
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, "_blank")
+        break
+      case "linkedin":
+        // LinkedIn: https://www.linkedin.com/sharing/share-offsite/?url=https://yourdomain.com
+        window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`, "_blank")
+        break
+      case "whatsapp":
+        // WhatsApp: https://wa.me/?text=Your+text+here+https://yourdomain.com
+        window.open(`https://wa.me/?text=${encodeURIComponent(shareText + " " + url)}`, "_blank")
+        break
+      case "share":
+        if (navigator.share) {
+          navigator
+            .share({
+              title: "My Music Taste Verdict",
+              text: shareText,
+              url: url,
+            })
+            .catch((err) => console.error("Share failed:", err))
+        } else {
+          navigator.clipboard.writeText(url)
+          toast({
+            title: "URL copied",
+            description: "Image URL has been copied to clipboard!",
+          })
+        }
+        break
+    }
+
+    onClose()
+  }
+
   const shareOptions: ShareOption[] = [
     {
       id: "twitter",
@@ -641,7 +686,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
   }
 
   const handleShareClick = async (option: ShareOption) => {
-    // Handle copy image option
+    // Handle copy image option - direct action, no preview needed
     if (option.id === "copy-image") {
       if (!imageUrl) {
         toast({
@@ -669,109 +714,11 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       return
     }
 
-    // Handle Instagram specially - copy image to clipboard
-    if (option.id === "instagram") {
-      if (!imageUrl) {
-        toast({
-          title: "Image not ready",
-          description: "Please wait for the image to generate first.",
-          variant: "destructive",
-        })
-        return
-      }
-
-      try {
-        await copyImageToClipboard(imageUrl)
-        toast({
-          title: "Image copied for Instagram!",
-          description: "The image has been copied. Open Instagram and paste it in your story or post!",
-        })
-
-        // Also try to open Instagram
-        openSocialApp("instagram")
-        onClose()
-      } catch (error) {
-        toast({
-          title: "Copy failed",
-          description: "Could not copy image to clipboard. Please try downloading instead.",
-          variant: "destructive",
-        })
-      }
-      return
-    }
-
-    // For options that need the image URL from Vercel Blob
-    if (["twitter", "facebook", "linkedin", "whatsapp", "share"].includes(option.id)) {
-      if (!blobUrl && imageUrl) {
-        try {
-          // Upload to Vercel Blob if not already uploaded
-          const url = await uploadImageToBlob(imageUrl)
-
-          // Share with the blob URL
-          shareWithBlobUrl(option.id, url)
-        } catch (error) {
-          toast({
-            title: "Upload failed",
-            description: "Could not upload image. Please try again.",
-            variant: "destructive",
-          })
-        }
-        return
-      } else if (blobUrl) {
-        // Use existing blob URL if available
-        shareWithBlobUrl(option.id, blobUrl)
-        return
-      }
-    }
-
-    // Handle special cases that don't need image preview
+    // Handle email - direct action, no preview needed
     if (option.id === "email") {
-      // Email: mailto:?subject=Check+this+out&body=Your+text+here%0Ahttps://yourdomain.com
       const subject = "Check out my music taste verdict from VinylVerdict.fm!"
       const body = `Check out my music taste verdict from VinylVerdict.fm!\n\n${text.substring(0, 200)}...\n\nGet your own at ${process.env.NEXT_PUBLIC_APP_URL || window.location.origin}`
       window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`)
-      onClose()
-      return
-    }
-
-    if (option.id === "messages") {
-      const shareText = `Check out my music taste verdict from VinylVerdict.fm!`
-      const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-
-      if (isMobile) {
-        if (blobUrl) {
-          // Messages (SMS): sms:?&body=Your+text+here+https://yourdomain.com
-          window.open(`sms:?&body=${encodeURIComponent(shareText + " " + blobUrl)}`, "_blank")
-        } else if (imageUrl) {
-          try {
-            const url = await uploadImageToBlob(imageUrl)
-            window.open(`sms:?&body=${encodeURIComponent(shareText + " " + url)}`, "_blank")
-          } catch (error) {
-            toast({
-              title: "Upload failed",
-              description: "Could not upload image. Please try again.",
-              variant: "destructive",
-            })
-          }
-        }
-      } else {
-        if (blobUrl) {
-          navigator.clipboard.writeText(shareText + " " + blobUrl)
-        } else if (imageUrl) {
-          try {
-            const url = await uploadImageToBlob(imageUrl)
-            navigator.clipboard.writeText(shareText + " " + url)
-          } catch (error) {
-            navigator.clipboard.writeText(shareText)
-          }
-        } else {
-          navigator.clipboard.writeText(shareText)
-        }
-        toast({
-          title: "Text copied",
-          description: "Message text has been copied to clipboard!",
-        })
-      }
       onClose()
       return
     }
@@ -780,78 +727,56 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     setSelectedPlatform(option.id)
   }
 
-  // Share with blob URL for social media platforms
-  const shareWithBlobUrl = (platform: string, url: string) => {
-    const shareText = "Check out my music taste verdict from VinylVerdict.fm!"
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
-
-    switch (platform) {
-      case "twitter":
-        // Twitter: https://twitter.com/intent/tweet?text=Your+text+here&url=https://yourdomain.com
-        window.open(
-          `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(url)}`,
-          "_blank",
-        )
-        break
-      case "facebook":
-        // Facebook: https://www.facebook.com/sharer/sharer.php?u=https://yourdomain.com
-        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, "_blank")
-        break
-      case "linkedin":
-        // LinkedIn: https://www.linkedin.com/sharing/share-offsite/?url=https://yourdomain.com
-        window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`, "_blank")
-        break
-      case "whatsapp":
-        // WhatsApp: https://wa.me/?text=Your+text+here+https://yourdomain.com
-        window.open(`https://wa.me/?text=${encodeURIComponent(shareText + " " + url)}`, "_blank")
-        break
-      case "share":
-        if (navigator.share) {
-          navigator
-            .share({
-              title: "My Music Taste Verdict",
-              text: shareText,
-              url: url,
-            })
-            .catch((err) => console.error("Share failed:", err))
-        } else {
-          navigator.clipboard.writeText(url)
-          toast({
-            title: "URL copied",
-            description: "Image URL has been copied to clipboard!",
-          })
-        }
-        break
-    }
-
-    onClose()
-  }
-
   const handleShareAfterPreview = async () => {
     if (!selectedPlatform || !imageUrl) return
 
     try {
-      // For Instagram and similar platforms that need the image in clipboard
-      if (["instagram"].includes(selectedPlatform)) {
+      // For Instagram - copy to clipboard and open app
+      if (selectedPlatform === "instagram") {
         await copyImageToClipboard(imageUrl)
-        openSocialApp(selectedPlatform)
+        openSocialApp("instagram")
 
         toast({
           title: "Image copied",
-          description: `The image has been copied. You can now paste it into ${selectedPlatform}!`,
+          description: "The image has been copied. Open Instagram and paste it in your story or post!",
         })
-      } else {
-        // For platforms that can use the blob URL
-        if (!blobUrl) {
-          const url = await uploadImageToBlob(imageUrl)
-          shareWithBlobUrl(selectedPlatform, url)
-        } else {
-          shareWithBlobUrl(selectedPlatform, blobUrl)
-        }
+        onClose()
+        return
       }
 
-      onClose()
+      // For messages - handle SMS or clipboard
+      if (selectedPlatform === "messages") {
+        const shareText = `Check out my music taste verdict from VinylVerdict.fm!`
+        const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+
+        // Upload image if not already uploaded
+        let shareUrl = blobUrl
+        if (!shareUrl) {
+          shareUrl = await uploadImageToBlob(imageUrl)
+        }
+
+        if (isMobile) {
+          window.open(`sms:?&body=${encodeURIComponent(shareText + " " + shareUrl)}`, "_blank")
+        } else {
+          navigator.clipboard.writeText(shareText + " " + shareUrl)
+          toast({
+            title: "Text copied",
+            description: "Message text has been copied to clipboard!",
+          })
+        }
+        onClose()
+        return
+      }
+
+      // For other social platforms
+      let finalUrl = blobUrl
+      if (!finalUrl) {
+        finalUrl = await uploadImageToBlob(imageUrl)
+      }
+
+      shareWithBlobUrl(selectedPlatform, finalUrl)
     } catch (error) {
+      console.error("Sharing error:", error)
       toast({
         title: "Sharing failed",
         description: "Failed to share the image. Please try again.",
@@ -940,7 +865,11 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
               ) : (
                 <>
                   <Share className="mr-2 h-4 w-4" />
-                  Share to {platform.name}
+                  {platform.id === "instagram"
+                    ? "Copy to Instagram"
+                    : platform.id === "messages"
+                      ? "Send via Messages"
+                      : `Share to ${platform.name}`}
                 </>
               )}
             </Button>
