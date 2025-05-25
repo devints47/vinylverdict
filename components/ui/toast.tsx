@@ -101,17 +101,3 @@ export function Toaster() {
 
 // Alias for compatibility
 export const ToastContainer = Toaster
-
-// Export useToast hook for accessing context
-export function useToast() {
-  const context = React.useContext(ToastContext)
-  if (!context) {
-    throw new Error("useToast must be used within a ToastProvider")
-  }
-
-  return {
-    toast: context.addToast,
-    toasts: context.toasts,
-    dismiss: context.removeToast,
-  }
-}
