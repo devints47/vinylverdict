@@ -28,11 +28,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Store the mapping in Vercel Blob
-    // Using a consistent naming pattern: url-mapping-{shortCode}.json
-    await put(`url-mapping-${shortCode}.json`, JSON.stringify(mapping), {
-      contentType: "application/json",
+    const blob = await put(`url-mapping-${shortCode}.json`, JSON.stringify(mapping), {
       access: "public",
+      contentType: "application/json",
     })
+
+    console.log("Created URL mapping:", { shortCode, blobUrl: blob.url })
 
     // Return the short URL
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://vinylverdict.fm"

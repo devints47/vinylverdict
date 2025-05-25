@@ -1,5 +1,4 @@
 import type { Metadata } from "next"
-import { get } from "@vercel/blob"
 import { notFound } from "next/navigation"
 
 interface UrlMapping {
@@ -10,6 +9,36 @@ interface UrlMapping {
 
 interface PageProps {
   params: { code: string }
+}
+
+// Helper function to fetch URL mapping
+async function getUrlMapping(code: string): Promise<UrlMapping | null> {
+  try {
+    // Construct the blob URL directly
+    const blobUrl = `https://${process.env.BLOB_READ_WRITE_TOKEN?.split("_")[1]}.public.blob.vercel-storage.com/url-mapping-${code}.json`
+
+    const response = await fetch(blobUrl, {
+      headers: {
+        "Cache-Control": "no-cache",
+      },
+    })
+
+    if (!response.ok) {
+      return null
+    }
+
+    const mapping: UrlMapping = await response.json()
+
+    // Check if the URL has expired
+    if (mapping.expiresAt < Date.now()) {
+      return null
+    }
+
+    return mapping
+  } catch (error) {
+    console.error("Error retrieving URL mapping:", error)
+    return null
+  }
 }
 
 // Generate metadata for social sharing
@@ -24,59 +53,39 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       }
     }
 
-    // Try to get the mapping from Vercel Blob
-    try {
-      const blob = await get(`url-mapping-${code}.json`)
+    const mapping = await getUrlMapping(code)
 
-      if (!blob) {
-        return {
-          title: "VinylVerdict.fm",
-          description: "Personalized Music Taste Analysis",
-        }
-      }
-
-      const text = await blob.text()
-      const mapping: UrlMapping = JSON.parse(text)
-
-      // Check if the URL has expired
-      if (mapping.expiresAt < Date.now()) {
-        return {
-          title: "VinylVerdict.fm",
-          description: "Personalized Music Taste Analysis",
-        }
-      }
-
-      // Return metadata with the image
-      return {
-        title: "My Music Taste Verdict - VinylVerdict.fm",
-        description: "Check out my personalized music taste analysis from VinylVerdict.fm!",
-        openGraph: {
-          title: "My Music Taste Verdict - VinylVerdict.fm",
-          description: "Check out my personalized music taste analysis from VinylVerdict.fm!",
-          images: [
-            {
-              url: mapping.originalUrl,
-              width: 1080,
-              height: 1920,
-              alt: "Music Taste Verdict",
-            },
-          ],
-          type: "website",
-          siteName: "VinylVerdict.fm",
-        },
-        twitter: {
-          card: "summary_large_image",
-          title: "My Music Taste Verdict - VinylVerdict.fm",
-          description: "Check out my personalized music taste analysis from VinylVerdict.fm!",
-          images: [mapping.originalUrl],
-        },
-      }
-    } catch (error) {
-      console.error("Error retrieving URL mapping for metadata:", error)
+    if (!mapping) {
       return {
         title: "VinylVerdict.fm",
         description: "Personalized Music Taste Analysis",
       }
+    }
+
+    // Return metadata with the image
+    return {
+      title: "My Music Taste Verdict - VinylVerdict.fm",
+      description: "Check out my personalized music taste analysis from VinylVerdict.fm!",
+      openGraph: {
+        title: "My Music Taste Verdict - VinylVerdict.fm",
+        description: "Check out my personalized music taste analysis from VinylVerdict.fm!",
+        images: [
+          {
+            url: mapping.originalUrl,
+            width: 1080,
+            height: 1920,
+            alt: "Music Taste Verdict",
+          },
+        ],
+        type: "website",
+        siteName: "VinylVerdict.fm",
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: "My Music Taste Verdict - VinylVerdict.fm",
+        description: "Check out my personalized music taste analysis from VinylVerdict.fm!",
+        images: [mapping.originalUrl],
+      },
     }
   } catch (error) {
     console.error("Error in generateMetadata:", error)
@@ -95,24 +104,9 @@ export default async function SharedImagePage({ params }: PageProps) {
       notFound()
     }
 
-    // Try to get the mapping from Vercel Blob
-    let mapping: UrlMapping
-    try {
-      const blob = await get(`url-mapping-${code}.json`)
+    const mapping = await getUrlMapping(code)
 
-      if (!blob) {
-        notFound()
-      }
-
-      const text = await blob.text()
-      mapping = JSON.parse(text)
-
-      // Check if the URL has expired
-      if (mapping.expiresAt < Date.now()) {
-        notFound()
-      }
-    } catch (error) {
-      console.error("Error retrieving URL mapping:", error)
+    if (!mapping) {
       notFound()
     }
 
