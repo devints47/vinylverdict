@@ -37,6 +37,8 @@ const loadingMessages = [
 export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: ShareModalProps) {
   const [imageUrl, setImageUrl] = useState<string>("")
   const [blobUrl, setBlobUrl] = useState<string>("")
+  // First, add a new state for the shortened URL
+  const [shortUrl, setShortUrl] = useState<string>("")
   const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null)
   const [showingImage, setShowingImage] = useState(false)
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0)
@@ -77,6 +79,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       // Reset states
       setImageUrl("")
       setBlobUrl("")
+      setShortUrl("")
       setShowingImage(false)
       setIsUploading(false)
 
@@ -454,8 +457,8 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     return html
   }
 
-  // Upload image to Vercel Blob via server action
-  const uploadImageToBlob = async (dataUrl: string): Promise<string> => {
+  // Update the uploadImageToBlob function to also create a short URL
+  const uploadImageToBlob = async (dataUrl: string): Promise<{ blobUrl: string; shortUrl: string }> => {
     try {
       setIsUploading(true)
 
@@ -474,9 +477,28 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
 
       const { url } = await response.json()
 
+      // Now create a short URL for the blob URL
+      const shortenResponse = await fetch("/api/shorten", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ url }),
+      })
+
+      if (!shortenResponse.ok) {
+        // If shortening fails, we can still use the original URL
+        setIsUploading(false)
+        setBlobUrl(url)
+        return { blobUrl: url, shortUrl: url }
+      }
+
+      const { shortUrl } = await shortenResponse.json()
+
       setIsUploading(false)
       setBlobUrl(url)
-      return url
+      setShortUrl(shortUrl)
+      return { blobUrl: url, shortUrl }
     } catch (error) {
       console.error("Error uploading to Vercel Blob:", error)
       setIsUploading(false)
@@ -557,7 +579,68 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     }
   }
 
-  // Share with blob URL for social media platforms
+  // Update the handleShareAfterPreview function to use the short URL
+  const handleShareAfterPreview = async () => {
+    if (!selectedPlatform || !imageUrl) return
+
+    try {
+      // For Instagram - copy to clipboard and open app
+      if (selectedPlatform === "instagram") {
+        await copyImageToClipboard(imageUrl)
+        openSocialApp("instagram")
+
+        toast({
+          title: "Image copied",
+          description: "The image has been copied. Open Instagram and paste it in your story or post!",
+        })
+        onClose()
+        return
+      }
+
+      // For messages - handle SMS or clipboard
+      if (selectedPlatform === "messages") {
+        const shareText = `Check out my music taste verdict from VinylVerdict.fm!`
+        const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+
+        // Upload image if not already uploaded
+        let shareUrl = shortUrl || blobUrl
+        if (!shareUrl) {
+          const { shortUrl: newShortUrl } = await uploadImageToBlob(imageUrl)
+          shareUrl = newShortUrl
+        }
+
+        if (isMobile) {
+          window.open(`sms:?&body=${encodeURIComponent(shareText + "\n" + shareUrl)}`, "_blank")
+        } else {
+          navigator.clipboard.writeText(shareText + "\n" + shareUrl)
+          toast({
+            title: "Text copied",
+            description: "Message text has been copied to clipboard!",
+          })
+        }
+        onClose()
+        return
+      }
+
+      // For other social platforms
+      let finalUrl = shortUrl || blobUrl
+      if (!finalUrl) {
+        const { shortUrl: newShortUrl } = await uploadImageToBlob(imageUrl)
+        finalUrl = newShortUrl
+      }
+
+      shareWithBlobUrl(selectedPlatform, finalUrl)
+    } catch (error) {
+      console.error("Sharing error:", error)
+      toast({
+        title: "Sharing failed",
+        description: "Failed to share the image. Please try again.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  // Update the shareWithBlobUrl function to use the short URL
   const shareWithBlobUrl = (platform: string, url: string) => {
     const shareText = "Check out my music taste verdict from VinylVerdict.fm!"
 
@@ -579,7 +662,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
         break
       case "whatsapp":
         // WhatsApp: https://wa.me/?text=Your+text+here+https://yourdomain.com
-        window.open(`https://wa.me/?text=${encodeURIComponent(shareText + " " + url)}`, "_blank")
+        window.open(`https://wa.me/?text=${encodeURIComponent(shareText + "\n" + url)}`, "_blank")
         break
       case "share":
         if (navigator.share) {
@@ -727,79 +810,26 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     setSelectedPlatform(option.id)
   }
 
-  const handleShareAfterPreview = async () => {
-    if (!selectedPlatform || !imageUrl) return
-
-    try {
-      // For Instagram - copy to clipboard and open app
-      if (selectedPlatform === "instagram") {
-        await copyImageToClipboard(imageUrl)
-        openSocialApp("instagram")
-
-        toast({
-          title: "Image copied",
-          description: "The image has been copied. Open Instagram and paste it in your story or post!",
-        })
-        onClose()
-        return
-      }
-
-      // For messages - handle SMS or clipboard
-      if (selectedPlatform === "messages") {
-        const shareText = `Check out my music taste verdict from VinylVerdict.fm!`
-        const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-
-        // Upload image if not already uploaded
-        let shareUrl = blobUrl
-        if (!shareUrl) {
-          shareUrl = await uploadImageToBlob(imageUrl)
-        }
-
-        if (isMobile) {
-          window.open(`sms:?&body=${encodeURIComponent(shareText + " " + shareUrl)}`, "_blank")
-        } else {
-          navigator.clipboard.writeText(shareText + " " + shareUrl)
-          toast({
-            title: "Text copied",
-            description: "Message text has been copied to clipboard!",
-          })
-        }
-        onClose()
-        return
-      }
-
-      // For other social platforms
-      let finalUrl = blobUrl
-      if (!finalUrl) {
-        finalUrl = await uploadImageToBlob(imageUrl)
-      }
-
-      shareWithBlobUrl(selectedPlatform, finalUrl)
-    } catch (error) {
-      console.error("Sharing error:", error)
+  const handleDownloadImage = async () => {
+    if (!imageUrl) {
       toast({
-        title: "Sharing failed",
-        description: "Failed to share the image. Please try again.",
+        title: "Image not ready",
+        description: "Please wait for the image to generate first.",
         variant: "destructive",
       })
+      return
     }
-  }
-
-  const handleDownloadImage = async () => {
-    if (!imageUrl) return
 
     try {
-      const filename = `vinylverdict-${assistantType}-${Date.now()}.png`
-      await downloadImage(imageUrl, filename)
-
+      await downloadImage(imageUrl, "music-verdict.png")
       toast({
-        title: "Image downloaded",
-        description: "Your image has been downloaded successfully!",
+        title: "Image downloaded!",
+        description: "The image has been downloaded to your device.",
       })
     } catch (error) {
       toast({
         title: "Download failed",
-        description: "Failed to download the image. Please try again.",
+        description: "Could not download image. Please try copying instead.",
         variant: "destructive",
       })
     }
