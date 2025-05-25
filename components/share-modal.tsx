@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/use-toast"
 import { Facebook, Instagram, Mail, Copy, Share2, Linkedin, X, Share, MessageCircle } from "lucide-react"
 import html2canvas from "html2canvas"
+import {/*put*/} from "@vercel/blob"
 
 interface ShareModalProps {
   isOpen: boolean
@@ -47,22 +48,27 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
   const templateRef = useRef<HTMLDivElement>(null)
   const cleanupTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  // Fetch user profile when modal opens
+  // Fetch user profile when modal opens - using same pattern as dashboard
   useEffect(() => {
     if (isOpen) {
       const fetchProfile = async () => {
         try {
+          // Use the server API endpoint - same as dashboard
           const response = await fetch("/api/auth/me")
+
           if (!response.ok) {
             console.warn(`Profile fetch failed with status: ${response.status}`)
             return
           }
+
           const data = await response.json()
-          setUserProfile(data)
+          setUserProfile(data) // Data is returned directly, not wrapped in user property
         } catch (err) {
           console.error("Error fetching profile:", err)
+          // Don't throw error, just continue without profile data
         }
       }
+
       fetchProfile()
     }
   }, [isOpen])
@@ -91,48 +97,55 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       templateContainer.style.position = "fixed"
       templateContainer.style.left = "-9999px"
       templateContainer.style.top = "-9999px"
-      // Updated dimensions for social media optimization (1200x630 aspect ratio)
-      templateContainer.style.width = "1200px"
-      templateContainer.style.height = "630px"
+      templateContainer.style.width = "1080px"
+      templateContainer.style.minHeight = "1920px"
       templateContainer.style.backgroundColor = "#121212"
       templateContainer.style.backgroundImage = "url(/waveform-bg.png)"
       templateContainer.style.backgroundSize = "cover"
       templateContainer.style.backgroundPosition = "center"
       templateContainer.style.display = "flex"
-      templateContainer.style.flexDirection = "row" // Changed to row for landscape layout
-      templateContainer.style.justifyContent = "space-between"
+      templateContainer.style.flexDirection = "column"
+      templateContainer.style.justifyContent = "center"
       templateContainer.style.alignItems = "center"
-      templateContainer.style.padding = "40px"
+      templateContainer.style.padding = "60px 40px"
       templateContainer.style.fontFamily = "'Inter', sans-serif"
       templateContainer.style.color = "white"
       templateContainer.style.zIndex = "-1000"
+      // Add a unique class for easier identification
       templateContainer.className = "vinyl-verdict-share-template"
       document.body.appendChild(templateContainer)
 
-      // Calculate optimal font size based on text length for landscape format
+      // Calculate optimal font size based on text length
       const textLength = text.length
-      let fontSize = 18 // Smaller default for landscape
+      let fontSize = 32 // Default font size
 
-      if (textLength > 2000) {
-        fontSize = 14
-      } else if (textLength > 1500) {
-        fontSize = 16
-      } else if (textLength > 1000) {
+      // Adjust font size based on text length - more nuanced scaling
+      if (textLength > 3000) {
         fontSize = 18
-      } else if (textLength > 500) {
+      } else if (textLength > 2500) {
         fontSize = 20
+      } else if (textLength > 2000) {
+        fontSize = 22
+      } else if (textLength > 1500) {
+        fontSize = 24
+      } else if (textLength > 1000) {
+        fontSize = 26
+      } else if (textLength > 700) {
+        fontSize = 28
+      } else if (textLength > 500) {
+        fontSize = 30
       }
 
-      // Left side - Branding
-      const leftSide = document.createElement("div")
-      leftSide.style.display = "flex"
-      leftSide.style.flexDirection = "column"
-      leftSide.style.alignItems = "center"
-      leftSide.style.justifyContent = "center"
-      leftSide.style.width = "300px"
-      leftSide.style.height = "100%"
+      // Create header with vinyl logo
+      const header = document.createElement("div")
+      header.style.display = "flex"
+      header.style.flexDirection = "column"
+      header.style.alignItems = "center"
+      header.style.marginBottom = "40px"
+      header.style.width = "100%"
+      header.style.maxWidth = "800px"
 
-      // Vinyl logo
+      // Add vinyl logo centered above subtitle with purple glow
       const vinylLogo = document.createElement("img")
       vinylLogo.src = "/vinyl-favicon.png"
       vinylLogo.alt = "VinylVerdict Logo"
@@ -142,80 +155,131 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       vinylLogo.style.filter = "drop-shadow(0 0 20px rgba(147, 51, 234, 0.6))"
       vinylLogo.crossOrigin = "anonymous"
 
-      // Title
-      const title = document.createElement("h1")
-      title.textContent = "VinylVerdict"
-      title.style.fontSize = "36px"
-      title.style.fontWeight = "bold"
-      title.style.color = "#c026d3"
-      title.style.margin = "0 0 10px 0"
-      title.style.textAlign = "center"
-
-      // Subtitle
-      const subtitle = document.createElement("p")
-      const personalityName = getPersonalityName(assistantType)
-      subtitle.textContent = `${personalityName}'s Verdict`
-      subtitle.style.fontSize = "18px"
-      subtitle.style.color = "#d4d4d8"
-      subtitle.style.margin = "0"
+      // Create subtitle with purple colors instead of gradient
+      const subtitle = document.createElement("div")
       subtitle.style.textAlign = "center"
+      subtitle.style.width = "100%"
 
-      leftSide.appendChild(vinylLogo)
-      leftSide.appendChild(title)
-      leftSide.appendChild(subtitle)
+      const subtitleText = document.createElement("h2")
+      const personalityName = getPersonalityName(assistantType)
+      const username = userProfile?.display_name || userProfile?.id || "Your Music"
 
-      // Right side - Content
-      const rightSide = document.createElement("div")
-      rightSide.style.flex = "1"
-      rightSide.style.height = "100%"
-      rightSide.style.marginLeft = "40px"
-      rightSide.style.display = "flex"
-      rightSide.style.flexDirection = "column"
-      rightSide.style.justifyContent = "center"
+      // Create the subtitle with purple styling for both personality and username
+      subtitleText.innerHTML = `<span style="color: #c026d3; font-weight: bold;">${personalityName}</span>'s analysis of <span style="color: #c026d3; font-weight: bold;">${username}</span>`
 
+      subtitleText.style.fontSize = "32px"
+      subtitleText.style.fontWeight = "600"
+      subtitleText.style.color = "#d4d4d8"
+      subtitleText.style.margin = "0"
+      subtitleText.style.padding = "0"
+      subtitleText.style.lineHeight = "1.4"
+
+      subtitle.appendChild(subtitleText)
+      header.appendChild(vinylLogo)
+      header.appendChild(subtitle)
+      templateContainer.appendChild(header)
+
+      // Create content area with no minHeight - only as tall as content
       const content = document.createElement("div")
       content.style.backgroundColor = "rgba(24, 24, 27, 0.8)"
       content.style.borderRadius = "12px"
-      content.style.padding = "30px"
+      content.style.padding = "40px"
       content.style.border = "1px solid rgba(147, 51, 234, 0.3)"
-      content.style.maxHeight = "500px"
-      content.style.overflowY = "hidden"
+      content.style.width = "100%"
+      content.style.maxWidth = "800px"
+      content.style.boxSizing = "border-box"
+      content.style.marginBottom = "30px" // Reduced from 40px to 30px
 
       // Convert markdown to HTML with the calculated font size
       content.innerHTML = convertMarkdownToHtml(text, fontSize)
-      rightSide.appendChild(content)
+      templateContainer.appendChild(content)
 
-      templateContainer.appendChild(leftSide)
-      templateContainer.appendChild(rightSide)
+      // Create footer with logo and VinylVerdict.FM
+      const footer = document.createElement("div")
+      footer.style.display = "flex"
+      footer.style.flexDirection = "column"
+      footer.style.alignItems = "center"
+      footer.style.width = "100%"
+      footer.style.maxWidth = "800px"
 
-      // Generate image after a short delay
+      // Logo and title container
+      const logoContainer = document.createElement("div")
+      logoContainer.style.display = "flex"
+      logoContainer.style.alignItems = "center"
+      logoContainer.style.gap = "16px"
+      logoContainer.style.marginBottom = "16px"
+
+      const logoImg = document.createElement("img")
+      logoImg.src = "/vinyl-favicon.png"
+      logoImg.alt = "VinylVerdict Logo"
+      logoImg.style.height = "60px"
+      logoImg.style.width = "60px"
+      logoImg.crossOrigin = "anonymous"
+
+      const title = document.createElement("h1")
+      title.textContent = "VinylVerdict.FM"
+      title.style.fontSize = "42px"
+      title.style.fontWeight = "bold"
+      title.style.color = "#c026d3" // Use solid purple color instead of gradient
+      title.style.margin = "0"
+      title.style.padding = "0"
+      title.style.lineHeight = "1"
+      title.style.marginBottom = "8px" // Add margin bottom to align with logo center
+
+      // Add promotional sub-text
+      const promoText = document.createElement("p")
+      promoText.textContent = "Get your own personalized verdict at VinylVerdict.FM"
+      promoText.style.fontSize = "18px"
+      promoText.style.color = "#9ca3af"
+      promoText.style.margin = "0"
+      promoText.style.padding = "0"
+      promoText.style.textAlign = "center"
+      promoText.style.fontWeight = "400"
+
+      logoContainer.appendChild(logoImg)
+      logoContainer.appendChild(title)
+      footer.appendChild(logoContainer)
+      footer.appendChild(promoText)
+      templateContainer.appendChild(footer)
+
+      // Wait for images to load and content to render
       const generateImage = () => {
+        // Double-check that the element still exists
         const existingContainer = document.getElementById("share-image-template")
         if (!existingContainer) {
           console.warn("Template container not found during image generation")
           return
         }
 
+        // Adjust container height based on actual content
+        const actualHeight = existingContainer.scrollHeight
+        existingContainer.style.height = `${Math.max(actualHeight, 1920)}px`
+
+        // Generate image from the template with improved options
         html2canvas(existingContainer, {
           allowTaint: true,
           useCORS: true,
-          scale: 1, // Lower scale for better performance with landscape format
-          logging: false,
+          scale: 2,
+          logging: false, // Disable html2canvas logging to reduce console noise
           backgroundColor: null,
-          width: 1200,
-          height: 630,
+          height: Math.max(actualHeight, 1920),
+          windowHeight: Math.max(actualHeight, 1920),
+          // Add these options to improve stability
           foreignObjectRendering: false,
-          removeContainer: false,
+          removeContainer: false, // Don't let html2canvas remove the container
         })
           .then((canvas) => {
+            // Convert canvas to data URL
             const imageUrl = canvas.toDataURL("image/png", 1.0)
             setImageUrl(imageUrl)
             setShowingImage(true)
 
+            // Clean up intervals
             if (loadingIntervalRef.current) {
               clearInterval(loadingIntervalRef.current)
             }
 
+            // Schedule cleanup after a short delay to ensure html2canvas is completely done
             cleanupTimeoutRef.current = setTimeout(() => {
               const containerToRemove = document.getElementById("share-image-template")
               if (containerToRemove && containerToRemove.parentNode) {
@@ -234,27 +298,69 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
               description: "Could not generate share image. Please try again.",
               variant: "destructive",
             })
+
+            // Clean up on error
+            const containerToRemove = document.getElementById("share-image-template")
+            if (containerToRemove && containerToRemove.parentNode) {
+              try {
+                document.body.removeChild(containerToRemove)
+              } catch (cleanupError) {
+                console.warn("Error removing template container after error:", cleanupError)
+              }
+            }
           })
       }
 
-      // Wait for logo to load
-      vinylLogo.onload = () => setTimeout(generateImage, 500)
-      vinylLogo.onerror = () => setTimeout(generateImage, 500)
-      if (vinylLogo.complete) setTimeout(generateImage, 500)
+      // Wait for both logo images to load before generating
+      let imagesLoaded = 0
+      const totalImages = 2
 
-      // Fallback timeout
+      const checkImagesLoaded = () => {
+        imagesLoaded++
+        if (imagesLoaded === totalImages) {
+          setTimeout(generateImage, 500)
+        }
+      }
+
+      // Header vinyl logo
+      vinylLogo.onload = checkImagesLoaded
+      vinylLogo.onerror = () => {
+        console.warn("Header vinyl logo failed to load")
+        checkImagesLoaded()
+      }
+
+      // Footer logo
+      logoImg.onload = checkImagesLoaded
+      logoImg.onerror = () => {
+        console.warn("Footer logo failed to load")
+        checkImagesLoaded()
+      }
+
+      // If images are already cached, onload might not fire
+      if (vinylLogo.complete) checkImagesLoaded()
+      if (logoImg.complete) checkImagesLoaded()
+
+      // Fallback timeout in case images don't load
       setTimeout(() => {
-        setTimeout(generateImage, 500)
-      }, 2000)
+        if (imagesLoaded < totalImages) {
+          console.warn("Some images didn't load, proceeding with image generation")
+          setTimeout(generateImage, 500)
+        }
+      }, 3000)
     }
 
     return () => {
+      // Clean up intervals
       if (loadingIntervalRef.current) {
         clearInterval(loadingIntervalRef.current)
       }
+
+      // Clean up timeout
       if (cleanupTimeoutRef.current) {
         clearTimeout(cleanupTimeoutRef.current)
       }
+
+      // Clean up any template containers that might be left
       const templateContainer = document.getElementById("share-image-template")
       if (templateContainer && templateContainer.parentNode) {
         try {
@@ -279,48 +385,70 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     }
   }
 
+  // Get the appropriate title based on assistant type
+  const getAssistantTitle = (type: string): string => {
+    switch (type) {
+      case "worshipper":
+        return "Music Taste Validation"
+      case "historian":
+        return "Music History Analysis"
+      case "snob":
+      default:
+        return "Music Taste Verdict"
+    }
+  }
+
   // Convert markdown to HTML with proper styling and dynamic font size
   const convertMarkdownToHtml = (markdown: string, fontSize: number): string => {
+    // Extract title from first line if it starts with #
     let title = ""
     let content = markdown
 
+    // Check if the first line is a title
     const titleMatch = markdown.match(/^# (.+)$/m)
     if (titleMatch) {
       title = titleMatch[1]
-      content = markdown.replace(/^# .+$/m, "")
+      content = markdown.replace(/^# .+$/m, "") // Remove the title from content
     }
 
+    // Basic markdown conversion with dynamic font size
     let html = content
+      // Convert headers
       .replace(
         /^# (.*$)/gm,
-        `<h1 style="color: #c026d3; font-size: ${fontSize * 1.3}px; font-weight: bold; margin-bottom: 15px; line-height: 1.3;">$1</h1>`,
+        `<h1 style="color: #c026d3; font-size: ${fontSize * 1.3}px; font-weight: bold; margin-bottom: 20px; line-height: 1.4;">$1</h1>`,
       )
       .replace(
         /^## (.*$)/gm,
-        `<h2 style="color: #c026d3; font-size: ${fontSize * 1.15}px; font-weight: bold; margin-bottom: 12px; line-height: 1.3;">$2</h2>`,
+        `<h2 style="color: #c026d3; font-size: ${fontSize * 1.15}px; font-weight: bold; margin-bottom: 16px; line-height: 1.4;">$2</h2>`,
       )
       .replace(
         /^### (.*$)/gm,
-        `<h3 style="color: #c026d3; font-size: ${fontSize * 1.05}px; font-weight: bold; margin-bottom: 10px; line-height: 1.3;">$1</h3>`,
+        `<h3 style="color: #c026d3; font-size: ${fontSize * 1.05}px; font-weight: bold; margin-bottom: 12px; line-height: 1.4;">$1</h3>`,
       )
+      // Convert bold and italic
       .replace(/\*\*(.*?)\*\*/g, `<strong style="color: white; font-weight: bold;">$1</strong>`)
       .replace(/\*(.*?)\*/g, `<em style="color: #d4d4d8; font-style: italic;">$1</em>`)
+      // Convert paragraphs with dynamic font size
       .replace(
         /\n\n/g,
-        `</p><p style="margin-bottom: ${fontSize * 0.6}px; color: #e4e4e7; font-size: ${fontSize}px; line-height: 1.4;">`,
+        `</p><p style="margin-bottom: ${fontSize * 0.8}px; color: #e4e4e7; font-size: ${fontSize}px; line-height: 1.6;">`,
       )
+      // Convert lists
       .replace(
         /^- (.*$)/gm,
-        `<li style="margin-left: 15px; color: #e4e4e7; font-size: ${fontSize}px; line-height: 1.4;">$1</li>`,
+        `<li style="margin-left: 20px; color: #e4e4e7; font-size: ${fontSize}px; line-height: 1.6;">$1</li>`,
       )
 
+    // Wrap in paragraph if not already
     if (!html.startsWith("<h1") && !html.startsWith("<p")) {
-      html = `<p style="margin-bottom: ${fontSize * 0.6}px; color: #e4e4e7; font-size: ${fontSize}px; line-height: 1.4;">${html}</p>`
+      html = `<p style="margin-bottom: ${fontSize * 0.8}px; color: #e4e4e7; font-size: ${fontSize}px; line-height: 1.6;">${html}</p>`
     }
 
+    // If we extracted a title, add it back at the top with larger font
     if (title) {
       html =
-        `<h1 style="color: #c026d3; font-size: ${fontSize * 1.4}px; font-weight: bold; margin-bottom: ${fontSize * 0.8}px; line-height: 1.2;">${title}</h1>` +
+        `<h1 style="color: #c026d3; font-size: ${fontSize * 1.5}px; font-weight: bold; margin-bottom: ${fontSize}px; text-align: center; line-height: 1.3;">${title}</h1>` +
         html
     }
 
@@ -332,6 +460,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     try {
       setIsUploading(true)
 
+      // Call our server action to upload the image
       const response = await fetch("/api/upload-image", {
         method: "POST",
         headers: {
@@ -359,9 +488,14 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
   // Function to copy image to clipboard
   const copyImageToClipboard = async (dataUrl: string): Promise<void> => {
     try {
+      // Convert data URL to blob
       const response = await fetch(dataUrl)
       const blob = await response.blob()
+
+      // Create a ClipboardItem
       const item = new ClipboardItem({ [blob.type]: blob })
+
+      // Write to clipboard
       await navigator.clipboard.write([item])
     } catch (error) {
       console.error("Error copying image to clipboard:", error)
@@ -369,9 +503,49 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     }
   }
 
+  // Function to open social media apps
+  const openSocialApp = (platform: string): void => {
+    const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+
+    switch (platform) {
+      case "instagram":
+        if (isMobile) {
+          window.open("instagram://camera", "_blank")
+          setTimeout(() => {
+            window.open("https://www.instagram.com", "_blank")
+          }, 1000)
+        } else {
+          window.open("https://www.instagram.com", "_blank")
+        }
+        break
+      case "twitter":
+        window.open("https://twitter.com/compose/tweet", "_blank")
+        break
+      case "facebook":
+        window.open("https://www.facebook.com", "_blank")
+        break
+      case "linkedin":
+        window.open("https://www.linkedin.com", "_blank")
+        break
+      case "whatsapp":
+        if (isMobile) {
+          window.open("whatsapp://", "_blank")
+          setTimeout(() => {
+            window.open("https://web.whatsapp.com", "_blank")
+          }, 1000)
+        } else {
+          window.open("https://web.whatsapp.com", "_blank")
+        }
+        break
+      default:
+        break
+    }
+  }
+
   // Function to download image
   const downloadImage = async (dataUrl: string, filename: string): Promise<void> => {
     try {
+      // Create a download link
       const link = document.createElement("a")
       link.href = dataUrl
       link.download = filename
@@ -512,6 +686,9 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
           title: "Image copied for Instagram!",
           description: "The image has been copied. Open Instagram and paste it in your story or post!",
         })
+
+        // Also try to open Instagram
+        openSocialApp("instagram")
         onClose()
       } catch (error) {
         toast({
@@ -523,20 +700,15 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       return
     }
 
-    // For options that need the image URL from Vercel Blob, create a shareable page
+    // For options that need the image URL from Vercel Blob
     if (["twitter", "facebook", "linkedin", "whatsapp", "share"].includes(option.id)) {
       if (!blobUrl && imageUrl) {
         try {
           // Upload to Vercel Blob if not already uploaded
           const url = await uploadImageToBlob(imageUrl)
 
-          // Create a unique share ID and share URL
-          const shareId = Date.now().toString()
-          const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
-          const shareUrl = `${appUrl}/share/${shareId}?text=${encodeURIComponent(text)}&type=${assistantType}&image=${encodeURIComponent(url)}`
-
-          // Share with the page URL that has proper meta tags
-          shareWithUrl(option.id, shareUrl)
+          // Share with the blob URL
+          shareWithBlobUrl(option.id, url)
         } catch (error) {
           toast({
             title: "Upload failed",
@@ -547,16 +719,14 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
         return
       } else if (blobUrl) {
         // Use existing blob URL if available
-        const shareId = Date.now().toString()
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
-        const shareUrl = `${appUrl}/share/${shareId}?text=${encodeURIComponent(text)}&type=${assistantType}&image=${encodeURIComponent(blobUrl)}`
-        shareWithUrl(option.id, shareUrl)
+        shareWithBlobUrl(option.id, blobUrl)
         return
       }
     }
 
     // Handle special cases that don't need image preview
     if (option.id === "email") {
+      // Email: mailto:?subject=Check+this+out&body=Your+text+here%0Ahttps://yourdomain.com
       const subject = "Check out my music taste verdict from VinylVerdict.fm!"
       const body = `Check out my music taste verdict from VinylVerdict.fm!\n\n${text.substring(0, 200)}...\n\nGet your own at ${process.env.NEXT_PUBLIC_APP_URL || window.location.origin}`
       window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`)
@@ -570,17 +740,12 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
 
       if (isMobile) {
         if (blobUrl) {
-          const shareId = Date.now().toString()
-          const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
-          const shareUrl = `${appUrl}/share/${shareId}?text=${encodeURIComponent(text)}&type=${assistantType}&image=${encodeURIComponent(blobUrl)}`
-          window.open(`sms:?&body=${encodeURIComponent(shareText + " " + shareUrl)}`, "_blank")
+          // Messages (SMS): sms:?&body=Your+text+here+https://yourdomain.com
+          window.open(`sms:?&body=${encodeURIComponent(shareText + " " + blobUrl)}`, "_blank")
         } else if (imageUrl) {
           try {
             const url = await uploadImageToBlob(imageUrl)
-            const shareId = Date.now().toString()
-            const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
-            const shareUrl = `${appUrl}/share/${shareId}?text=${encodeURIComponent(text)}&type=${assistantType}&image=${encodeURIComponent(url)}`
-            window.open(`sms:?&body=${encodeURIComponent(shareText + " " + shareUrl)}`, "_blank")
+            window.open(`sms:?&body=${encodeURIComponent(shareText + " " + url)}`, "_blank")
           } catch (error) {
             toast({
               title: "Upload failed",
@@ -590,7 +755,18 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
           }
         }
       } else {
-        navigator.clipboard.writeText(shareText)
+        if (blobUrl) {
+          navigator.clipboard.writeText(shareText + " " + blobUrl)
+        } else if (imageUrl) {
+          try {
+            const url = await uploadImageToBlob(imageUrl)
+            navigator.clipboard.writeText(shareText + " " + url)
+          } catch (error) {
+            navigator.clipboard.writeText(shareText)
+          }
+        } else {
+          navigator.clipboard.writeText(shareText)
+        }
         toast({
           title: "Text copied",
           description: "Message text has been copied to clipboard!",
@@ -604,24 +780,29 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     setSelectedPlatform(option.id)
   }
 
-  // Share with URL for social media platforms (now with proper meta tags)
-  const shareWithUrl = (platform: string, url: string) => {
+  // Share with blob URL for social media platforms
+  const shareWithBlobUrl = (platform: string, url: string) => {
     const shareText = "Check out my music taste verdict from VinylVerdict.fm!"
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
 
     switch (platform) {
       case "twitter":
+        // Twitter: https://twitter.com/intent/tweet?text=Your+text+here&url=https://yourdomain.com
         window.open(
           `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(url)}`,
           "_blank",
         )
         break
       case "facebook":
+        // Facebook: https://www.facebook.com/sharer/sharer.php?u=https://yourdomain.com
         window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, "_blank")
         break
       case "linkedin":
+        // LinkedIn: https://www.linkedin.com/sharing/share-offsite/?url=https://yourdomain.com
         window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`, "_blank")
         break
       case "whatsapp":
+        // WhatsApp: https://wa.me/?text=Your+text+here+https://yourdomain.com
         window.open(`https://wa.me/?text=${encodeURIComponent(shareText + " " + url)}`, "_blank")
         break
       case "share":
@@ -637,13 +818,46 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
           navigator.clipboard.writeText(url)
           toast({
             title: "URL copied",
-            description: "Share URL has been copied to clipboard!",
+            description: "Image URL has been copied to clipboard!",
           })
         }
         break
     }
 
     onClose()
+  }
+
+  const handleShareAfterPreview = async () => {
+    if (!selectedPlatform || !imageUrl) return
+
+    try {
+      // For Instagram and similar platforms that need the image in clipboard
+      if (["instagram"].includes(selectedPlatform)) {
+        await copyImageToClipboard(imageUrl)
+        openSocialApp(selectedPlatform)
+
+        toast({
+          title: "Image copied",
+          description: `The image has been copied. You can now paste it into ${selectedPlatform}!`,
+        })
+      } else {
+        // For platforms that can use the blob URL
+        if (!blobUrl) {
+          const url = await uploadImageToBlob(imageUrl)
+          shareWithBlobUrl(selectedPlatform, url)
+        } else {
+          shareWithBlobUrl(selectedPlatform, blobUrl)
+        }
+      }
+
+      onClose()
+    } catch (error) {
+      toast({
+        title: "Sharing failed",
+        description: "Failed to share the image. Please try again.",
+        variant: "destructive",
+      })
+    }
   }
 
   const handleDownloadImage = async () => {
@@ -684,9 +898,9 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
             </div>
           </DialogHeader>
 
-          <div className="relative mx-auto w-full" style={{ maxWidth: "400px" }}>
+          <div className="relative mx-auto w-full" style={{ maxWidth: "280px" }}>
             {!showingImage ? (
-              <div className="aspect-[1200/630] bg-zinc-800 rounded-lg flex flex-col items-center justify-center p-4 text-center">
+              <div className="aspect-[9/16] bg-zinc-800 rounded-lg flex flex-col items-center justify-center p-4 text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mb-4"></div>
                 <p className="text-purple-300 font-medium text-lg">{loadingMessages[loadingMessageIndex]}</p>
                 <p className="text-zinc-400 text-sm mt-2">This may take a few moments</p>
@@ -698,7 +912,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
                   src={imageUrl || "/placeholder.svg"}
                   alt={`${platform.name} preview`}
                   className="w-full rounded-lg border border-zinc-700 object-contain"
-                  style={{ aspectRatio: "1200/630" }}
+                  style={{ aspectRatio: "9/16" }}
                   onError={() => {
                     toast({
                       title: "Preview failed",
@@ -707,37 +921,14 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
                     })
                   }}
                 />
-                <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">1200×630</div>
+                <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">1080×1920</div>
               </div>
             )}
           </div>
 
           <div className="space-y-2 mt-2">
             <Button
-              onClick={async () => {
-                if (!imageUrl) return
-
-                try {
-                  if (!blobUrl) {
-                    const url = await uploadImageToBlob(imageUrl)
-                    const shareId = Date.now().toString()
-                    const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
-                    const shareUrl = `${appUrl}/share/${shareId}?text=${encodeURIComponent(text)}&type=${assistantType}&image=${encodeURIComponent(url)}`
-                    shareWithUrl(selectedPlatform, shareUrl)
-                  } else {
-                    const shareId = Date.now().toString()
-                    const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
-                    const shareUrl = `${appUrl}/share/${shareId}?text=${encodeURIComponent(text)}&type=${assistantType}&image=${encodeURIComponent(blobUrl)}`
-                    shareWithUrl(selectedPlatform, shareUrl)
-                  }
-                } catch (error) {
-                  toast({
-                    title: "Sharing failed",
-                    description: "Failed to share the image. Please try again.",
-                    variant: "destructive",
-                  })
-                }
-              }}
+              onClick={handleShareAfterPreview}
               disabled={!showingImage || isUploading}
               className={`w-full text-white font-medium ${platform.color.replace("hover:", "")}`}
             >
