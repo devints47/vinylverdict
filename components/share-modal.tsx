@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/use-toast"
-import { Instagram, Mail, Copy, Share2, X, Share } from "lucide-react"
+import { Mail, Copy, Share2, Share, Download } from "lucide-react"
 import html2canvas from "html2canvas"
 
 interface ShareModalProps {
@@ -38,7 +38,6 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
   const [imageUrl, setImageUrl] = useState<string>("")
   const [blobUrl, setBlobUrl] = useState<string>("")
   const [shortUrl, setShortUrl] = useState<string>("")
-  const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null)
   const [showingImage, setShowingImage] = useState(false)
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0)
   const [userProfile, setUserProfile] = useState<any>(null)
@@ -554,45 +553,6 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     }
   }
 
-  // Function to open social media apps
-  const openSocialApp = (platform: string): void => {
-    const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-
-    switch (platform) {
-      case "instagram":
-        if (isMobile) {
-          window.open("instagram://camera", "_blank")
-          setTimeout(() => {
-            window.open("https://www.instagram.com", "_blank")
-          }, 1000)
-        } else {
-          window.open("https://www.instagram.com", "_blank")
-        }
-        break
-      case "twitter":
-        window.open("https://twitter.com/compose/tweet", "_blank")
-        break
-      case "facebook":
-        window.open("https://www.facebook.com", "_blank")
-        break
-      case "linkedin":
-        window.open("https://www.linkedin.com", "_blank")
-        break
-      case "whatsapp":
-        if (isMobile) {
-          window.open("whatsapp://", "_blank")
-          setTimeout(() => {
-            window.open("https://web.whatsapp.com", "_blank")
-          }, 1000)
-        } else {
-          window.open("https://web.whatsapp.com", "_blank")
-        }
-        break
-      default:
-        break
-    }
-  }
-
   // Function to download image
   const downloadImage = async (dataUrl: string, filename: string): Promise<void> => {
     try {
@@ -609,101 +569,6 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     }
   }
 
-  // Share with blob URL for social media platforms
-  const shareWithBlobUrl = (platform: string, url: string) => {
-    const shareText = "Check out my music taste verdict from VinylVerdict.fm!"
-
-    switch (platform) {
-      case "twitter":
-        // Twitter: https://twitter.com/intent/tweet?text=Your+text+here&url=https://yourdomain.com
-        window.open(
-          `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(url)}`,
-          "_blank",
-        )
-        break
-      case "facebook":
-        // Facebook: https://www.facebook.com/sharer/sharer.php?u=https://yourdomain.com
-        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, "_blank")
-        break
-      case "linkedin":
-        // LinkedIn: https://www.linkedin.com/sharing/share-offsite/?url=https://yourdomain.com
-        window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`, "_blank")
-        break
-      case "whatsapp":
-        // WhatsApp: https://wa.me/?text=Your+text+here+https://yourdomain.com
-        window.open(`https://wa.me/?text=${encodeURIComponent(shareText + "\n" + url)}`, "_blank")
-        break
-      case "share":
-        if (navigator.share) {
-          navigator
-            .share({
-              title: "My Music Taste Verdict",
-              text: shareText,
-              url: url,
-            })
-            .catch((err) => console.error("Share failed:", err))
-        } else {
-          navigator.clipboard.writeText(url)
-          toast({
-            title: "URL copied",
-            description: "Image URL has been copied to clipboard!",
-          })
-        }
-        break
-    }
-
-    onClose()
-  }
-
-  const shareOptions: ShareOption[] = [
-    {
-      id: "twitter",
-      name: "Twitter",
-      icon: <X className="h-6 w-6" />,
-      color: "bg-black hover:bg-zinc-800",
-      description: "Share to Twitter",
-    },
-    {
-      id: "instagram",
-      name: "Instagram",
-      icon: <Instagram className="h-6 w-6" />,
-      color: "bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] hover:opacity-90",
-      description: "Copy image for Instagram",
-    },
-    {
-      id: "whatsapp",
-      name: "WhatsApp",
-      icon: (
-        <svg className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.785" />
-        </svg>
-      ),
-      color: "bg-[#25D366] hover:bg-[#22c55e]",
-      description: "Share to WhatsApp",
-    },
-    {
-      id: "copy-image",
-      name: "Copy Image",
-      icon: <Copy className="h-6 w-6" />,
-      color: "bg-purple-600 hover:bg-purple-700",
-      description: "Copy image to clipboard",
-    },
-    {
-      id: "email",
-      name: "Email",
-      icon: <Mail className="h-6 w-6" />,
-      color: "bg-[#D44638] hover:bg-[#c13e31]",
-      description: "Share via Email",
-    },
-    {
-      id: "share",
-      name: "Share...",
-      icon: <Share2 className="h-6 w-6" />,
-      color: "bg-zinc-700 hover:bg-zinc-600",
-      description: "Use native share menu",
-    },
-  ]
-
   const getShareTitle = () => {
     switch (assistantType) {
       case "worshipper":
@@ -716,140 +581,112 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     }
   }
 
-  const handleShareClick = async (option: ShareOption) => {
-    // Handle copy image option - direct action, no preview needed
-    if (option.id === "copy-image") {
-      if (!imageUrl) {
-        toast({
-          title: "Image not ready",
-          description: "Please wait for the image to generate first.",
-          variant: "destructive",
-        })
-        return
-      }
+  // Detect if user is on iOS or macOS
+  const isAppleDevice = () => {
+    const userAgent = navigator.userAgent
+    const platform = navigator.platform
 
-      try {
-        await copyImageToClipboard(imageUrl)
-        toast({
-          title: "Image copied!",
-          description: "The image has been copied to your clipboard. You can now paste it anywhere!",
-        })
-        onClose()
-      } catch (error) {
-        toast({
-          title: "Copy failed",
-          description: "Could not copy image to clipboard. Please try downloading instead.",
-          variant: "destructive",
-        })
-      }
-      return
-    }
+    // Check for iOS
+    const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream
 
-    // Handle email - direct action, no preview needed
-    if (option.id === "email") {
-      const subject = "Check out my music taste verdict from VinylVerdict.fm!"
-      const body = `Check out my music taste verdict from VinylVerdict.fm!\n\n${text.substring(0, 200)}...\n\nGet your own at ${process.env.NEXT_PUBLIC_APP_URL || "https://vinylverdict.fm"}`
+    // Check for macOS
+    const isMacOS = platform.toLowerCase().includes("mac")
 
-      // Create mailto link
-      const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
-
-      // Try to open in email client
-      try {
-        // Create a temporary link element and click it
-        const link = document.createElement("a")
-        link.href = mailtoLink
-        link.style.display = "none"
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-
-        // Show success message
-        toast({
-          title: "Email client opened",
-          description: "Your default email app should open with the message ready to send.",
-        })
-      } catch (error) {
-        // Fallback: copy to clipboard if mailto fails
-        navigator.clipboard
-          .writeText(`${subject}\n\n${body}`)
-          .then(() => {
-            toast({
-              title: "Email content copied",
-              description: "The email content has been copied to your clipboard since no email client was found.",
-            })
-          })
-          .catch(() => {
-            toast({
-              title: "Email failed",
-              description: "Could not open email client or copy content. Please try another sharing method.",
-              variant: "destructive",
-            })
-          })
-      }
-
-      onClose()
-      return
-    }
-
-    // For all other platforms, show the preview with image
-    setSelectedPlatform(option.id)
+    return isIOS || isMacOS
   }
 
-  const handleShareAfterPreview = async () => {
-    if (!selectedPlatform || !imageUrl) return
+  const handleCopyToClipboard = async () => {
+    if (!imageUrl) return
 
     try {
-      // For Instagram - copy to clipboard and open app
-      if (selectedPlatform === "instagram") {
-        await copyImageToClipboard(imageUrl)
-        openSocialApp("instagram")
-
-        toast({
-          title: "Image copied",
-          description: "The image has been copied. Open Instagram and paste it in your story or post!",
-        })
-        onClose()
-        return
-      }
-
-      // For messages - handle SMS or clipboard
-      if (selectedPlatform === "messages") {
-        const shareText = `Check out my music taste verdict from VinylVerdict.fm!`
-        const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-
-        // Upload image if not already uploaded and generate short URL
-        let shareUrl = shortUrl
-        if (!shareUrl) {
-          shareUrl = await uploadImageToBlob(imageUrl)
-        }
-
-        if (isMobile) {
-          window.open(`sms:?&body=${encodeURIComponent(shareText + "\n" + shareUrl)}`, "_blank")
-        } else {
-          navigator.clipboard.writeText(shareText + "\n" + shareUrl)
-          toast({
-            title: "Text copied",
-            description: "Message text has been copied to clipboard!",
-          })
-        }
-        onClose()
-        return
-      }
-
-      // For other social platforms
-      let finalUrl = shortUrl
-      if (!finalUrl) {
-        finalUrl = await uploadImageToBlob(imageUrl)
-      }
-
-      shareWithBlobUrl(selectedPlatform, finalUrl)
-    } catch (error) {
-      console.error("Sharing error:", error)
+      await copyImageToClipboard(imageUrl)
       toast({
-        title: "Sharing failed",
-        description: "Failed to share the image. Please try again.",
+        title: "Image copied!",
+        description: "The verdict image has been copied to your clipboard.",
+      })
+      onClose()
+    } catch (error) {
+      toast({
+        title: "Copy failed",
+        description: "Could not copy image to clipboard. Please try downloading instead.",
         variant: "destructive",
       })
+    }
+  }
+
+  const handleNativeShare = async () => {
+    if (!imageUrl) return
+
+    try {
+      // Convert data URL to blob for native sharing
+      const response = await fetch(imageUrl)
+      const blob = await response.blob()
+      const file = new File([blob], `vinylverdict-${assistantType}-${Date.now()}.jpg`, { type: "image/jpeg" })
+
+      if (navigator.share && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          title: "My Music Taste Verdict",
+          text: "Check out my music taste verdict from VinylVerdict.fm!",
+          files: [file],
+        })
+      } else {
+        // Fallback if file sharing is not supported
+        toast({
+          title: "Share not available",
+          description: "File sharing is not supported on this device.",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      if (error instanceof Error && error.name !== "AbortError") {
+        toast({
+          title: "Share failed",
+          description: "Could not share the image. Please try another method.",
+          variant: "destructive",
+        })
+      }
+    }
+  }
+
+  const handleSendEmail = () => {
+    const subject = "Check out my music taste verdict from VinylVerdict.fm!"
+    const body = `Check out my music taste verdict from VinylVerdict.fm!\n\n${text.substring(0, 200)}...\n\nGet your own at ${process.env.NEXT_PUBLIC_APP_URL || "https://vinylverdict.fm"}`
+
+    // Create mailto link
+    const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+
+    // Try to open in email client
+    try {
+      // Create a temporary link element and click it
+      const link = document.createElement("a")
+      link.href = mailtoLink
+      link.style.display = "none"
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+
+      // Show success message
+      toast({
+        title: "Email client opened",
+        description: "Your default email app should open with the message ready to send.",
+      })
+    } catch (error) {
+      // Fallback: copy to clipboard if mailto fails
+      navigator.clipboard
+        .writeText(`${subject}\n\n${body}`)
+        .then(() => {
+          toast({
+            title: "Email content copied",
+            description: "The email content has been copied to your clipboard since no email client was found.",
+          })
+        })
+        .catch(() => {
+          toast({
+            title: "Email failed",
+            description: "Could not open email client or copy content. Please try another sharing method.",
+            variant: "destructive",
+          })
+        })
     }
   }
 
@@ -857,163 +694,104 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     if (!imageUrl) return
 
     try {
-      // Use .jpg extension for JPEG files
       const filename = `vinylverdict-${assistantType}-${Date.now()}.jpg`
       await downloadImage(imageUrl, filename)
-
       toast({
-        title: "Image downloaded",
-        description: "Your image has been downloaded successfully!",
+        title: "Download successful",
+        description: "Your verdict image has been downloaded.",
       })
+      onClose()
     } catch (error) {
       toast({
         title: "Download failed",
-        description: "Failed to download the image. Please try again.",
+        description: "Could not download image. Please try copying to clipboard instead.",
         variant: "destructive",
       })
     }
   }
 
-  const renderPreview = () => {
-    if (!selectedPlatform) return null
-
-    const platform = shareOptions.find((opt) => opt.id === selectedPlatform)
-    if (!platform) return null
-
-    return (
-      <Dialog open={!!selectedPlatform} onOpenChange={() => setSelectedPlatform(null)}>
-        <DialogContent className="sm:max-w-md bg-zinc-900 border-zinc-800">
-          <DialogHeader>
-            <div className="flex items-center gap-2">
-              <div className={`w-8 h-8 rounded-full ${platform.color} flex items-center justify-center text-white`}>
-                {platform.icon}
-              </div>
-              <DialogTitle className="text-white">Share to {platform.name}</DialogTitle>
-            </div>
-          </DialogHeader>
-
-          <div className="relative mx-auto w-full" style={{ maxWidth: "280px" }}>
-            {!showingImage ? (
-              <div className="aspect-[9/16] bg-zinc-800 rounded-lg flex flex-col items-center justify-center p-4 text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mb-4"></div>
-                <p className="text-purple-300 font-medium text-lg">{loadingMessages[loadingMessageIndex]}</p>
-                <p className="text-zinc-400 text-sm mt-2">This may take a few moments</p>
-              </div>
-            ) : (
-              <div className="relative">
-                <img
-                  ref={imgRef}
-                  src={imageUrl || "/placeholder.svg"}
-                  alt={`${platform.name} preview`}
-                  className="w-full rounded-lg border border-zinc-700 object-contain"
-                  style={{ aspectRatio: "9/16" }}
-                  onError={() => {
-                    toast({
-                      title: "Preview failed",
-                      description: "Could not load image preview, but sharing should still work.",
-                      variant: "destructive",
-                    })
-                  }}
-                />
-                <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">1080×1920</div>
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-2 mt-2">
-            <Button
-              onClick={handleShareAfterPreview}
-              disabled={!showingImage || isUploading}
-              className={`w-full text-white font-medium ${
-                platform.id === "twitter"
-                  ? "bg-black hover:bg-zinc-800"
-                  : platform.id === "whatsapp"
-                    ? "bg-[#25D366] hover:bg-[#22c55e]"
-                    : platform.id === "email"
-                      ? "bg-[#D44638] hover:bg-[#c13e31]"
-                      : platform.id === "instagram"
-                        ? "bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] hover:opacity-90"
-                        : "bg-zinc-700 hover:bg-zinc-600"
-              }`}
-            >
-              {isUploading ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Uploading...
-                </>
-              ) : (
-                <>
-                  <Share className="mr-2 h-4 w-4" />
-                  {platform.id === "instagram"
-                    ? "Copy to Instagram"
-                    : platform.id === "messages"
-                      ? "Send via Messages"
-                      : `Share to ${platform.name}`}
-                </>
-              )}
-            </Button>
-
-            <Button
-              onClick={handleDownloadImage}
-              disabled={!showingImage}
-              variant="outline"
-              className="w-full text-white border-zinc-700 hover:bg-zinc-800"
-            >
-              Download Image
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    )
-  }
-
   return (
-    <>
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-md bg-zinc-900 border-zinc-800">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-white">
-              <Share2 className="h-5 w-5 text-purple-500" />
-              {getShareTitle()}
-            </DialogTitle>
-            <DialogDescription className="text-zinc-400">
-              Choose how you want to share your music verdict
-            </DialogDescription>
-          </DialogHeader>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md bg-zinc-900 border-zinc-800">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-white">
+            <Share2 className="h-5 w-5 text-purple-500" />
+            {getShareTitle()}
+          </DialogTitle>
+          <DialogDescription className="text-zinc-400">Your verdict is ready to share</DialogDescription>
+        </DialogHeader>
 
-          <div className="grid grid-cols-2 gap-3 py-4">
-            {shareOptions.map((option) => (
-              <button
-                key={option.id}
-                onClick={() => handleShareClick(option)}
-                className="flex flex-col items-center justify-center gap-2 p-3 rounded-lg transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50"
-                aria-label={option.description}
-              >
-                <div className={`w-12 h-12 rounded-full ${option.color} flex items-center justify-center text-white`}>
-                  {option.icon}
-                </div>
-                <span className="text-xs text-zinc-300 text-center">{option.name}</span>
-              </button>
-            ))}
-          </div>
-
-          <div className="mt-2 pt-2 border-t border-zinc-800">
-            <div className="flex justify-between items-center">
-              <div className="text-xs text-zinc-500">Sharing helps spread the word about VinylVerdict.fm</div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onClose}
-                className="text-zinc-400 hover:text-white border-zinc-700 hover:bg-zinc-800"
-              >
-                Cancel
-              </Button>
+        <div className="relative mx-auto w-full" style={{ maxWidth: "320px" }}>
+          {!showingImage ? (
+            <div className="aspect-[9/16] bg-zinc-800 rounded-lg flex flex-col items-center justify-center p-4 text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mb-4"></div>
+              <p className="text-purple-300 font-medium text-lg">{loadingMessages[loadingMessageIndex]}</p>
+              <p className="text-zinc-400 text-sm mt-2">This may take a few moments</p>
             </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+          ) : (
+            <div className="relative">
+              <img
+                ref={imgRef}
+                src={imageUrl || "/placeholder.svg"}
+                alt="Share preview"
+                className="w-full rounded-lg border border-zinc-700 object-contain"
+                style={{ aspectRatio: "9/16" }}
+                onError={() => {
+                  toast({
+                    title: "Preview failed",
+                    description: "Could not load image preview.",
+                    variant: "destructive",
+                  })
+                }}
+              />
+              <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">1080×1920</div>
+            </div>
+          )}
+        </div>
 
-      {renderPreview()}
-    </>
+        <div className="space-y-2 mt-4">
+          {isAppleDevice() && (
+            <Button
+              onClick={handleNativeShare}
+              disabled={!showingImage}
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium"
+            >
+              <Share className="mr-2 h-4 w-4" />
+              Share Your Verdict
+            </Button>
+          )}
+
+          <Button
+            onClick={handleCopyToClipboard}
+            disabled={!showingImage}
+            variant="outline"
+            className="w-full text-white border-zinc-700 hover:bg-zinc-800"
+          >
+            <Copy className="mr-2 h-4 w-4" />
+            Copy to Clipboard
+          </Button>
+
+          <Button
+            onClick={handleDownloadImage}
+            disabled={!showingImage}
+            variant="outline"
+            className="w-full text-white border-zinc-700 hover:bg-zinc-800"
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Download Verdict
+          </Button>
+
+          <Button
+            onClick={handleSendEmail}
+            disabled={!showingImage}
+            variant="outline"
+            className="w-full text-white border-zinc-700 hover:bg-zinc-800"
+          >
+            <Mail className="mr-2 h-4 w-4" />
+            Send to my email
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }
