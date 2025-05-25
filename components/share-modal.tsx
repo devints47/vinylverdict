@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/use-toast"
 import { Facebook, Instagram, Mail, Copy, Share2, Linkedin, X, Share, MessageCircle } from "lucide-react"
 import html2canvas from "html2canvas"
-import { put } from "@vercel/blob"
+import {/*put*/} from "@vercel/blob"
 
 interface ShareModalProps {
   isOpen: boolean
@@ -455,23 +455,25 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     return html
   }
 
-  // Upload image to Vercel Blob
+  // Upload image to Vercel Blob via server action
   const uploadImageToBlob = async (dataUrl: string): Promise<string> => {
     try {
       setIsUploading(true)
 
-      // Convert data URL to blob
-      const response = await fetch(dataUrl)
-      const blob = await response.blob()
-
-      // Generate a unique filename
-      const filename = `vinyl-verdict-${assistantType}-${Date.now()}.png`
-
-      // Upload to Vercel Blob
-      const { url } = await put(filename, blob, {
-        access: "public",
-        contentType: "image/png",
+      // Call our server action to upload the image
+      const response = await fetch("/api/upload-image", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ imageData: dataUrl }),
       })
+
+      if (!response.ok) {
+        throw new Error("Failed to upload image")
+      }
+
+      const { url } = await response.json()
 
       setIsUploading(false)
       setBlobUrl(url)
