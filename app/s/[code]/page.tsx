@@ -1,8 +1,5 @@
 import { notFound } from "next/navigation"
-import Image from "next/image"
-import Link from "next/link"
 import type { Metadata } from "next"
-import { Check } from "lucide-react"
 
 interface PageProps {
   params: {
@@ -10,64 +7,93 @@ interface PageProps {
   }
 }
 
+// Helper function to decode the URL
+function decodeShareCode(code: string): { imageUrl: string; timestamp: number } | null {
+  try {
+    const decodedData = Buffer.from(code, "base64").toString("utf-8")
+    const [timestamp, imageUrl] = decodedData.split("|")
+    return {
+      imageUrl,
+      timestamp: Number.parseInt(timestamp, 10),
+    }
+  } catch (error) {
+    console.error("Error decoding share code:", error)
+    return null
+  }
+}
+
+// Generate metadata for social sharing
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   try {
-    // Decode the URL
-    const decoded = Buffer.from(params.code, "base64").toString()
-    const [timestamp, imageUrl] = decoded.split("|")
-
-    // Check if URL has expired (30 days)
-    const urlTimestamp = Number.parseInt(timestamp)
-    const now = Date.now()
-    const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000
-
-    if (now - urlTimestamp > thirtyDaysInMs) {
+    const code = params.code
+    if (!code) {
       return {
-        title: "Verdict Not Found | VinylVerdict.fm",
-        description: "This shared verdict may have expired or doesn't exist.",
+        title: "VinylVerdict.fm",
+        description: "Personalized Music Taste Analysis",
       }
     }
 
+    const decoded = decodeShareCode(code)
+    if (!decoded) {
+      return {
+        title: "VinylVerdict.fm",
+        description: "Personalized Music Taste Analysis",
+      }
+    }
+
+    // Return metadata with the image
     return {
-      title: "Music Taste Verdict | VinylVerdict.fm",
+      title: "My Music Taste Verdict | VinylVerdict.fm",
       description: "Check out this personalized music taste verdict from VinylVerdict.fm!",
       openGraph: {
-        images: [imageUrl],
-        title: "Music Taste Verdict | VinylVerdict.fm",
+        title: "My Music Taste Verdict | VinylVerdict.fm",
         description: "Check out this personalized music taste verdict from VinylVerdict.fm!",
-        url: `https://vinylverdict.fm/s/${params.code}`,
-        siteName: "VinylVerdict.fm",
+        images: [
+          {
+            url: decoded.imageUrl,
+            width: 1080,
+            height: 1920,
+            alt: "Music Taste Verdict",
+          },
+        ],
         type: "website",
+        siteName: "VinylVerdict.fm",
       },
       twitter: {
         card: "summary_large_image",
-        title: "Music Taste Verdict | VinylVerdict.fm",
+        title: "My Music Taste Verdict | VinylVerdict.fm",
         description: "Check out this personalized music taste verdict from VinylVerdict.fm!",
-        images: [imageUrl],
+        images: [decoded.imageUrl],
       },
     }
   } catch (error) {
+    console.error("Error in generateMetadata:", error)
     return {
-      title: "Verdict Not Found | VinylVerdict.fm",
-      description: "This shared verdict may have expired or doesn't exist.",
+      title: "VinylVerdict.fm",
+      description: "Personalized Music Taste Analysis",
     }
   }
 }
 
 export default function SharedVerdictPage({ params }: PageProps) {
   try {
-    // Decode the URL
-    const decoded = Buffer.from(params.code, "base64").toString()
-    const [timestamp, imageUrl] = decoded.split("|")
-
-    // Check if URL has expired (30 days)
-    const urlTimestamp = Number.parseInt(timestamp)
-    const now = Date.now()
-    const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000
-
-    if (now - urlTimestamp > thirtyDaysInMs) {
+    const code = params.code
+    if (!code) {
       notFound()
     }
+
+    const decoded = decodeShareCode(code)
+    if (!decoded) {
+      notFound()
+    }
+
+    // Check if the URL has expired (30 days)
+    if (Date.now() - decoded.timestamp > 30 * 24 * 60 * 60 * 1000) {
+      notFound()
+    }
+
+    // For debugging
+    console.log("Decoded image URL:", decoded.imageUrl)
 
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white p-4">
@@ -78,30 +104,36 @@ export default function SharedVerdictPage({ params }: PageProps) {
           </div>
 
           <div className="relative rounded-lg overflow-hidden mb-8 border border-zinc-800">
-            <Image
-              src={imageUrl || "/placeholder.svg"}
+            {/* Use a regular img tag instead of Next.js Image for better error handling */}
+            <img
+              src={decoded.imageUrl || "/placeholder.svg"}
               alt="Music Taste Verdict"
-              width={1080}
-              height={1920}
               className="w-full h-auto"
-              priority
+              style={{ maxHeight: "80vh", objectFit: "contain" }}
+              onError={(e) => {
+                console.error("Image failed to load:", decoded.imageUrl)
+                e.currentTarget.src = "/placeholder.svg"
+              }}
             />
           </div>
 
           <div className="text-center mb-8">
             <p className="text-lg mb-4">Want to get your own personalized music taste verdict?</p>
-            <Link
+            <a
               href="/"
               className="inline-flex items-center justify-center bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-6 rounded-lg transition-colors"
             >
-              <Check className="mr-2 h-5 w-5" />
+              <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+              </svg>
               Get Your Verdict at VinylVerdict.fm
-            </Link>
+            </a>
           </div>
         </div>
       </div>
     )
   } catch (error) {
+    console.error("Error in SharedVerdictPage:", error)
     notFound()
   }
 }

@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/use-toast"
 import { Facebook, Instagram, Mail, Copy, Share2, Linkedin, X, Share, MessageCircle } from "lucide-react"
 import html2canvas from "html2canvas"
-import { generateShortUrl } from "@/lib/generate-short-url"
 
 interface ShareModalProps {
   isOpen: boolean
@@ -462,23 +461,34 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     try {
       setIsUploading(true)
 
+      // Generate a unique filename with timestamp
+      const timestamp = Date.now()
+      const filename = `vinyl-verdict-${timestamp}.png`
+
       // Call our server action to upload the image
       const response = await fetch("/api/upload-image", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ imageData: dataUrl }),
+        body: JSON.stringify({
+          imageData: dataUrl,
+          filename: filename, // Pass the filename to the API
+        }),
       })
 
       if (!response.ok) {
-        throw new Error("Failed to upload image")
+        throw new Error(`Failed to upload image: ${response.status} ${response.statusText}`)
       }
 
       const { url } = await response.json()
+      console.log("Image uploaded successfully:", url)
 
       // Generate a short URL for the blob URL
-      const shortUrl = generateShortUrl(url)
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://vinylverdict.fm"
+      const data = `${timestamp}|${url}`
+      const encoded = Buffer.from(data).toString("base64")
+      const shortUrl = `${baseUrl}/s/${encoded}`
 
       setIsUploading(false)
       setBlobUrl(url)
@@ -487,7 +497,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     } catch (error) {
       console.error("Error uploading to Vercel Blob:", error)
       setIsUploading(false)
-      throw new Error("Failed to upload image")
+      throw new Error(`Failed to upload image: ${error instanceof Error ? error.message : String(error)}`)
     }
   }
 
