@@ -460,10 +460,12 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
   const uploadImageToBlob = async (dataUrl: string): Promise<string> => {
     try {
       setIsUploading(true)
+      console.log("Starting image upload process")
 
-      // Generate a unique filename with timestamp
-      const timestamp = Date.now()
-      const filename = `vinyl-verdict-${timestamp}.png`
+      // Validate the data URL
+      if (!dataUrl || !dataUrl.startsWith("data:image/")) {
+        throw new Error("Invalid image data")
+      }
 
       // Call our server action to upload the image
       const response = await fetch("/api/upload-image", {
@@ -473,11 +475,14 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
         },
         body: JSON.stringify({
           imageData: dataUrl,
-          filename: filename, // Pass the filename to the API
         }),
       })
 
+      console.log("Upload response status:", response.status)
+
       if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        console.error("Upload failed:", errorData)
         throw new Error(`Failed to upload image: ${response.status} ${response.statusText}`)
       }
 
@@ -486,9 +491,12 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
 
       // Generate a short URL for the blob URL
       const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://vinylverdict.fm"
+      const timestamp = Date.now()
       const data = `${timestamp}|${url}`
       const encoded = Buffer.from(data).toString("base64")
       const shortUrl = `${baseUrl}/s/${encoded}`
+
+      console.log("Short URL generated:", shortUrl)
 
       setIsUploading(false)
       setBlobUrl(url)

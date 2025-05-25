@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
+import { SharedImageDisplay } from "./shared-image-display"
 
 interface PageProps {
   params: {
@@ -92,9 +93,6 @@ export default function SharedVerdictPage({ params }: PageProps) {
       notFound()
     }
 
-    // For debugging
-    console.log("Decoded image URL:", decoded.imageUrl)
-
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white p-4">
         <div className="max-w-4xl w-full">
@@ -104,17 +102,7 @@ export default function SharedVerdictPage({ params }: PageProps) {
           </div>
 
           <div className="relative rounded-lg overflow-hidden mb-8 border border-zinc-800">
-            {/* Use a regular img tag instead of Next.js Image for better error handling */}
-            <img
-              src={decoded.imageUrl || "/placeholder.svg"}
-              alt="Music Taste Verdict"
-              className="w-full h-auto"
-              style={{ maxHeight: "80vh", objectFit: "contain" }}
-              onError={(e) => {
-                console.error("Image failed to load:", decoded.imageUrl)
-                e.currentTarget.src = "/placeholder.svg"
-              }}
-            />
+            <SharedImageDisplay imageUrl={decoded.imageUrl} />
           </div>
 
           <div className="text-center mb-8">
