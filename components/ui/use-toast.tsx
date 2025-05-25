@@ -1,78 +1,164 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import type * as React from "react"
 
-type ToastProps = {
-  title: string
-  description?: string
-  variant?: "default" | "destructive"
-  duration?: number
-}
+const TOAST_LIMIT = 1
+const TOAST_REMOVE_DELAY = 1000000
 
-type ToastState = ToastProps & {
+type ToasterToast = {
   id: string
-  visible: boolean
+  title?: string
+  description?: string
+  action?: React.ReactNode
+  variant?: "default" | "destructive"
+  open?: boolean
 }
 
-// Create a simple toast component
-export function toast({ title, description, variant = "default", duration = 3000 }: ToastProps) {
-  // Create a custom event to trigger the toast
-  const event = new CustomEvent("toast", {
-    detail: {
-      title,
-      description,
-      variant,
-      duration,
-      id: Math.random().toString(36).substring(2, 9),
-    },
-  })
+const actionTypes = {
+  ADD_TOAST: "ADD_TOAST",
+  UPDATE_TOAST: "UPDATE_TOAST",
+  DISMISS_TOAST: "DISMISS_TOAST",
+  REMOVE_TOAST: "REMOVE_TOAST",
+} as const
 
-  // Dispatch the event
+let count = 0
+
+function genId() {
+  count = (count + 1) % Number.MAX_SAFE_INTEGER
+  return count.toString()
+}
+
+type ActionType = typeof actionTypes
+
+type Action =
+  | {
+      type: ActionType["ADD_TOAST"]
+      toast: ToasterToast
+    }
+  | {
+      type: ActionType["UPDATE_TOAST"]
+      toast: Partial<ToasterToast>
+    }
+  | {
+      type: ActionType["DISMISS_TOAST"]
+      toastId?: ToasterToast["id"]
+    }
+  | {
+      type: ActionType["REMOVE_TOAST"]
+      toastId?: ToasterToast["id"]
+    }
+
+interface State {
+  toasts: ToasterToast[]
+}
+
+const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>()
+
+const addToRemoveQueue = (toastId: string) => {
+  if (toastTimeouts.has(toastId)) {
+    return
+  }
+
+  const timeout = setTimeout(() => {
+    toastTimeouts.delete(toastId)
+    dispatch({
+      type: "REMOVE_TOAST",
+      toastId: toastId,
+    })
+  }, TOAST_REMOVE_DELAY)
+
+  toastTimeouts.set(toastId, timeout)
+}
+
+export const reducer = (state: State, action: Action): State => {
+  switch (action.type) {
+    case "ADD_TOAST":
+      return {
+        ...state,
+        toasts: [action.toast, ...state.toasts].slice(0, TOAST_LIMIT),
+      }
+
+    case "UPDATE_TOAST":
+      return {
+        ...state,
+        toasts: state.toasts.map((t) => (t.id === action.toast.id ? { ...t, ...action.toast } : t)),
+      }
+
+    case "DISMISS_TOAST": {
+      const { toastId } = action
+
+      if (toastId) {
+        addToRemoveQueue(toastId)
+      } else {
+        state.toasts.forEach((toast) => {
+          addToRemoveQueue(toast.id)
+        })
+      }
+
+      return {
+        ...state,
+        toasts: state.toasts.map((t) =>
+          t.id === toastId || toastId === undefined
+            ? {
+                ...t,
+                open: false,
+              }
+            : t,
+        ),
+      }
+    }
+    case "REMOVE_TOAST":
+      if (action.toastId === undefined) {
+        return {
+          ...state,
+          toasts: [],
+        }
+      }
+      return {
+        ...state,
+        toasts: state.toasts.filter((t) => t.id !== action.toastId),
+      }
+  }
+}
+
+const listeners: Array<(state: State) => void> = []
+
+let memoryState: State = { toasts: [] }
+
+function dispatch(action: Action) {
+  memoryState = reducer(memoryState, action)
+  listeners.forEach((listener) => {
+    listener(memoryState)
+  })
+}
+
+type Toast = Omit<ToasterToast, "id">
+
+export function useToast() {
+  return {
+    toast: (props: {
+      title?: string
+      description?: string
+      action?: React.ReactNode
+      variant?: "default" | "destructive"
+    }) => {
+      // Dispatch a custom event that will be caught by the ToastProvider
+      const event = new CustomEvent("toast-event", { detail: props })
+      window.dispatchEvent(event)
+    },
+  }
+}
+
+// Export the toast function directly for convenience
+export const toast = (props: {
+  title?: string
+  description?: string
+  action?: React.ReactNode
+  variant?: "default" | "destructive"
+}) => {
+  const event = new CustomEvent("toast-event", { detail: props })
   window.dispatchEvent(event)
 }
 
-// Toast component to display the toast
-export function ToastContainer() {
-  const [toasts, setToasts] = useState<ToastState[]>([])
-
-  useEffect(() => {
-    // Listen for toast events
-    const handleToast = (event: Event) => {
-      const detail = (event as CustomEvent).detail
-      const newToast = { ...detail, visible: true }
-
-      setToasts((prev) => [...prev, newToast])
-
-      // Hide the toast after the duration
-      setTimeout(() => {
-        setToasts((prev) => prev.map((toast) => (toast.id === newToast.id ? { ...toast, visible: false } : toast)))
-
-        // Remove the toast after the animation
-        setTimeout(() => {
-          setToasts((prev) => prev.filter((toast) => toast.id !== newToast.id))
-        }, 300)
-      }, detail.duration)
-    }
-
-    window.addEventListener("toast", handleToast)
-    return () => window.removeEventListener("toast", handleToast)
-  }, [])
-
-  return (
-    <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
-      {toasts.map((toast) => (
-        <div
-          key={toast.id}
-          className={`transform transition-all duration-300 ${
-            toast.visible ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"
-          } ${
-            toast.variant === "destructive" ? "bg-red-600" : "bg-zinc-800"
-          } text-white p-4 rounded-lg shadow-lg max-w-md`}
-        >
-          <div className="font-bold">{toast.title}</div>
-          {toast.description && <div className="text-sm mt-1">{toast.description}</div>}
-        </div>
-      ))}
-    </div>
-  )
-}
+// Re-export components from toast.tsx
+export { Toaster, ToastContainer } from "./toast"
