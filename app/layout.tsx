@@ -11,11 +11,11 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "VinylVerdict.fm - Your Music Taste, Judged",
   description:
-    "Connect your Spotify account and get your music taste analyzed and judged by our AI music critics. See your top tracks, artists, and recent listening history.",
+    "Connect your Spotify account and get your music taste analyzed and judged by our resident music critics. See your top tracks, artists, and recent listening history.",
   openGraph: {
     title: "VinylVerdict.fm - Your Music Taste, Judged",
     description:
-      "Connect your Spotify account and get your music taste analyzed and judged by our AI music critics. See your top tracks, artists, and recent listening history.",
+      "Connect your Spotify account and get your music taste analyzed and judged by our resident music critics. See your top tracks, artists, and recent listening history.",
     url: "https://vinylverdict.fm",
     siteName: "VinylVerdict.fm",
     images: [
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "VinylVerdict.fm - Your Music Taste, Judged",
     description:
-      "Connect your Spotify account and get your music taste analyzed and judged by our AI music critics. See your top tracks, artists, and recent listening history.",
+      "Connect your Spotify account and get your music taste analyzed and judged by our resident music critics. See your top tracks, artists, and recent listening history.",
     images: ["https://vinylverdict.fm/og-image.png"],
   },
   icons: {

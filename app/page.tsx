@@ -101,7 +101,7 @@ export default function LandingPage() {
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 leading-tight">
                   <span className="text-purple-gradient">VinylVerdict.FM</span>
                 </h1>
-                <h2 className="text-2xl mb-2md:text-3xl lg:text-4xl font-bold leading-tight">
+                <h2 className="text-2xl mb-4 md:text-3xl lg:text-4xl font-bold leading-tight">
                   {" "}
                   Your Music Taste Personified
                 </h2>
