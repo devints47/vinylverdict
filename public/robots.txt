@@ -1,11 +1,15 @@
-# www.robotstxt.org
-
 User-agent: *
 Allow: /
 
-# Disallow authentication and callback paths
-Disallow: /api/auth/
-Disallow: /callback/
+# Disallow admin and API routes
+Disallow: /admin/
+Disallow: /api/
 
-# Sitemap
-Sitemap: https://www.vinylverdict.fm/sitemap.xml
+# Allow specific API routes that should be crawled
+Allow: /api/og/
+
+# Sitemap location
+Sitemap: https://vinylverdict.fm/sitemap.xml
+
+# Crawl delay (optional)
+Crawl-delay: 1

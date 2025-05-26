@@ -1,36 +1,27 @@
 {
-  "name": "VinylVerdict - Your Personal Music Taste Critic",
+  "name": "VinylVerdict.fm - AI Music Taste Analysis",
   "short_name": "VinylVerdict",
-  "description": "Connect your Spotify account and get a brutally honest critique of your music taste from our resident Music Snob.",
+  "description": "Get your Spotify music taste analyzed by AI personalities. Connect your account for personalized music insights and shareable verdicts.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",
-  "theme_color": "#9333ea",
+  "theme_color": "#a855f7",
   "orientation": "portrait-primary",
   "icons": [
     {
       "src": "/vinyl-favicon.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "maskable any"
     },
     {
       "src": "/vinyl-favicon.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/vinyl-favicon.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
-    },
-    {
-      "src": "/vinyl-favicon.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "maskable any"
     }
-  ]
+  ],
+  "categories": ["entertainment", "music", "lifestyle"],
+  "lang": "en-US",
+  "dir": "ltr"
 }
