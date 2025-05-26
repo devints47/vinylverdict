@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useEffect, useRef } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/use-toast"
 import { Mail, Copy, Share2, Share, Download } from "lucide-react"
@@ -145,7 +145,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       header.style.alignItems = "center"
       header.style.marginBottom = "40px"
       header.style.width = "100%"
-      header.style.maxWidth = "800px"
+      header.style.maxWidth = "880px" // Increased by 10% from 800px
 
       // Add vinyl logo centered above subtitle with purple glow
       const vinylLogo = document.createElement("img")
@@ -181,16 +181,16 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       header.appendChild(subtitle)
       templateContainer.appendChild(header)
 
-      // Create content area with no minHeight - only as tall as content
+      // Create content area with increased size (10% larger)
       const content = document.createElement("div")
       content.style.backgroundColor = "rgba(24, 24, 27, 0.8)"
       content.style.borderRadius = "12px"
-      content.style.padding = "40px"
+      content.style.padding = "44px" // Increased by 10% from 40px
       content.style.border = "1px solid rgba(147, 51, 234, 0.3)"
       content.style.width = "100%"
-      content.style.maxWidth = "800px"
+      content.style.maxWidth = "880px" // Increased by 10% from 800px
       content.style.boxSizing = "border-box"
-      content.style.marginBottom = "30px" // Reduced from 40px to 30px
+      content.style.marginBottom = "30px"
 
       // Convert markdown to HTML with the calculated font size
       content.innerHTML = convertMarkdownToHtml(text, fontSize)
@@ -202,7 +202,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       footer.style.flexDirection = "column"
       footer.style.alignItems = "center"
       footer.style.width = "100%"
-      footer.style.maxWidth = "800px"
+      footer.style.maxWidth = "880px" // Increased by 10% from 800px
 
       // Logo and title container
       const logoContainer = document.createElement("div")
@@ -679,7 +679,6 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
             <Share2 className="h-5 w-5 text-purple-500" />
             {getShareTitle()}
           </DialogTitle>
-          <DialogDescription className="text-zinc-400">Your verdict is ready to share</DialogDescription>
         </DialogHeader>
 
         <div className="relative mx-auto w-full" style={{ maxWidth: "320px" }}>
@@ -715,7 +714,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
             <Button
               onClick={handleNativeShare}
               disabled={!showingImage}
-              className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium"
+              className="w-full text-white font-medium bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 hover:from-purple-700 hover:via-purple-800 hover:to-purple-900 border-0"
             >
               <Share className="mr-2 h-4 w-4" />
               Share Your Verdict
@@ -725,8 +724,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
           <Button
             onClick={handleCopyToClipboard}
             disabled={!showingImage}
-            variant="outline"
-            className="w-full text-white border-zinc-700 hover:bg-zinc-800"
+            className="w-full text-white font-medium bg-gradient-to-r from-pink-500 via-pink-600 to-pink-700 hover:from-pink-600 hover:via-pink-700 hover:to-pink-800 border-0"
           >
             <Copy className="mr-2 h-4 w-4" />
             Copy to Clipboard
@@ -735,8 +733,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
           <Button
             onClick={handleDownloadImage}
             disabled={!showingImage}
-            variant="outline"
-            className="w-full text-white border-zinc-700 hover:bg-zinc-800"
+            className="w-full text-white font-medium bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 hover:from-purple-700 hover:via-purple-800 hover:to-purple-900 border-0"
           >
             <Download className="mr-2 h-4 w-4" />
             Download Verdict
@@ -745,8 +742,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
           <Button
             onClick={handleSendEmail}
             disabled={!showingImage || isSendingEmail}
-            variant="outline"
-            className="w-full text-white border-zinc-700 hover:bg-zinc-800"
+            className="w-full text-white font-medium bg-gradient-to-r from-pink-500 via-pink-600 to-pink-700 hover:from-pink-600 hover:via-pink-700 hover:to-pink-800 border-0"
           >
             {isSendingEmail ? (
               <>
