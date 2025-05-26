@@ -201,7 +201,7 @@ function RecentlyPlayedContent({
 }) {
   return (
     <Card
-      className="bg-gradient-to-r from-zinc-900 to-black border border-transparent"
+      className="bg-gradient-to-r from-zinc-900 to-black border border-transparent rounded-t-none"
       style={{
         borderImage:
           "linear-gradient(135deg, var(--purple-gradient-start), var(--purple-gradient-mid), var(--purple-gradient-end)) 1",
@@ -305,7 +305,7 @@ function TopTracksContent({
 }) {
   return (
     <Card
-      className="bg-gradient-to-r from-zinc-900 to-black border border-transparent"
+      className="bg-gradient-to-r from-zinc-900 to-black border border-transparent rounded-t-none"
       style={{
         borderImage:
           "linear-gradient(135deg, var(--purple-gradient-start), var(--purple-gradient-mid), var(--purple-gradient-end)) 1",
@@ -402,7 +402,7 @@ function TopArtistsContent({
 }) {
   return (
     <Card
-      className="bg-gradient-to-r from-zinc-900 to-black border border-transparent"
+      className="bg-gradient-to-r from-zinc-900 to-black border border-transparent rounded-t-none"
       style={{
         borderImage:
           "linear-gradient(135deg, var(--purple-gradient-start), var(--purple-gradient-mid), var(--purple-gradient-end)) 1",
@@ -839,7 +839,7 @@ export default function DashboardPage() {
 
       <main className="flex-1 container mx-auto px-4 py-6 mt-20 relative z-10 mb-12">
         {/* Top Section with Grid Layout */}
-        <div className="flex flex-col md:flex-row gap-6 mb-6">
+        <div className="flex flex-col md:flex-row gap-6 mb-4">
           {/* Mobile-first layout: Profile Card first on mobile, then Vinyl Collection */}
           <div className="w-full md:hidden mb-6">{profileCard}</div>
 
@@ -871,44 +871,47 @@ export default function DashboardPage() {
           <div className="w-full md:w-[25%] md:self-start hidden md:block">{profileCard}</div>
         </div>
 
-        {/* Custom Tabs Navigation */}
-        <MusicTabs classname=""activeTab={activeTab} onTabChange={handleTabChange} />
+        {/* Tabs and Content Section - Connected */}
+        <div>
+          {/* Custom Tabs Navigation */}
+          <MusicTabs activeTab={activeTab} onTabChange={handleTabChange} />
 
-        {/* Tab Content */}
-        {activeTab === "recently-played" && (
-          <RecentlyPlayedContent
-            isLoadingRecent={isLoadingRecent}
-            isRefreshing={isRefreshing}
-            recentlyPlayed={recentlyPlayed}
-            visibleRecentCount={visibleRecentCount}
-            getTrackGenres={getTrackGenres}
-            loadMoreRecent={loadMoreRecent}
-            formatDate={formatDate}
-          />
-        )}
-        {activeTab === "top-tracks" && (
-          <TopTracksContent
-            timeRange={timeRange}
-            handleTimeRangeChange={handleTimeRangeChange}
-            isLoadingTracks={isLoadingTracks}
-            isRefreshing={isRefreshing}
-            currentTopTracks={currentTopTracks}
-            visibleTracksCount={visibleTracksCount}
-            getTrackGenres={getTrackGenres}
-            loadMoreTracks={loadMoreTracks}
-          />
-        )}
-        {activeTab === "top-artists" && (
-          <TopArtistsContent
-            timeRange={timeRange}
-            handleTimeRangeChange={handleTimeRangeChange}
-            isLoadingArtists={isLoadingArtists}
-            isRefreshing={isRefreshing}
-            currentTopArtists={currentTopArtists}
-            visibleArtistsCount={visibleArtistsCount}
-            loadMoreArtists={loadMoreArtists}
-          />
-        )}
+          {/* Tab Content - Connected directly to tabs */}
+          {activeTab === "recently-played" && (
+            <RecentlyPlayedContent
+              isLoadingRecent={isLoadingRecent}
+              isRefreshing={isRefreshing}
+              recentlyPlayed={recentlyPlayed}
+              visibleRecentCount={visibleRecentCount}
+              getTrackGenres={getTrackGenres}
+              loadMoreRecent={loadMoreRecent}
+              formatDate={formatDate}
+            />
+          )}
+          {activeTab === "top-tracks" && (
+            <TopTracksContent
+              timeRange={timeRange}
+              handleTimeRangeChange={handleTimeRangeChange}
+              isLoadingTracks={isLoadingTracks}
+              isRefreshing={isRefreshing}
+              currentTopTracks={currentTopTracks}
+              visibleTracksCount={visibleTracksCount}
+              getTrackGenres={getTrackGenres}
+              loadMoreTracks={loadMoreTracks}
+            />
+          )}
+          {activeTab === "top-artists" && (
+            <TopArtistsContent
+              timeRange={timeRange}
+              handleTimeRangeChange={handleTimeRangeChange}
+              isLoadingArtists={isLoadingArtists}
+              isRefreshing={isRefreshing}
+              currentTopArtists={currentTopArtists}
+              visibleArtistsCount={visibleArtistsCount}
+              loadMoreArtists={loadMoreArtists}
+            />
+          )}
+        </div>
       </main>
 
       <Footer />

@@ -13,11 +13,11 @@ interface MusicTabsProps {
 
 export function MusicTabs({ activeTab, onTabChange, className }: MusicTabsProps) {
   return (
-    <div className={cn("w-full mb-8", className)}>
+    <div className={cn("w-full", className)}>
       <div
-        className="w-full flex rounded-lg overflow-hidden shadow-lg bg-zinc-900/50"
+        className="w-full flex rounded-t-lg overflow-hidden shadow-lg bg-zinc-900/50"
         style={{
-          borderWidth: "1px",
+          borderWidth: "1px 1px 0px 1px",
           borderImageSource:
             "linear-gradient(135deg, var(--purple-gradient-start), var(--purple-gradient-mid), var(--purple-gradient-end))",
           borderImageSlice: "1",
