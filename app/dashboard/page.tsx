@@ -50,7 +50,7 @@ function CollapsibleCriticInfo({ selectedVinyl }: { selectedVinyl: VinylDesign |
     <div className="bg-zinc-900/50 rounded-xl border border-zinc-800 overflow-hidden h-[132px] md:h-[132px]">
       {selectedVinyl ? (
         <>
-          <div className="p-4 h-full flex flex-col justify-center">
+          <div className="p-3 h-full flex flex-col justify-center">
             {/* Mobile view - Collapsible content */}
             <div className="md:hidden">
               <button
