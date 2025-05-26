@@ -109,7 +109,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       templateContainer.style.flexDirection = "column"
       templateContainer.style.justifyContent = "center"
       templateContainer.style.alignItems = "center"
-      templateContainer.style.padding = "60px 40px"
+      templateContainer.style.padding = "40px 40px"
       templateContainer.style.fontFamily = "'Inter', sans-serif"
       templateContainer.style.color = "white"
       templateContainer.style.zIndex = "-1000"
@@ -143,7 +143,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       header.style.display = "flex"
       header.style.flexDirection = "column"
       header.style.alignItems = "center"
-      header.style.marginBottom = "40px"
+      header.style.marginBottom = "20px"
       header.style.width = "100%"
       header.style.maxWidth = "880px" // Increased by 10% from 800px
 
@@ -190,7 +190,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       content.style.width = "100%"
       content.style.maxWidth = "880px" // Increased by 10% from 800px
       content.style.boxSizing = "border-box"
-      content.style.marginBottom = "30px"
+      content.style.marginBottom = "20px"
 
       // Convert markdown to HTML with the calculated font size
       content.innerHTML = convertMarkdownToHtml(text, fontSize)
