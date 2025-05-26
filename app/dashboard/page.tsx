@@ -105,8 +105,8 @@ function UserProfileCard({
   if (!profile) return null
 
   return (
-    <div className="w-full bg-gradient-to-r from-zinc-900 to-black rounded-xl border border-zinc-800 overflow-hidden shadow-lg min-h-[132px]">
-      <div className="grid grid-cols-5 py-2 px-2 md:py-3 md:px-3">
+    <div className="w-full bg-gradient-to-r from-zinc-900 to-black rounded-xl border border-zinc-800 overflow-hidden shadow-lg md:h-[132px]">
+      <div className="grid grid-cols-5 p-2 md:p-3 h-full">
         {/* Left Column - User Info */}
         <div className="col-span-3 pr-2 flex flex-col justify-between h-full">
           {/* User Info - Top section */}
@@ -146,7 +146,7 @@ function UserProfileCard({
           </div>
 
           {/* Bottom Row - Refresh button and Updated text */}
-          <div className="flex items-center text-xs text-zinc-500 mt-6">
+          <div className="flex items-center text-xs text-zinc-500 mt-4">
             <button
               onClick={handleRefresh}
               disabled={isRefreshing}
@@ -173,7 +173,7 @@ function UserProfileCard({
                 fetchPriority="high"
               />
             </a>
-            <span className="text-xs text-zinc-500/80 text-center mt-6">Connected to Spotify</span>
+            <span className="text-xs text-zinc-500/80 text-center mt-4">Connected to Spotify</span>
           </div>
         </div>
       </div>
