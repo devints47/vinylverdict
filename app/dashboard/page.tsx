@@ -839,7 +839,7 @@ export default function DashboardPage() {
 
       <main className="flex-1 container mx-auto px-4 py-6 mt-20 relative z-10 mb-12">
         {/* Top Section with Grid Layout */}
-        <div className="flex flex-col md:flex-row gap-6 mb-6 md:mb-0">
+        <div className="flex flex-col md:flex-row gap-6 mb-6">
           {/* Mobile-first layout: Profile Card first on mobile, then Vinyl Collection */}
           <div className="w-full md:hidden mb-6">{profileCard}</div>
 
