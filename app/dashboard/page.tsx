@@ -111,16 +111,26 @@ function UserProfileCard({
         <div className="col-span-3 pr-2 flex flex-col justify-between h-full">
           {/* User Info - Top section */}
           <div className="flex items-center mb-1">
-            <div className="w-10 h-10 rounded-full overflow-hidden mr-3 flex-shrink-0">
-              <img
-                src={profile.images?.[0]?.url || "/placeholder.svg?height=40&width=40&query=user"}
-                alt={profile.display_name}
-                className="w-full h-full object-cover"
-                width={40}
-                height={40}
-                loading="lazy"
-                fetchPriority="high"
-              />
+            <div className="w-10 h-10 rounded-full overflow-hidden mr-3 flex-shrink-0 bg-zinc-700 flex items-center justify-center">
+              {profile.images?.[0]?.url ? (
+                <img
+                  src={profile.images[0].url || "/placeholder.svg"}
+                  alt={profile.display_name}
+                  className="w-full h-full object-cover"
+                  width={40}
+                  height={40}
+                  loading="lazy"
+                  fetchPriority="high"
+                  onError={(e) => {
+                    console.log("Profile image failed to load:", profile.images[0].url)
+                    e.currentTarget.style.display = "none"
+                  }}
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm">
+                  {profile.display_name?.charAt(0)?.toUpperCase() || "U"}
+                </div>
+              )}
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="text-sm font-bold truncate">
@@ -530,6 +540,11 @@ export default function DashboardPage() {
 
       const data = await response.json()
       setProfile(data)
+      console.log("Profile data:", {
+        display_name: data.display_name,
+        images: data.images,
+        imageUrl: data.images?.[0]?.url,
+      })
     } catch (err) {
       console.error("Error fetching profile:", err)
       throw new Error("Failed to load your profile")
