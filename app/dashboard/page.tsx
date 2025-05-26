@@ -224,9 +224,7 @@ function RecentlyPlayedContent({
             </div>
             <div className="flex flex-col justify-center">
               <CardTitle className="text-2xl">Recently Played</CardTitle>
-              <CardDescription className="min-h-[1.5rem]">
-                Your most recent listening history
-              </CardDescription>
+              <CardDescription className="min-h-[1.5rem]">Your most recent listening history</CardDescription>
             </div>
           </div>
           <div className="flex items-center text-zinc-400 bg-zinc-800/50 px-4 py-2 rounded-lg">
@@ -329,7 +327,7 @@ function TopTracksContent({
             <div className="flex flex-col justify-center">
               <CardTitle className="text-2xl">Your Top Tracks</CardTitle>
               <CardDescription className="min-h-[1.5rem]">
-                Songs you've listened to the most {" "}
+                Songs you've listened to the most{" "}
                 {timeRange === "short_term"
                   ? "over the last month"
                   : timeRange === "medium_term"
@@ -426,7 +424,7 @@ function TopArtistsContent({
             <div className="flex flex-col justify-center">
               <CardTitle className="text-2xl">Your Top Artists</CardTitle>
               <CardDescription className="min-h-[1.5rem]">
-                Artists you've listened to the most {" "}
+                Artists you've listened to the most{" "}
                 {timeRange === "short_term"
                   ? "over the last 4 weeks"
                   : timeRange === "medium_term"
@@ -839,7 +837,7 @@ export default function DashboardPage() {
 
       <main className="flex-1 container mx-auto px-4 py-6 mt-20 relative z-10 mb-12">
         {/* Top Section with Grid Layout */}
-        <div className="flex flex-col md:flex-row gap-6 mb-4">
+        <div className="flex flex-col md:flex-row gap-6 mb-6 md:mb-4">
           {/* Mobile-first layout: Profile Card first on mobile, then Vinyl Collection */}
           <div className="w-full md:hidden mb-6">{profileCard}</div>
 
@@ -856,7 +854,7 @@ export default function DashboardPage() {
             <CollapsibleCriticInfo selectedVinyl={selectedVinyl} />
 
             {/* Roast Me button positioned directly below the description box */}
-            <div className="mt-4">
+            <div className="mt-6 md:mt-4">
               <RoastMe
                 topTracks={currentTopTracks}
                 topArtists={currentTopArtists}
