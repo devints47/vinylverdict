@@ -1,6 +1,4 @@
 "use client"
-
-import type React from "react"
 import { useState, useEffect, useRef } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -16,14 +14,6 @@ interface ShareModalProps {
   onShare: (platform: string) => void
 }
 
-interface ShareOption {
-  id: string
-  name: string
-  icon: React.ReactNode
-  color: string
-  description: string
-}
-
 const loadingMessages = [
   "Generating your image...",
   "Making it look perfect...",
@@ -36,36 +26,29 @@ const loadingMessages = [
 
 export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: ShareModalProps) {
   const [imageUrl, setImageUrl] = useState<string>("")
-  const [blobUrl, setBlobUrl] = useState<string>("")
-  const [shortUrl, setShortUrl] = useState<string>("")
   const [showingImage, setShowingImage] = useState(false)
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0)
   const [userProfile, setUserProfile] = useState<any>(null)
-  const [isUploading, setIsUploading] = useState(false)
   const [isSendingEmail, setIsSendingEmail] = useState(false)
   const loadingIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const imgRef = useRef<HTMLImageElement>(null)
-  const templateRef = useRef<HTMLDivElement>(null)
   const cleanupTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  // Fetch user profile when modal opens - using same pattern as dashboard
+  // Fetch user profile when modal opens
   useEffect(() => {
     if (isOpen) {
       const fetchProfile = async () => {
         try {
-          // Use the server API endpoint - same as dashboard
           const response = await fetch("/api/auth/me")
 
           if (!response.ok) {
-            console.warn(`Profile fetch failed with status: ${response.status}`)
             return
           }
 
           const data = await response.json()
-          setUserProfile(data) // Data is returned directly, not wrapped in user property
+          setUserProfile(data)
         } catch (err) {
-          console.error("Error fetching profile:", err)
-          // Don't throw error, just continue without profile data
+          // Continue without profile data
         }
       }
 
@@ -77,10 +60,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     if (isOpen) {
       // Reset states
       setImageUrl("")
-      setBlobUrl("")
-      setShortUrl("")
       setShowingImage(false)
-      setIsUploading(false)
       setIsSendingEmail(false)
 
       // Start cycling through loading messages
@@ -113,15 +93,13 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       templateContainer.style.fontFamily = "'Inter', sans-serif"
       templateContainer.style.color = "white"
       templateContainer.style.zIndex = "-1000"
-      // Add a unique class for easier identification
       templateContainer.className = "vinyl-verdict-share-template"
       document.body.appendChild(templateContainer)
 
       // Calculate optimal font size based on text length
       const textLength = text.length
-      let fontSize = 32 // Default font size
+      let fontSize = 32
 
-      // Adjust font size based on text length - more nuanced scaling
       if (textLength > 3000) {
         fontSize = 18
       } else if (textLength > 2500) {
@@ -145,9 +123,8 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       header.style.alignItems = "center"
       header.style.marginBottom = "20px"
       header.style.width = "100%"
-      header.style.maxWidth = "880px" // Increased by 10% from 800px
+      header.style.maxWidth = "880px"
 
-      // Add vinyl logo centered above subtitle with purple glow
       const vinylLogo = document.createElement("img")
       vinylLogo.src = "/vinyl-favicon.png"
       vinylLogo.alt = "VinylVerdict Logo"
@@ -157,7 +134,6 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       vinylLogo.style.filter = "drop-shadow(0 0 20px rgba(147, 51, 234, 0.6))"
       vinylLogo.crossOrigin = "anonymous"
 
-      // Create subtitle with purple colors instead of gradient
       const subtitle = document.createElement("div")
       subtitle.style.textAlign = "center"
       subtitle.style.width = "100%"
@@ -166,7 +142,6 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       const personalityName = getPersonalityName(assistantType)
       const username = userProfile?.display_name || userProfile?.id || "Your Music"
 
-      // Create the subtitle with purple styling for both personality and username
       subtitleText.innerHTML = `<span style="color: #c026d3; font-weight: bold;">${personalityName}</span>'s analysis of <span style="color: #c026d3; font-weight: bold;">${username}</span>`
 
       subtitleText.style.fontSize = "32px"
@@ -181,30 +156,28 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       header.appendChild(subtitle)
       templateContainer.appendChild(header)
 
-      // Create content area with increased size (10% larger)
+      // Create content area
       const content = document.createElement("div")
       content.style.backgroundColor = "rgba(24, 24, 27, 0.8)"
       content.style.borderRadius = "12px"
-      content.style.padding = "44px" // Increased by 10% from 40px
+      content.style.padding = "44px"
       content.style.border = "1px solid rgba(147, 51, 234, 0.3)"
       content.style.width = "100%"
-      content.style.maxWidth = "880px" // Increased by 10% from 800px
+      content.style.maxWidth = "880px"
       content.style.boxSizing = "border-box"
       content.style.marginBottom = "20px"
 
-      // Convert markdown to HTML with the calculated font size
       content.innerHTML = convertMarkdownToHtml(text, fontSize)
       templateContainer.appendChild(content)
 
-      // Create footer with logo and VinylVerdict.FM
+      // Create footer
       const footer = document.createElement("div")
       footer.style.display = "flex"
       footer.style.flexDirection = "column"
       footer.style.alignItems = "center"
       footer.style.width = "100%"
-      footer.style.maxWidth = "880px" // Increased by 10% from 800px
+      footer.style.maxWidth = "880px"
 
-      // Logo and title container
       const logoContainer = document.createElement("div")
       logoContainer.style.display = "flex"
       logoContainer.style.alignItems = "center"
@@ -222,13 +195,12 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       title.textContent = "VinylVerdict.FM"
       title.style.fontSize = "42px"
       title.style.fontWeight = "bold"
-      title.style.color = "#c026d3" // Use solid purple color instead of gradient
+      title.style.color = "#c026d3"
       title.style.margin = "0"
       title.style.padding = "0"
       title.style.lineHeight = "1"
-      title.style.marginBottom = "8px" // Add margin bottom to align with logo center
+      title.style.marginBottom = "8px"
 
-      // Add promotional sub-text
       const promoText = document.createElement("p")
       promoText.textContent = "Get your own personalized verdict at VinylVerdict.FM"
       promoText.style.fontSize = "18px"
@@ -244,76 +216,64 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       footer.appendChild(promoText)
       templateContainer.appendChild(footer)
 
-      // Wait for images to load and content to render
       const generateImage = () => {
-        // Double-check that the element still exists
         const existingContainer = document.getElementById("share-image-template")
         if (!existingContainer) {
-          console.warn("Template container not found during image generation")
           return
         }
 
-        // Adjust container height based on actual content
         const actualHeight = existingContainer.scrollHeight
         existingContainer.style.height = `${Math.max(actualHeight, 1920)}px`
 
-        // Generate image from the template with improved options - use PNG for better clipboard support
         html2canvas(existingContainer, {
           allowTaint: true,
           useCORS: true,
           scale: 2,
-          logging: false, // Disable html2canvas logging to reduce console noise
+          logging: false,
           backgroundColor: null,
           height: Math.max(actualHeight, 1920),
           windowHeight: Math.max(actualHeight, 1920),
-          // Add these options to improve stability
           foreignObjectRendering: false,
-          removeContainer: false, // Don't let html2canvas remove the container
+          removeContainer: false,
         })
           .then((canvas) => {
-            // Convert canvas to PNG data URL for better clipboard compatibility
             const imageUrl = canvas.toDataURL("image/png")
             setImageUrl(imageUrl)
             setShowingImage(true)
 
-            // Clean up intervals
             if (loadingIntervalRef.current) {
               clearInterval(loadingIntervalRef.current)
             }
 
-            // Schedule cleanup after a short delay to ensure html2canvas is completely done
             cleanupTimeoutRef.current = setTimeout(() => {
               const containerToRemove = document.getElementById("share-image-template")
               if (containerToRemove && containerToRemove.parentNode) {
                 try {
                   document.body.removeChild(containerToRemove)
                 } catch (error) {
-                  console.warn("Error removing template container:", error)
+                  // Cleanup failed, continue
                 }
               }
             }, 100)
           })
           .catch((error) => {
-            console.error("Error generating image:", error)
             toast({
               title: "Image generation failed",
               description: "Could not generate share image. Please try again.",
               variant: "destructive",
             })
 
-            // Clean up on error
             const containerToRemove = document.getElementById("share-image-template")
             if (containerToRemove && containerToRemove.parentNode) {
               try {
                 document.body.removeChild(containerToRemove)
               } catch (cleanupError) {
-                console.warn("Error removing template container after error:", cleanupError)
+                // Cleanup failed, continue
               }
             }
           })
       }
 
-      // Wait for both logo images to load before generating
       let imagesLoaded = 0
       const totalImages = 2
 
@@ -324,57 +284,46 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
         }
       }
 
-      // Header vinyl logo
       vinylLogo.onload = checkImagesLoaded
       vinylLogo.onerror = () => {
-        console.warn("Header vinyl logo failed to load")
         checkImagesLoaded()
       }
 
-      // Footer logo
       logoImg.onload = checkImagesLoaded
       logoImg.onerror = () => {
-        console.warn("Footer logo failed to load")
         checkImagesLoaded()
       }
 
-      // If images are already cached, onload might not fire
       if (vinylLogo.complete) checkImagesLoaded()
       if (logoImg.complete) checkImagesLoaded()
 
-      // Fallback timeout in case images don't load
       setTimeout(() => {
         if (imagesLoaded < totalImages) {
-          console.warn("Some images didn't load, proceeding with image generation")
           setTimeout(generateImage, 500)
         }
       }, 3000)
     }
 
     return () => {
-      // Clean up intervals
       if (loadingIntervalRef.current) {
         clearInterval(loadingIntervalRef.current)
       }
 
-      // Clean up timeout
       if (cleanupTimeoutRef.current) {
         clearTimeout(cleanupTimeoutRef.current)
       }
 
-      // Clean up any template containers that might be left
       const templateContainer = document.getElementById("share-image-template")
       if (templateContainer && templateContainer.parentNode) {
         try {
           templateContainer.parentNode.removeChild(templateContainer)
         } catch (error) {
-          console.warn("Error cleaning up template container:", error)
+          // Cleanup failed, continue
         }
       }
     }
   }, [isOpen, text, assistantType, userProfile])
 
-  // Get the personality name based on assistant type
   const getPersonalityName = (type: string): string => {
     switch (type) {
       case "worshipper":
@@ -387,67 +336,44 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     }
   }
 
-  // Get the appropriate title based on assistant type
-  const getAssistantTitle = (type: string): string => {
-    switch (type) {
-      case "worshipper":
-        return "Music Taste Validation"
-      case "historian":
-        return "Music History Analysis"
-      case "snob":
-      default:
-        return "Music Taste Verdict"
-    }
-  }
-
-  // Convert markdown to HTML with proper styling and dynamic font size
   const convertMarkdownToHtml = (markdown: string, fontSize: number): string => {
-    // Extract title from first line if it starts with #
     let title = ""
     let content = markdown
 
-    // Check if the first line is a title
     const titleMatch = markdown.match(/^# (.+)$/m)
     if (titleMatch) {
       title = titleMatch[1]
-      content = markdown.replace(/^# .+$/m, "") // Remove the title from content
+      content = markdown.replace(/^# .+$/m, "")
     }
 
-    // Basic markdown conversion with dynamic font size
     let html = content
-      // Convert headers
       .replace(
         /^# (.*$)/gm,
         `<h1 style="color: #c026d3; font-size: ${fontSize * 1.3}px; font-weight: bold; margin-bottom: 20px; line-height: 1.4;">$1</h1>`,
       )
       .replace(
         /^## (.*$)/gm,
-        `<h2 style="color: #c026d3; font-size: ${fontSize * 1.15}px; font-weight: bold; margin-bottom: 16px; line-height: 1.4;">$1</h2>`,
+        `<h2 style="color: #c026d3; font-size: ${fontSize * 1.15}px; font-weight: bold; margin-bottom: 16px; line-height: 1.4;">$2</h2>`,
       )
       .replace(
         /^### (.*$)/gm,
         `<h3 style="color: #c026d3; font-size: ${fontSize * 1.05}px; font-weight: bold; margin-bottom: 12px; line-height: 1.4;">$1</h3>`,
       )
-      // Convert bold and italic
       .replace(/\*\*(.*?)\*\*/g, `<strong style="color: white; font-weight: bold;">$1</strong>`)
       .replace(/\*(.*?)\*/g, `<em style="color: #d4d4d8; font-style: italic;">$1</em>`)
-      // Convert paragraphs with dynamic font size
       .replace(
         /\n\n/g,
         `</p><p style="margin-bottom: ${fontSize * 0.8}px; color: #e4e4e7; font-size: ${fontSize}px; line-height: 1.6;">`,
       )
-      // Convert lists
       .replace(
         /^- (.*$)/gm,
         `<li style="margin-left: 20px; color: #e4e4e7; font-size: ${fontSize}px; line-height: 1.6;">$1</li>`,
       )
 
-    // Wrap in paragraph if not already
     if (!html.startsWith("<h1") && !html.startsWith("<p")) {
       html = `<p style="margin-bottom: ${fontSize * 0.8}px; color: #e4e4e7; font-size: ${fontSize}px; line-height: 1.6;">${html}</p>`
     }
 
-    // If we extracted a title, add it back at the top with larger font
     if (title) {
       html =
         `<h1 style="color: #c026d3; font-size: ${fontSize * 1.5}px; font-weight: bold; margin-bottom: ${fontSize}px; text-align: center; line-height: 1.3;">${title}</h1>` +
@@ -457,22 +383,17 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     return html
   }
 
-  // Function to copy image to clipboard - improved for better browser support
   const copyImageToClipboard = async (dataUrl: string): Promise<void> => {
     try {
-      // Check if clipboard API is available
       if (!navigator.clipboard || !navigator.clipboard.write) {
         throw new Error("Clipboard API not supported")
       }
 
-      // Convert data URL to blob
       const response = await fetch(dataUrl)
       const blob = await response.blob()
 
-      // For better compatibility, try PNG format
       let finalBlob = blob
       if (blob.type === "image/jpeg") {
-        // Convert JPEG to PNG for better clipboard support
         const canvas = document.createElement("canvas")
         const ctx = canvas.getContext("2d")
         const img = new Image()
@@ -496,21 +417,15 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
         })
       }
 
-      // Create a ClipboardItem
       const item = new ClipboardItem({ [finalBlob.type]: finalBlob })
-
-      // Write to clipboard
       await navigator.clipboard.write([item])
     } catch (error) {
-      console.error("Error copying image to clipboard:", error)
       throw new Error("Failed to copy image to clipboard")
     }
   }
 
-  // Function to download image
   const downloadImage = async (dataUrl: string, filename: string): Promise<void> => {
     try {
-      // Create a download link
       const link = document.createElement("a")
       link.href = dataUrl
       link.download = filename
@@ -518,7 +433,6 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       link.click()
       document.body.removeChild(link)
     } catch (error) {
-      console.error("Error downloading image:", error)
       throw new Error("Failed to download image")
     }
   }
@@ -535,15 +449,11 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     }
   }
 
-  // Detect if user is on iOS or macOS
   const isAppleDevice = () => {
     const userAgent = navigator.userAgent
     const platform = navigator.platform
 
-    // Check for iOS
     const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream
-
-    // Check for macOS
     const isMacOS = platform.toLowerCase().includes("mac")
 
     return isIOS || isMacOS
@@ -590,7 +500,6 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     if (!imageUrl) return
 
     try {
-      // Convert data URL to blob for native sharing
       const response = await fetch(imageUrl)
       const blob = await response.blob()
       const file = new File([blob], `vinylverdict-${assistantType}-${Date.now()}.png`, { type: "image/png" })
@@ -602,7 +511,6 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
           files: [file],
         })
       } else {
-        // Fallback if file sharing is not supported
         toast({
           title: "Share not available",
           description: "File sharing is not supported on this device.",
@@ -658,7 +566,6 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
 
       onClose()
     } catch (error) {
-      console.error("Error sending email:", error)
       toast({
         title: "Email failed",
         description: error instanceof Error ? error.message : "Could not send email. Please try again.",

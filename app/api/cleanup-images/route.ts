@@ -3,14 +3,10 @@ import { NextResponse } from "next/server"
 
 export async function POST() {
   try {
-    console.log("Starting image cleanup job...")
-
     // List all blobs with our specific prefix
     const { blobs } = await list({
       prefix: "vinyl-verdict-gen-image-",
     })
-
-    console.log(`Found ${blobs.length} generated images to check`)
 
     const fourteenDaysAgo = Date.now() - 14 * 24 * 60 * 60 * 1000 // 14 days in milliseconds
     const blobsToDelete: string[] = []
@@ -26,17 +22,13 @@ export async function POST() {
 
           if (timestamp < fourteenDaysAgo) {
             blobsToDelete.push(blob.url)
-            console.log(`Marking for deletion: ${filename} (${new Date(timestamp).toISOString()})`)
           }
-        } else {
-          console.log(`Skipping blob with unexpected filename format: ${filename}`)
         }
       } catch (error) {
-        console.error(`Error processing blob ${blob.pathname}:`, error)
+        // Continue processing other blobs if one fails
+        continue
       }
     }
-
-    console.log(`Found ${blobsToDelete.length} images older than 14 days`)
 
     // Delete the old blobs
     let deletedCount = 0
@@ -46,10 +38,8 @@ export async function POST() {
       try {
         await del(blobUrl)
         deletedCount++
-        console.log(`Deleted: ${blobUrl}`)
       } catch (error) {
         errorCount++
-        console.error(`Failed to delete ${blobUrl}:`, error)
       }
     }
 
@@ -62,11 +52,8 @@ export async function POST() {
       timestamp: new Date().toISOString(),
     }
 
-    console.log("Cleanup job completed:", result)
-
     return NextResponse.json(result)
   } catch (error) {
-    console.error("Cleanup job failed:", error)
     return NextResponse.json(
       {
         success: false,

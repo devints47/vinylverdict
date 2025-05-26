@@ -29,13 +29,11 @@ export function SharedImageDisplay({ imageUrl }: SharedImageDisplayProps) {
   }, [imageUrl])
 
   const handleImageLoad = () => {
-    console.log("Image loaded successfully")
     setIsLoading(false)
     setHasError(false)
   }
 
   const handleImageError = () => {
-    console.error("Image failed to load:", imageUrl)
     setIsLoading(false)
     setHasError(true)
   }

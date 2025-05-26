@@ -11,8 +11,6 @@ interface PageProps {
 // Helper function to decode the URL and reconstruct the blob URL
 function decodeShareCode(code: string): { imageUrl: string } | null {
   try {
-    console.log("Decoding share code:", code)
-
     // Convert URL-safe base64 back to standard base64
     let base64Data = code.replace(/-/g, "+").replace(/_/g, "/")
 
@@ -21,8 +19,6 @@ function decodeShareCode(code: string): { imageUrl: string } | null {
     else if (base64Data.length % 4 === 3) base64Data += "="
 
     const decodedData = Buffer.from(base64Data, "base64").toString("utf-8")
-    console.log("Decoded data:", decodedData)
-
     const parts = decodedData.split("|")
 
     // Check if it's the new format (blobId|filename) or old format (timestamp|blobId|filename or timestamp|fullUrl)
@@ -34,27 +30,22 @@ function decodeShareCode(code: string): { imageUrl: string } | null {
       if (/^\d+$/.test(first)) {
         // Old format: timestamp|fullUrl
         const imageUrl = second
-        console.log("Using legacy full URL format:", imageUrl)
         return { imageUrl }
       } else {
         // New format: blobId|filename
         const [blobId, filename] = parts
         const imageUrl = `https://${blobId}.public.blob.vercel-storage.com/${filename}`
-        console.log("Reconstructed URL from new format:", imageUrl)
         return { imageUrl }
       }
     } else if (parts.length === 3) {
       // Old format: timestamp|blobId|filename
       const [timestamp, blobId, filename] = parts
       const imageUrl = `https://${blobId}.public.blob.vercel-storage.com/${filename}`
-      console.log("Reconstructed URL from old 3-part format:", imageUrl)
       return { imageUrl }
     } else {
-      console.error("Invalid format: Decoded data doesn't have the expected format")
       return null
     }
   } catch (error) {
-    console.error("Error decoding share code:", error)
     return null
   }
 }
@@ -104,7 +95,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       },
     }
   } catch (error) {
-    console.error("Error in generateMetadata:", error)
     return {
       title: "VinylVerdict.fm",
       description: "Personalized Music Taste Analysis",
@@ -123,9 +113,6 @@ export default function SharedVerdictPage({ params }: PageProps) {
     if (!decoded) {
       notFound()
     }
-
-    // No more timestamp-based expiration check - let the blob storage handle it
-    // If the image doesn't exist, the SharedImageDisplay component will handle the error
 
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white p-4">
@@ -155,7 +142,6 @@ export default function SharedVerdictPage({ params }: PageProps) {
       </div>
     )
   } catch (error) {
-    console.error("Error in SharedVerdictPage:", error)
     notFound()
   }
 }
