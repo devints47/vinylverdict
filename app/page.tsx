@@ -101,7 +101,10 @@ export default function LandingPage() {
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 leading-tight">
                   <span className="text-purple-gradient">VinylVerdict.FM</span>
                 </h1>
-                <h2 className="text-2xl mb-2md:text-3xl lg:text-4xl font-bold leading-tight">  Your Music Taste Personified</h2>
+                <h2 className="text-2xl mb-2md:text-3xl lg:text-4xl font-bold leading-tight">
+                  {" "}
+                  Your Music Taste Personified
+                </h2>
                 <p className="text-xl text-zinc-400 mb-8 max-w-lg">
                   Connect your Spotify account and choose from multiple unique personalities to analyze your listening
                   habits with distinct perspectives, from brutal honesty to historical insights.
@@ -226,31 +229,18 @@ export default function LandingPage() {
         <TechGridBackground />
         <div className="container mx-auto relative z-10">
           <div className="bg-black py-6 px-4 rounded-xl max-w-3xl mx-auto">
-            {/* Mobile layout (stacked vertically) */}
-            <div className="flex flex-col items-center text-center md:hidden gap-4">
-              <p className="text-2xl text-zinc-300 font-medium">Built Using the</p>
-              <div className="py-3">
-                <a href="https://www.spotify.com" target="_blank" rel="noopener noreferrer" title="Visit Spotify">
-                  <img src="/spotify_full_logo.svg" alt="Spotify" className="h-[80px] w-auto" loading="lazy" />
-                </a>
-              </div>
-              <p className="text-2xl text-zinc-300 font-medium">Web API</p>
-            </div>
-
-            {/* Desktop layout (horizontal) */}
-            <div className="hidden md:flex flex-row items-center justify-center">
-              <p className="text-2xl md:text-3xl text-zinc-300 mr-8 font-medium">Built Using the</p>
-              <div className="px-3">
+            <div className="flex flex-col items-center text-center gap-4">
+              <p className="text-2xl md:text-3xl text-zinc-300 font-medium">Built Using the Spotify Web API</p>
+              <div className="mt-6">
                 <a href="https://www.spotify.com" target="_blank" rel="noopener noreferrer" title="Visit Spotify">
                   <img
                     src="/spotify_full_logo.svg"
                     alt="Spotify"
-                    className="h-[70px] min-h-[70px] w-auto"
+                    className="h-[60px] md:h-[70px] w-auto"
                     loading="lazy"
                   />
                 </a>
               </div>
-              <p className="text-2xl md:text-3xl text-zinc-300 ml-8 font-medium">Web API</p>
             </div>
           </div>
         </div>
@@ -293,9 +283,7 @@ export default function LandingPage() {
         <TechGridBackground />
         <div className="container mx-auto max-w-4xl relative z-10">
           <div className="bg-gradient-to-r from-zinc-900/80 to-black/80 p-8 md:p-12 rounded-2xl border border-zinc-800 text-center backdrop-blur-sm">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-purple-gradient">
-              Ready to Face the Music?
-            </h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-purple-gradient">Ready to Face the Music?</h2>
             <p className="text-xl text-zinc-400 mb-8 max-w-2xl mx-auto">
               Connect your account and explore your listening habits through multiple perspectives. Choose your analyst.
             </p>

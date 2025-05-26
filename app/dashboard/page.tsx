@@ -50,12 +50,12 @@ function CollapsibleCriticInfo({ selectedVinyl }: { selectedVinyl: VinylDesign |
     <div className="bg-zinc-900/50 rounded-xl border border-zinc-800 overflow-hidden h-[132px] md:h-[132px]">
       {selectedVinyl ? (
         <>
-          <div className="p-3 h-full flex flex-col justify-center">
+          <div className="p-2 md:p-3 h-full flex flex-col justify-center">
             {/* Mobile view - Collapsible content */}
             <div className="md:hidden">
               <button
                 onClick={toggleExpand}
-                className="flex items-center justify-between w-full text-sm text-zinc-400 hover:text-white transition-colors py-2"
+                className="flex items-center justify-between w-full text-sm text-zinc-400 hover:text-white transition-colors py-1 md:py-2"
                 aria-expanded={isExpanded}
               >
                 <span className="flex items-center">
@@ -106,11 +106,11 @@ function UserProfileCard({
 
   return (
     <div className="w-full bg-gradient-to-r from-zinc-900 to-black rounded-xl border border-zinc-800 overflow-hidden shadow-lg h-[132px]">
-      <div className="grid grid-cols-5 p-3">
+      <div className="grid grid-cols-5 p-2 md:p-3">
         {/* Left Column - User Info */}
-        <div className="col-span-3 pr-2">
+        <div className="col-span-3 pr-2 flex flex-col justify-between h-full">
           {/* User Info - Top section */}
-          <div className="flex items-center mb-3">
+          <div className="flex items-center mb-1">
             <div className="w-10 h-10 rounded-full overflow-hidden mr-3 flex-shrink-0">
               <img
                 src={profile.images?.[0]?.url || "/placeholder.svg?height=40&width=40&query=user"}
@@ -146,7 +146,7 @@ function UserProfileCard({
           </div>
 
           {/* Bottom Row - Refresh button and Updated text */}
-          <div className="flex items-center text-xs text-zinc-500">
+          <div className="flex items-center text-xs text-zinc-500 mt-auto">
             <button
               onClick={handleRefresh}
               disabled={isRefreshing}

@@ -165,7 +165,7 @@ export function Footer() {
 
           {/* Fifth column - Spotify API (wider) */}
           <div className="w-[28%] flex flex-col items-center justify-center pl-0">
-            <h3 className="font-bold text-white mb-3 text-center">Built Using the</h3>
+            <p className="text-white text-lg font-medium mb-6 text-center">Built Using the Spotify Web API</p>
             <div className="flex flex-col items-center">
               <a
                 href="https://spotify.com/"
@@ -174,9 +174,8 @@ export function Footer() {
                 className="hover:opacity-80 transition-opacity"
                 aria-label="Visit Spotify Developer Portal"
               >
-                <img src="/spotify_full_logo.svg" alt="Spotify" className="h-12 mb-1.5" />
+                <img src="/spotify_full_logo.svg" alt="Spotify" className="h-12" />
               </a>
-              <span className="text-white text-lg font-medium">Web API</span>
             </div>
           </div>
         </div>
