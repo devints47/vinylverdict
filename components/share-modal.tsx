@@ -185,7 +185,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       const content = document.createElement("div")
       content.style.backgroundColor = "rgba(24, 24, 27, 0.8)"
       content.style.borderRadius = "12px"
-      content.style.padding = "44px" // Increased by 10% from 40px
+      content.style.padding = "32px" // Reduced from 44px to 32px to prevent text cutoff
       content.style.border = "1px solid rgba(147, 51, 234, 0.3)"
       content.style.width = "100%"
       content.style.maxWidth = "880px" // Increased by 10% from 800px
