@@ -36,6 +36,14 @@ export const metadata: Metadata = {
       "Connect your Spotify account and get your music taste analyzed and judged by our AI music critics. See your top tracks, artists, and recent listening history.",
     images: ["https://vinylverdict.fm/og-image.png"],
   },
+  icons: {
+    icon: [
+      { url: "/vinyl-favicon.png", sizes: "32x32", type: "image/png" },
+      { url: "/vinyl-favicon.png", sizes: "16x16", type: "image/png" },
+    ],
+    apple: [{ url: "/vinyl-favicon.png", sizes: "180x180", type: "image/png" }],
+    shortcut: "/vinyl-favicon.png",
+  },
     generator: 'v0.dev'
 }
 
