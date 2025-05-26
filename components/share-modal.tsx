@@ -212,7 +212,6 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
 
       logoContainer.appendChild(logoImg)
       logoContainer.appendChild(title)
-      footer.appendChild(logoContainer)
       footer.appendChild(promoText)
       templateContainer.appendChild(footer)
 
@@ -598,7 +597,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md bg-zinc-900 border-zinc-800">
+      <DialogContent className="w-[90vw] h-[90vh] max-w-none max-h-none bg-zinc-900 border-zinc-800 p-4 overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-white">
             <Share2 className="h-5 w-5 text-purple-500" />
@@ -606,21 +605,20 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
           </DialogTitle>
         </DialogHeader>
 
-        <div className="relative mx-auto w-full" style={{ maxWidth: "320px" }}>
+        <div className="relative mx-auto w-full flex-1 flex items-center justify-center min-h-0">
           {!showingImage ? (
-            <div className="aspect-[9/16] bg-zinc-800 rounded-lg flex flex-col items-center justify-center p-4 text-center">
+            <div className="w-full max-w-[280px] aspect-[9/16] bg-zinc-800 rounded-lg flex flex-col items-center justify-center p-4 text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mb-4"></div>
               <p className="text-purple-300 font-medium text-lg">{loadingMessages[loadingMessageIndex]}</p>
               <p className="text-zinc-400 text-sm mt-2">This may take a few moments</p>
             </div>
           ) : (
-            <div className="relative">
+            <div className="relative w-full h-full flex items-center justify-center">
               <img
                 ref={imgRef}
                 src={imageUrl || "/placeholder.svg"}
                 alt="Share preview"
-                className="w-full rounded-lg border border-zinc-700 object-contain cursor-pointer hover:opacity-90 transition-opacity"
-                style={{ aspectRatio: "9/16" }}
+                className="max-w-full max-h-full rounded-lg border border-zinc-700 object-contain cursor-pointer hover:opacity-90 transition-opacity"
                 onClick={handleImageClick}
                 onError={() => {
                   toast({
@@ -638,7 +636,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
           )}
         </div>
 
-        <div className="space-y-2 mt-4">
+        <div className="space-y-2 mt-4 flex-shrink-0">
           {isAppleDevice() && (
             <Button
               onClick={handleNativeShare}

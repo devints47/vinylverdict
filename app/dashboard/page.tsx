@@ -223,7 +223,7 @@ function RecentlyPlayedContent({
               </a>
             </div>
             <div className="flex flex-col justify-center">
-              <CardTitle className="text-2xl">Recently Played Tracks</CardTitle>
+              <CardTitle className="text-2xl">Recently Played</CardTitle>
               <CardDescription className="min-h-[1.5rem]">
                 Your listening history from the past few days
               </CardDescription>
