@@ -568,6 +568,24 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     }
   }
 
+  const handleImageClick = async () => {
+    if (!imageUrl) return
+
+    try {
+      await copyImageToClipboard(imageUrl)
+      toast({
+        title: "Image copied!",
+        description: "Clicked to copy! The image has been copied to your clipboard.",
+      })
+    } catch (error) {
+      toast({
+        title: "Copy failed",
+        description: "Could not copy image to clipboard. Please try the copy button instead.",
+        variant: "destructive",
+      })
+    }
+  }
+
   const handleNativeShare = async () => {
     if (!imageUrl) return
 
@@ -694,8 +712,9 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
                 ref={imgRef}
                 src={imageUrl || "/placeholder.svg"}
                 alt="Share preview"
-                className="w-full rounded-lg border border-zinc-700 object-contain"
+                className="w-full rounded-lg border border-zinc-700 object-contain cursor-pointer hover:opacity-90 transition-opacity"
                 style={{ aspectRatio: "9/16" }}
+                onClick={handleImageClick}
                 onError={() => {
                   toast({
                     title: "Preview failed",
@@ -705,6 +724,9 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
                 }}
               />
               <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">1080×1920</div>
+              <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded opacity-75">
+                Click to copy
+              </div>
             </div>
           )}
         </div>
@@ -714,17 +736,21 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
             <Button
               onClick={handleNativeShare}
               disabled={!showingImage}
-              className="w-full text-white font-medium bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 hover:from-purple-700 hover:via-purple-800 hover:to-purple-900 border-0"
+              className="w-full text-white font-medium relative overflow-hidden bg-purple-gradient hover:scale-105 transition-all duration-300 border-0"
             >
-              <Share className="mr-2 h-4 w-4" />
-              Share Your Verdict
+              <div className="absolute inset-0 holographic-shimmer"></div>
+              <div className="relative z-10 flex items-center justify-center">
+                <Share className="mr-2 h-4 w-4" />
+                Share Your Verdict
+              </div>
             </Button>
           )}
 
           <Button
             onClick={handleCopyToClipboard}
             disabled={!showingImage}
-            className="w-full text-white font-medium bg-gradient-to-r from-pink-500 via-pink-600 to-pink-700 hover:from-pink-600 hover:via-pink-700 hover:to-pink-800 border-0"
+            variant="outline"
+            className="w-full text-white border-zinc-700 hover:bg-zinc-800"
           >
             <Copy className="mr-2 h-4 w-4" />
             Copy to Clipboard
@@ -733,7 +759,8 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
           <Button
             onClick={handleDownloadImage}
             disabled={!showingImage}
-            className="w-full text-white font-medium bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 hover:from-purple-700 hover:via-purple-800 hover:to-purple-900 border-0"
+            variant="outline"
+            className="w-full text-white border-zinc-700 hover:bg-zinc-800"
           >
             <Download className="mr-2 h-4 w-4" />
             Download Verdict
@@ -742,7 +769,8 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
           <Button
             onClick={handleSendEmail}
             disabled={!showingImage || isSendingEmail}
-            className="w-full text-white font-medium bg-gradient-to-r from-pink-500 via-pink-600 to-pink-700 hover:from-pink-600 hover:via-pink-700 hover:to-pink-800 border-0"
+            variant="outline"
+            className="w-full text-white border-zinc-700 hover:bg-zinc-800"
           >
             {isSendingEmail ? (
               <>

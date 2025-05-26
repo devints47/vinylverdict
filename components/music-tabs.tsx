@@ -15,7 +15,7 @@ export function MusicTabs({ activeTab, onTabChange, className }: MusicTabsProps)
   return (
     <div className={cn("w-full mb-8", className)}>
       <div
-        className="w-full flex rounded-lg overflow-hidden shadow-lg bg-zinc-900/50 border border-transparent"
+        className="w-full flex rounded-lg overflow-hidden shadow-lg bg-zinc-900/50"
         style={{
           borderWidth: "1px",
           borderImageSource:
@@ -59,11 +59,13 @@ function TabButton({ isActive, onClick, icon, label }: TabButtonProps) {
       onClick={onClick}
       className={cn(
         "flex-1 py-3 px-4 flex items-center justify-center gap-2 transition-all duration-300 relative overflow-hidden",
-        // Base styling for all tabs - adding a subtle background to inactive tabs
-        "bg-zinc-900/80 border-l border-r border-zinc-700/50",
-        // Active tab styling
+        "bg-zinc-900/80 border-l border-r",
         isActive ? "text-white font-medium" : "text-zinc-400 hover:text-white hover:bg-zinc-800",
       )}
+      style={{
+        borderLeftColor: "rgba(147, 51, 234, 0.3)",
+        borderRightColor: "rgba(147, 51, 234, 0.3)",
+      }}
     >
       {/* Background gradient for active tab */}
       {isActive && <div className="absolute inset-0 bg-purple-gradient opacity-100"></div>}
