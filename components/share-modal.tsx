@@ -42,6 +42,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0)
   const [userProfile, setUserProfile] = useState<any>(null)
   const [isUploading, setIsUploading] = useState(false)
+  const [isSendingEmail, setIsSendingEmail] = useState(false)
   const loadingIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const imgRef = useRef<HTMLImageElement>(null)
   const templateRef = useRef<HTMLDivElement>(null)
@@ -80,6 +81,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       setShortUrl("")
       setShowingImage(false)
       setIsUploading(false)
+      setIsSendingEmail(false)
 
       // Start cycling through loading messages
       setLoadingMessageIndex(0)
@@ -255,7 +257,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
         const actualHeight = existingContainer.scrollHeight
         existingContainer.style.height = `${Math.max(actualHeight, 1920)}px`
 
-        // Generate image from the template with improved options
+        // Generate image from the template with improved options - use PNG for better clipboard support
         html2canvas(existingContainer, {
           allowTaint: true,
           useCORS: true,
@@ -269,8 +271,8 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
           removeContainer: false, // Don't let html2canvas remove the container
         })
           .then((canvas) => {
-            // Convert canvas to JPEG data URL with 85% quality for smaller file size
-            const imageUrl = canvas.toDataURL("image/jpeg", 0.85)
+            // Convert canvas to PNG data URL for better clipboard compatibility
+            const imageUrl = canvas.toDataURL("image/png")
             setImageUrl(imageUrl)
             setShowingImage(true)
 
@@ -455,95 +457,47 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     return html
   }
 
-  // Upload image to Vercel Blob via server action
-  const uploadImageToBlob = async (dataUrl: string): Promise<string> => {
-    try {
-      setIsUploading(true)
-      console.log("Starting image upload process")
-
-      // Validate the data URL
-      if (!dataUrl || !dataUrl.startsWith("data:image/")) {
-        throw new Error("Invalid image data")
-      }
-
-      // Generate timestamp for filename (still needed for unique filenames)
-      const timestamp = Date.now()
-      console.log("Using timestamp for filename:", timestamp)
-
-      // Call our server action to upload the image with custom prefix and JPEG format
-      const response = await fetch("/api/upload-image", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          imageData: dataUrl,
-          timestamp: timestamp,
-          prefix: "vinyl-verdict-gen-image", // Custom prefix for easy identification
-          format: "jpeg", // Use JPEG format for smaller file size
-        }),
-      })
-
-      console.log("Upload response status:", response.status)
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        console.error("Upload failed:", errorData)
-        throw new Error(`Failed to upload image: ${response.status} ${response.statusText}`)
-      }
-
-      const { url, format } = await response.json()
-      console.log("Image uploaded successfully:", url, "Format:", format)
-
-      // Use the new generateShortUrl function (no timestamp in URL)
-      const { generateShortUrl } = await import("../lib/generate-short-url")
-      const shortUrl = generateShortUrl(url)
-      console.log("Short URL generated:", shortUrl)
-
-      // Test decode immediately
-      try {
-        // Test the new decoding logic
-        const testCode = shortUrl.split("/s/")[1]
-        let testBase64 = testCode.replace(/-/g, "+").replace(/_/g, "/")
-        if (testBase64.length % 4 === 2) testBase64 += "=="
-        else if (testBase64.length % 4 === 3) testBase64 += "="
-
-        const testDecode = Buffer.from(testBase64, "base64").toString("utf-8")
-        console.log("Test decode:", testDecode)
-
-        // Test reconstruction
-        const parts = testDecode.split("|")
-        if (parts.length === 2) {
-          const [blobId, filename] = parts
-          const reconstructedUrl = `https://${blobId}.public.blob.vercel-storage.com/${filename}`
-          console.log("Reconstructed URL:", reconstructedUrl)
-          console.log("Original URL:", url)
-          console.log("URLs match:", reconstructedUrl === url)
-        }
-      } catch (error) {
-        console.error("Test decode failed:", error)
-      }
-
-      setIsUploading(false)
-      setBlobUrl(url)
-      setShortUrl(shortUrl)
-      return shortUrl
-    } catch (error) {
-      console.error("Error uploading to Vercel Blob:", error)
-      setIsUploading(false)
-      throw new Error(`Failed to upload image: ${error instanceof Error ? error.message : String(error)}`)
-    }
-  }
-
-  // Function to copy image to clipboard
+  // Function to copy image to clipboard - improved for better browser support
   const copyImageToClipboard = async (dataUrl: string): Promise<void> => {
     try {
+      // Check if clipboard API is available
+      if (!navigator.clipboard || !navigator.clipboard.write) {
+        throw new Error("Clipboard API not supported")
+      }
+
       // Convert data URL to blob
       const response = await fetch(dataUrl)
       const blob = await response.blob()
 
+      // For better compatibility, try PNG format
+      let finalBlob = blob
+      if (blob.type === "image/jpeg") {
+        // Convert JPEG to PNG for better clipboard support
+        const canvas = document.createElement("canvas")
+        const ctx = canvas.getContext("2d")
+        const img = new Image()
+
+        await new Promise((resolve, reject) => {
+          img.onload = () => {
+            canvas.width = img.width
+            canvas.height = img.height
+            ctx?.drawImage(img, 0, 0)
+            canvas.toBlob((pngBlob) => {
+              if (pngBlob) {
+                finalBlob = pngBlob
+                resolve(pngBlob)
+              } else {
+                reject(new Error("Failed to convert to PNG"))
+              }
+            }, "image/png")
+          }
+          img.onerror = reject
+          img.src = dataUrl
+        })
+      }
+
       // Create a ClipboardItem
-      const item = new ClipboardItem({ [blob.type]: blob })
+      const item = new ClipboardItem({ [finalBlob.type]: finalBlob })
 
       // Write to clipboard
       await navigator.clipboard.write([item])
@@ -621,7 +575,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       // Convert data URL to blob for native sharing
       const response = await fetch(imageUrl)
       const blob = await response.blob()
-      const file = new File([blob], `vinylverdict-${assistantType}-${Date.now()}.jpg`, { type: "image/jpeg" })
+      const file = new File([blob], `vinylverdict-${assistantType}-${Date.now()}.png`, { type: "image/png" })
 
       if (navigator.share && navigator.canShare({ files: [file] })) {
         await navigator.share({
@@ -648,45 +602,52 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     }
   }
 
-  const handleSendEmail = () => {
-    const subject = "Check out my music taste verdict from VinylVerdict.fm!"
-    const body = `Check out my music taste verdict from VinylVerdict.fm!\n\n${text.substring(0, 200)}...\n\nGet your own at ${process.env.NEXT_PUBLIC_APP_URL || "https://vinylverdict.fm"}`
-
-    // Create mailto link
-    const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
-
-    // Try to open in email client
-    try {
-      // Create a temporary link element and click it
-      const link = document.createElement("a")
-      link.href = mailtoLink
-      link.style.display = "none"
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-
-      // Show success message
+  const handleSendEmail = async () => {
+    if (!userProfile) {
       toast({
-        title: "Email client opened",
-        description: "Your default email app should open with the message ready to send.",
+        title: "Profile not loaded",
+        description: "Please wait for your profile to load before sending email.",
+        variant: "destructive",
       })
+      return
+    }
+
+    try {
+      setIsSendingEmail(true)
+
+      const response = await fetch("/api/send-verdict-email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          verdictText: text,
+          assistantType: assistantType,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Failed to send email")
+      }
+
+      const result = await response.json()
+
+      toast({
+        title: "Email sent!",
+        description: `Your verdict has been sent to ${result.email}`,
+      })
+
+      onClose()
     } catch (error) {
-      // Fallback: copy to clipboard if mailto fails
-      navigator.clipboard
-        .writeText(`${subject}\n\n${body}`)
-        .then(() => {
-          toast({
-            title: "Email content copied",
-            description: "The email content has been copied to your clipboard since no email client was found.",
-          })
-        })
-        .catch(() => {
-          toast({
-            title: "Email failed",
-            description: "Could not open email client or copy content. Please try another sharing method.",
-            variant: "destructive",
-          })
-        })
+      console.error("Error sending email:", error)
+      toast({
+        title: "Email failed",
+        description: error instanceof Error ? error.message : "Could not send email. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSendingEmail(false)
     }
   }
 
@@ -694,7 +655,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     if (!imageUrl) return
 
     try {
-      const filename = `vinylverdict-${assistantType}-${Date.now()}.jpg`
+      const filename = `vinylverdict-${assistantType}-${Date.now()}.png`
       await downloadImage(imageUrl, filename)
       toast({
         title: "Download successful",
@@ -783,12 +744,21 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
 
           <Button
             onClick={handleSendEmail}
-            disabled={!showingImage}
+            disabled={!showingImage || isSendingEmail}
             variant="outline"
             className="w-full text-white border-zinc-700 hover:bg-zinc-800"
           >
-            <Mail className="mr-2 h-4 w-4" />
-            Send to my email
+            {isSendingEmail ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Sending...
+              </>
+            ) : (
+              <>
+                <Mail className="mr-2 h-4 w-4" />
+                Send to my email
+              </>
+            )}
           </Button>
         </div>
       </DialogContent>
