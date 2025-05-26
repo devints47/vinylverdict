@@ -225,7 +225,7 @@ function RecentlyPlayedContent({
             <div className="flex flex-col justify-center">
               <CardTitle className="text-2xl">Recently Played</CardTitle>
               <CardDescription className="min-h-[1.5rem]">
-                Your listening history from the past few days
+                Your most recent listening history
               </CardDescription>
             </div>
           </div>
@@ -329,12 +329,12 @@ function TopTracksContent({
             <div className="flex flex-col justify-center">
               <CardTitle className="text-2xl">Your Top Tracks</CardTitle>
               <CardDescription className="min-h-[1.5rem]">
-                The songs you've listened to most over{" "}
+                Songs you've listened to the most {" "}
                 {timeRange === "short_term"
-                  ? "the last 4 weeks"
+                  ? "over the last month"
                   : timeRange === "medium_term"
-                    ? "the last 6 months"
-                    : "all time"}
+                    ? "over the last 6 months"
+                    : "of all time"}
               </CardDescription>
             </div>
           </div>
@@ -426,12 +426,12 @@ function TopArtistsContent({
             <div className="flex flex-col justify-center">
               <CardTitle className="text-2xl">Your Top Artists</CardTitle>
               <CardDescription className="min-h-[1.5rem]">
-                The artists you've listened to most over{" "}
+                Artists you've listened to the most {" "}
                 {timeRange === "short_term"
-                  ? "the last 4 weeks"
+                  ? "over the last 4 weeks"
                   : timeRange === "medium_term"
-                    ? "the last 6 months"
-                    : "all time"}
+                    ? "over the last 6 months"
+                    : "of all time"}
               </CardDescription>
             </div>
           </div>
