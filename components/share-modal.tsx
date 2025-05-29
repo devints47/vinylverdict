@@ -452,7 +452,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     const userAgent = navigator.userAgent
     const platform = navigator.platform
 
-    const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream
+    const isIOS = /iPad|iPhone|iPod/.test(userAgent)
     const isMacOS = platform.toLowerCase().includes("mac")
 
     return isIOS || isMacOS
@@ -597,7 +597,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[90vw] h-[90vh] max-w-none max-h-none bg-zinc-900 border-zinc-800 p-4 overflow-hidden flex flex-col">
+      <DialogContent className="w-[90vw] sm:w-[600px] lg:w-[700px] h-[90vh] max-w-none max-h-none bg-zinc-900 border-zinc-800 p-4 overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-white">
             <Share2 className="h-5 w-5 text-purple-500" />
