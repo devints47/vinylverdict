@@ -598,8 +598,8 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="w-[90vw] sm:w-[600px] lg:w-[700px] h-[90vh] max-w-none max-h-none bg-zinc-900 border-zinc-800 p-4 overflow-hidden flex flex-col">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-white">
+        <DialogHeader className="text-center">
+          <DialogTitle className="flex items-center justify-center gap-2 text-white">
             <Share2 className="h-5 w-5 text-purple-500" />
             {getShareTitle()}
           </DialogTitle>
@@ -613,24 +613,40 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
               <p className="text-zinc-400 text-sm mt-2">This may take a few moments</p>
             </div>
           ) : (
-            <div className="relative w-full h-full flex items-center justify-center">
-              <img
-                ref={imgRef}
-                src={imageUrl || "/placeholder.svg"}
-                alt="Share preview"
-                className="max-w-full max-h-full rounded-lg border border-zinc-700 object-contain cursor-pointer hover:opacity-90 transition-opacity"
-                onClick={handleImageClick}
-                onError={() => {
-                  toast({
-                    title: "Preview failed",
-                    description: "Could not load image preview.",
-                    variant: "destructive",
-                  })
-                }}
-              />
-              <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">1080×1920</div>
-              <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded opacity-75">
-                Click to copy
+            <div className="relative w-full h-full flex flex-col items-center justify-center">
+              <div className="relative group">
+                <img
+                  ref={imgRef}
+                  src={imageUrl || "/placeholder.svg"}
+                  alt="Share preview"
+                  className="max-w-full max-h-full rounded-lg border border-zinc-700 object-contain cursor-pointer hover:opacity-90 transition-all duration-200 group-hover:scale-[1.02]"
+                  onClick={handleImageClick}
+                  onError={() => {
+                    toast({
+                      title: "Preview failed",
+                      description: "Could not load image preview.",
+                      variant: "destructive",
+                    })
+                  }}
+                />
+                
+                {/* Hover overlay with better styling */}
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-200 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100">
+                  <div className="bg-black/80 text-white px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 backdrop-blur-sm">
+                    <Copy className="h-4 w-4" />
+                    Click to copy
+                  </div>
+                </div>
+              </div>
+              
+              {/* Image info badge */}
+              <div className="mt-3 flex items-center gap-3 text-xs text-zinc-400">
+                <div className="bg-zinc-800 px-3 py-1 rounded-full border border-zinc-700">
+                  1080 × 1920 pixels
+                </div>
+                <div className="bg-zinc-800 px-3 py-1 rounded-full border border-zinc-700">
+                  PNG format
+                </div>
               </div>
             </div>
           )}
