@@ -18,7 +18,7 @@ import { VinylVerdictLogo } from "@/components/vinyl-verdict-logo"
 import Head from "next/head"
 
 export default function LandingPage() {
-  const { isAuthenticated, error, isLoading } = useAuth()
+  const { isAuthenticated, isLoading } = useAuth()
   const { selectedVinyl } = useVinyl()
   const router = useRouter()
   const [currentDescription, setCurrentDescription] = useState("")
@@ -158,14 +158,6 @@ export default function LandingPage() {
                       From recently played to all-time favorites. (Prepare for judgment.)
                     </p>
                   </div>
-
-                  {error && (
-                    <Alert variant="destructive" className="mt-6 bg-red-900/50 border-red-800">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertTitle>Error</AlertTitle>
-                      <AlertDescription>{error}</AlertDescription>
-                    </Alert>
-                  )}
                 </div>
 
                 <div className="relative flex flex-col items-center">
@@ -184,7 +176,7 @@ export default function LandingPage() {
                   >
                     <AnimatedDescription
                       description={currentDescription}
-                      labelColor={selectedVinyl?.labelColor || "purple"}
+                      labelColor="purple"
                     />
                   </div>
                 </div>

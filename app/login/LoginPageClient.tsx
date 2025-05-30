@@ -2,8 +2,6 @@
 
 import { useEffect } from "react"
 import { SpotifyLoginButton } from "@/components/spotify-login-button"
-import { AlertCircle } from "lucide-react"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { VinylRecord } from "@/components/vinyl-record"
 import Link from "next/link"
 import { useAuth } from "@/contexts/auth-context"
@@ -11,7 +9,7 @@ import { useRouter } from "next/navigation"
 import { VinylVerdictLogo } from "@/components/vinyl-verdict-logo"
 
 export default function LoginPageClient() {
-  const { isAuthenticated, error, isLoading } = useAuth()
+  const { isAuthenticated, isLoading } = useAuth()
   const router = useRouter()
 
   // If user is already authenticated, redirect to dashboard
@@ -49,14 +47,6 @@ export default function LoginPageClient() {
 
           <div className="flex flex-col items-center gap-4">
             <SpotifyLoginButton />
-
-            {error && (
-              <Alert variant="destructive" className="mt-6 bg-red-900/50 border-red-800 w-full">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Error</AlertTitle>
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
 
             <p className="mt-6 text-sm text-zinc-500 text-center">
               By continuing, you agree to our{" "}
