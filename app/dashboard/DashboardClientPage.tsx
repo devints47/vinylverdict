@@ -482,7 +482,7 @@ export default function DashboardClientPage() {
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [isLoadingProfile, setIsLoadingProfile] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [debugInfo, setDebugInfo] = useState<string>("")
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
   // State for Spotify data
   const [recentlyPlayed, setRecentlyPlayed] = useState<any>(null)
@@ -503,7 +503,6 @@ export default function DashboardClientPage() {
   const [isLoadingArtists, setIsLoadingArtists] = useState(false)
   const [isLoadingRecent, setIsLoadingRecent] = useState(false)
   const [lastFetched, setLastFetched] = useState<number>(0)
-  const [isRefreshing, setIsRefreshing] = useState(false)
 
   // Pagination state
   const [visibleRecentCount, setVisibleRecentCount] = useState(20)
@@ -820,16 +819,6 @@ export default function DashboardClientPage() {
     }
   }, [lastFetched, fetchAllData])
 
-  // Scroll event listener
-  useEffect(() => {
-    const handleScroll = () => {
-      // Scroll handling logic if needed
-    }
-
-    window.addEventListener("scroll", handleScroll, { passive: true })
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
-
   // Show loading state
   if (isLoading || isLoadingProfile) {
     return (
@@ -843,11 +832,6 @@ export default function DashboardClientPage() {
             <VinylVerdictLogo size={50} className="mb-4" />
             <h1 className="text-xl font-bold text-white mb-2">Loading your profile</h1>
             <p className="text-zinc-400">Please wait while we fetch your data...</p>
-            {debugInfo && (
-              <div className="mt-4 p-2 bg-zinc-900 rounded text-xs text-zinc-500 max-w-md">
-                <p>Debug info: {debugInfo}</p>
-              </div>
-            )}
           </div>
         </div>
         

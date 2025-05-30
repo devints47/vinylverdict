@@ -15,7 +15,6 @@ import { useRouter } from "next/navigation"
 import { useEffect, useState, useRef } from "react"
 import { AnimatedDescription } from "@/components/animated-description"
 import { VinylVerdictLogo } from "@/components/vinyl-verdict-logo"
-import Head from "next/head"
 
 export default function LandingPage() {
   const { isAuthenticated, isLoading } = useAuth()
@@ -88,44 +87,6 @@ export default function LandingPage() {
 
   return (
     <>
-      <Head>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "WebPage",
-              name: "VinylVerdict.fm - AI Music Taste Analysis",
-              description:
-                "Connect your Spotify account and get your music taste analyzed by AI personalities. Choose from Music Snob, Taste Validator, or Music Historian for unique insights.",
-              url: "https://vinylverdict.fm",
-              mainEntity: {
-                "@type": "SoftwareApplication",
-                name: "VinylVerdict.fm",
-                applicationCategory: "EntertainmentApplication",
-                operatingSystem: "Web Browser",
-                offers: {
-                  "@type": "Offer",
-                  price: "0",
-                  priceCurrency: "USD",
-                },
-              },
-              breadcrumb: {
-                "@type": "BreadcrumbList",
-                itemListElement: [
-                  {
-                    "@type": "ListItem",
-                    position: 1,
-                    name: "Home",
-                    item: "https://vinylverdict.fm",
-                  },
-                ],
-              },
-            }),
-          }}
-        />
-      </Head>
-
       <div className="min-h-screen bg-gradient-to-b from-black to-zinc-900 text-white">
         <Navbar />
 

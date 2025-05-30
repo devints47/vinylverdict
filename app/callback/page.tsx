@@ -10,11 +10,9 @@ export default function CallbackPage() {
   const searchParams = useSearchParams()
   const [error, setError] = useState<string | null>(null)
   const [status, setStatus] = useState<string>("Initializing...")
-  const [detailedLogs, setDetailedLogs] = useState<string[]>([])
 
   const addLog = (message: string) => {
     console.log(message)
-    setDetailedLogs((prev) => [...prev, message])
   }
 
   useEffect(() => {
