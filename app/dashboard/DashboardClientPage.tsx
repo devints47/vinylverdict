@@ -113,8 +113,8 @@ function UserProfileCard({
           <div className="flex items-center mb-1">
             <div className="w-10 h-10 rounded-full overflow-hidden mr-3 flex-shrink-0">
               <img
-                src={profile.images?.[0]?.url || "/placeholder.svg?height=40&width=40&query=user"}
-                alt={profile.display_name}
+                src={profile.images?.[0]?.url}
+                alt="Profile"
                 className="w-full h-full object-cover"
                 width={40}
                 height={40}

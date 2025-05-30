@@ -17,7 +17,7 @@ interface CursorTypewriterProps {
 
 export function CursorTypewriter({
   markdown,
-  speed = 12.5, // Doubled speed again: 12.5ms per character (~80 characters per second)
+  speed = 12.5,
   className = "",
   onComplete,
   onProgress,
@@ -26,6 +26,7 @@ export function CursorTypewriter({
 }: CursorTypewriterProps) {
   const [displayPosition, setDisplayPosition] = useState(startPosition)
   const [isComplete, setIsComplete] = useState(false)
+  const [currentText, setCurrentText] = useState<string>("")
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
   const isMountedRef = useRef(true)
 
@@ -37,9 +38,165 @@ export function CursorTypewriter({
     }
   }, [])
 
+  // Custom components for ReactMarkdown that match the final styling
+  const components = {
+    h1: ({ ...props }: any) => {
+      // Process children to wrap text (but not emojis) in styled spans
+      const children = React.Children.toArray(props.children).map((child, index) => {
+        if (typeof child === "string") {
+          // Use regex to find emojis, cursor, and numbers
+          return child.split(/(\p{Emoji}+|█|\d+)/gu).map((part, i) => {
+            // Check if this part is the cursor character
+            if (part === cursorChar) {
+              return (
+                <span key={`${index}-cursor-${i}`} className="cursor-char" style={{ color: '#a855f7' }}>
+                  {part}
+                </span>
+              )
+            }
+            // Check if this part is a number
+            else if (/^\d+$/.test(part)) {
+              return (
+                <span key={`${index}-number-${i}`} style={{ color: '#a855f7' }}>
+                  {part}
+                </span>
+              )
+            }
+            // Check if this part is an emoji
+            else if (/\p{Emoji}/u.test(part)) {
+              return (
+                <span key={`${index}-emoji-${i}`} className="emoji">
+                  {part}
+                </span>
+              )
+            }
+            // Regular text gets the gradient styling
+            return (
+              <span key={`${index}-text-${i}`} className="gradient-text">
+                {part}
+              </span>
+            )
+          })
+        }
+        return child
+      })
+
+      return <h1 {...props}>{children}</h1>
+    },
+    h2: ({ ...props }: any) => {
+      const children = React.Children.toArray(props.children).map((child, index) => {
+        if (typeof child === "string") {
+          return child.split(/(\p{Emoji}+|█|\d+)/gu).map((part, i) => {
+            if (part === cursorChar) {
+              return (
+                <span key={`${index}-cursor-${i}`} className="cursor-char" style={{ color: '#a855f7' }}>
+                  {part}
+                </span>
+              )
+            }
+            else if (/^\d+$/.test(part)) {
+              return (
+                <span key={`${index}-number-${i}`} style={{ color: '#a855f7' }}>
+                  {part}
+                </span>
+              )
+            }
+            else if (/\p{Emoji}/u.test(part)) {
+              return (
+                <span key={`${index}-emoji-${i}`} className="emoji">
+                  {part}
+                </span>
+              )
+            }
+            return (
+              <span key={`${index}-text-${i}`} className="gradient-text">
+                {part}
+              </span>
+            )
+          })
+        }
+        return child
+      })
+
+      return <h2 {...props}>{children}</h2>
+    },
+    h3: ({ ...props }: any) => {
+      const children = React.Children.toArray(props.children).map((child, index) => {
+        if (typeof child === "string") {
+          return child.split(/(\p{Emoji}+|█|\d+)/gu).map((part, i) => {
+            if (part === cursorChar) {
+              return (
+                <span key={`${index}-cursor-${i}`} className="cursor-char" style={{ color: '#a855f7' }}>
+                  {part}
+                </span>
+              )
+            }
+            else if (/^\d+$/.test(part)) {
+              return (
+                <span key={`${index}-number-${i}`} style={{ color: '#a855f7' }}>
+                  {part}
+                </span>
+              )
+            }
+            else if (/\p{Emoji}/u.test(part)) {
+              return (
+                <span key={`${index}-emoji-${i}`} className="emoji">
+                  {part}
+                </span>
+              )
+            }
+            return (
+              <span key={`${index}-text-${i}`} className="gradient-text">
+                {part}
+              </span>
+            )
+          })
+        }
+        return child
+      })
+
+      return <h3 {...props}>{children}</h3>
+    },
+    // Handle cursor and numbers in regular paragraphs too
+    p: ({ ...props }: any) => {
+      const children = React.Children.toArray(props.children).map((child, index) => {
+        if (typeof child === "string") {
+          return child.split(/(\p{Emoji}+|█|\d+)/gu).map((part, i) => {
+            if (part === cursorChar) {
+              return (
+                <span key={`${index}-cursor-${i}`} className="cursor-char" style={{ color: '#a855f7' }}>
+                  {part}
+                </span>
+              )
+            }
+            else if (/^\d+$/.test(part)) {
+              return (
+                <span key={`${index}-number-${i}`} style={{ color: '#a855f7' }}>
+                  {part}
+                </span>
+              )
+            }
+            else if (/\p{Emoji}/u.test(part)) {
+              return (
+                <span key={`${index}-emoji-${i}`} className="emoji">
+                  {part}
+                </span>
+              )
+            }
+            return part
+          })
+        }
+        return child
+      })
+
+      return <p {...props}>{children}</p>
+    }
+  }
+
   // Handle the typewriter effect
   useEffect(() => {
     if (!markdown) {
+      setCurrentText("")
       setDisplayPosition(0)
       setIsComplete(false)
       return
@@ -51,9 +208,14 @@ export function CursorTypewriter({
     setIsComplete(isAlreadyComplete)
 
     if (isAlreadyComplete) {
+      setCurrentText(markdown)
       if (onComplete) onComplete()
       return
     }
+
+    // Set initial text based on startPosition - include cursor if not complete
+    const initialText = markdown.substring(0, startPosition)
+    setCurrentText(startPosition === 0 && !isAlreadyComplete ? cursorChar : initialText + cursorChar)
 
     // Clear any existing timeout
     if (timeoutRef.current) {
@@ -66,12 +228,16 @@ export function CursorTypewriter({
       if (!isMountedRef.current) return
 
       if (currentPosition >= markdown.length) {
-        setIsComplete(true)
-        if (onComplete) onComplete()
+        setCurrentText(markdown) // Final text without cursor
+          setIsComplete(true)
+          if (onComplete) onComplete()
         return
       }
 
       currentPosition++
+      const newText = markdown.substring(0, currentPosition)
+      // Add cursor to the end of the current text
+      setCurrentText(newText + cursorChar)
       setDisplayPosition(currentPosition)
       
       // Report progress to parent
@@ -86,149 +252,43 @@ export function CursorTypewriter({
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current)
     }
-  }, [markdown, speed, onComplete, onProgress, startPosition])  // Added startPosition dependency
-
-  // Create the visible text with cursor replacement
-  const getVisibleTextWithCursor = () => {
-    if (!markdown) return cursorChar
-    
-    if (isComplete) {
-      return markdown
-    }
-    
-    // Get the text up to current position and add cursor at the end
-    const visibleText = markdown.substring(0, displayPosition)
-    return visibleText + cursorChar
-  }
+  }, [markdown, speed, onComplete, onProgress, startPosition, cursorChar])
 
   return (
     <div
       className={`${className} text-sm sm:text-base md:text-lg transition-opacity duration-300 ${isComplete ? "opacity-100" : "opacity-95"}`}
+      style={{ minHeight: isComplete ? 'auto' : '100px' }}
     >
+      {/* Global styles for consistent emoji and gradient rendering */}
       <style jsx global>{`
-        .terminal-cursor {
-          color: #a855f7; /* Purple cursor */
-          display: inline-block;
-          /* Removed blinking animation */
+        .emoji {
+          background: none !important;
+          -webkit-background-clip: initial !important;
+          -webkit-text-fill-color: initial !important;
+          background-clip: initial !important;
+          color: initial !important;
         }
-        .markdown-content {
-          color: #d4d4d8;
-          max-width: none;
+        .gradient-text {
+          background: linear-gradient(135deg, #9333ea, #a855f7, #c026d3, #a855f7, #9333ea) !important;
+          background-size: 200% 200% !important;
+          -webkit-background-clip: text !important;
+          -webkit-text-fill-color: transparent !important;
+          background-clip: text !important;
         }
-        .markdown-content h1,
-        .markdown-content h2,
-        .markdown-content h3,
-        .markdown-content h4,
-        .markdown-content h5,
-        .markdown-content h6 {
-          background: linear-gradient(135deg, #9333ea, #a855f7, #c026d3, #a855f7, #9333ea);
-          background-size: 200% 200%;
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-        }
-        .markdown-content strong {
-          color: white;
-        }
-        .markdown-content em {
-          color: #a1a1aa;
-        }
-        .markdown-content li::marker {
-          background: linear-gradient(135deg, #9333ea, #a855f7, #c026d3, #a855f7, #9333ea);
-          background-size: 200% 200%;
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-        }
-        /* Style the cursor character to be purple */
         .cursor-char {
           color: #a855f7 !important;
           background: none !important;
           -webkit-text-fill-color: #a855f7 !important;
         }
       `}</style>
-      <div className="markdown-content">
-        <ReactMarkdown
-          rehypePlugins={[rehypeRaw]}
-          components={{
-            // Custom component to handle cursor styling in text nodes
-            p: ({ children, ...props }) => {
-              // Convert children to string and find cursor character
-              const childString = React.Children.toArray(children).join('')
-              if (!isComplete && childString.includes(cursorChar)) {
-                // Split text around cursor and style the cursor
-                const parts = childString.split(cursorChar)
-                return (
-                  <p {...props}>
-                    {parts[0]}
-                    <span className="cursor-char">{cursorChar}</span>
-                    {parts[1]}
-                  </p>
-                )
-              }
-              return <p {...props}>{children}</p>
-            },
-            // Handle other elements that might contain the cursor
-            h1: ({ children, ...props }) => {
-              const childString = React.Children.toArray(children).join('')
-              if (!isComplete && childString.includes(cursorChar)) {
-                const parts = childString.split(cursorChar)
-                return (
-                  <h1 {...props}>
-                    {parts[0]}
-                    <span className="cursor-char">{cursorChar}</span>
-                    {parts[1]}
-                  </h1>
-                )
-              }
-              return <h1 {...props}>{children}</h1>
-            },
-            h2: ({ children, ...props }) => {
-              const childString = React.Children.toArray(children).join('')
-              if (!isComplete && childString.includes(cursorChar)) {
-                const parts = childString.split(cursorChar)
-                return (
-                  <h2 {...props}>
-                    {parts[0]}
-                    <span className="cursor-char">{cursorChar}</span>
-                    {parts[1]}
-                  </h2>
-                )
-              }
-              return <h2 {...props}>{children}</h2>
-            },
-            h3: ({ children, ...props }) => {
-              const childString = React.Children.toArray(children).join('')
-              if (!isComplete && childString.includes(cursorChar)) {
-                const parts = childString.split(cursorChar)
-                return (
-                  <h3 {...props}>
-                    {parts[0]}
-                    <span className="cursor-char">{cursorChar}</span>
-                    {parts[1]}
-                  </h3>
-                )
-              }
-              return <h3 {...props}>{children}</h3>
-            },
-            li: ({ children, ...props }) => {
-              const childString = React.Children.toArray(children).join('')
-              if (!isComplete && childString.includes(cursorChar)) {
-                const parts = childString.split(cursorChar)
-                return (
-                  <li {...props}>
-                    {parts[0]}
-                    <span className="cursor-char">{cursorChar}</span>
-                    {parts[1]}
-                  </li>
-                )
-              }
-              return <li {...props}>{children}</li>
-            },
-          }}
-        >
-          {getVisibleTextWithCursor()}
-        </ReactMarkdown>
+      
+      <div className="prose prose-invert max-w-none text-zinc-300 prose-strong:text-white prose-em:text-zinc-400 prose-li:marker:text-purple-gradient">
+      <ReactMarkdown
+        rehypePlugins={[rehypeRaw]}
+          components={components}
+      >
+          {currentText}
+      </ReactMarkdown>
       </div>
     </div>
   )

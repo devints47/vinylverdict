@@ -19,7 +19,7 @@ export function Testimonial({ quote, name, title, avatar }: TestimonialProps) {
       </CardContent>
       <CardFooter className="flex items-center gap-4 pt-2 mt-auto">
         <Avatar className="h-10 w-10 border-2 border-spotify-green overflow-hidden">
-          <AvatarImage src={avatar || "/placeholder.svg"} alt={name} className="object-cover" />
+          <AvatarImage src={avatar} alt={name} className="object-cover" />
           <AvatarFallback>{name.charAt(0)}</AvatarFallback>
         </Avatar>
         <div>

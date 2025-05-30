@@ -77,7 +77,7 @@ const ArtistItem = memo(function ArtistItem({ artist, index }: ArtistItemProps) 
           className="block w-full h-full"
         >
           <img
-            src={imageUrl || "/placeholder.svg"}
+            src={imageUrl}
             alt={artist.name}
             className={`w-full h-full object-cover ${isMobile ? "rounded-[2px]" : "rounded-[4px]"}`}
             width={isMobile ? 56 : 64}

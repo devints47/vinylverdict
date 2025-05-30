@@ -68,8 +68,8 @@ export function SharedImageDisplay({ imageUrl }: SharedImageDisplayProps) {
       ) : (
         <img
           ref={imgRef}
-          src={imageUrl || "/placeholder.svg"}
-          alt="Music Taste Verdict"
+          src={imageUrl}
+          alt="Shared roast"
           className={`w-full h-auto transition-opacity duration-300 ${isLoading ? "opacity-0" : "opacity-100"}`}
           style={{ maxHeight: "80vh", objectFit: "contain" }}
           onLoad={handleImageLoad}

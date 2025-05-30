@@ -98,7 +98,7 @@ const TrackItem = memo(function TrackItem({
           className="block w-full h-full"
         >
           <img
-            src={imageUrl || "/placeholder.svg"}
+            src={imageUrl || "/abstract-music-album.png"}
             alt={track.album.name}
             className={`w-full h-full object-cover ${isMobile ? "rounded-[2px]" : "rounded-[4px]"}`}
             width={isMobile ? 56 : 64}

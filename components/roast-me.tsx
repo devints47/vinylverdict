@@ -506,28 +506,16 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
   const typewriterComponent = React.useMemo(() => {
     if (!currentResponse.content) return null
 
-    if (!currentResponse.isComplete) {
-      return (
-        <CursorTypewriter
-          markdown={currentResponse.content}
-          speed={12.5} // Doubled speed again: 12.5ms per character (~80 characters per second)
-          onComplete={handleTypewriterComplete}
-          onProgress={handleTypewriterProgress}
-          startPosition={currentResponse.displayPosition || 0} // Start from saved position
-          cursorChar="█"
-        />
-      )
-    }
-
+    // Always use the typewriter component - it handles both typing and final state
     return (
-      <div className="prose prose-invert max-w-none text-zinc-300 prose-strong:text-white prose-em:text-zinc-400 prose-li:marker:text-purple-gradient animate-fadeIn">
-        <ReactMarkdown
-          rehypePlugins={[rehypeRaw]}
-          components={components}
-        >
-          {currentResponse.content}
-        </ReactMarkdown>
-      </div>
+      <CursorTypewriter
+        markdown={currentResponse.content}
+        speed={12.5} // Doubled speed again: 12.5ms per character (~80 characters per second)
+        onComplete={handleTypewriterComplete}
+        onProgress={handleTypewriterProgress}
+        startPosition={currentResponse.displayPosition || 0} // Start from saved position
+        cursorChar="█"
+      />
     )
   }, [currentResponse.content, currentResponse.isComplete, currentResponse.requestId])
 
@@ -595,6 +583,24 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
 
   return (
     <div ref={containerRef} className="mb-8 flex flex-col items-center w-full" style={roastSectionStyle}>
+      {/* Global styles for consistent emoji rendering */}
+      <style jsx global>{`
+        .emoji {
+          background: none !important;
+          -webkit-background-clip: initial !important;
+          -webkit-text-fill-color: initial !important;
+          background-clip: initial !important;
+          color: initial !important;
+        }
+        .gradient-text {
+          background: linear-gradient(135deg, #9333ea, #a855f7, #c026d3, #a855f7, #9333ea) !important;
+          background-size: 200% 200% !important;
+          -webkit-background-clip: text !important;
+          -webkit-text-fill-color: transparent !important;
+          background-clip: text !important;
+        }
+      `}</style>
+      
       <div id="roast-primary-button" className="flex justify-center w-full">
         <Button
           ref={primaryButtonRef}
