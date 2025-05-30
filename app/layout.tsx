@@ -43,13 +43,13 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "https://vinylverdict.fm",
     siteName: "VinylVerdict.FM",
-    title: "VinylVerdict.FM 🎧 Your Personal Music Taste Analyst",
+    title: "VinylVerdict.FM - Your Personal Music Taste Analyst",
     description:
       "Ready to face the music? Connect your Spotify account for personalized music insights, track analysis, and a shareable analysis. From brutal honesty to historical insights - prepare for your verdict. 💀",
   },
   twitter: {
     card: "summary_large_image",
-    title: "VinylVerdict.FM 🎧 Your Personal Music Taste Analyst",
+    title: "VinylVerdict.FM - Your Personal Music Taste Analyst",
     description:
       "Ready to face the music? Connect your Spotify account for personalized music insights, track analysis, and a shareable analysis. From brutal honesty to historical insights - prepare for your verdict. 💀",
     creator: "@vinylverdict",
