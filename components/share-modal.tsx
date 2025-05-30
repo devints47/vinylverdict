@@ -1,6 +1,6 @@
 "use client"
 import { useState, useEffect, useRef } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/use-toast"
 import { Mail, Copy, Share2, Share, Download } from "lucide-react"
@@ -597,36 +597,61 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[90vw] sm:w-[500px] lg:w-[550px] h-[90vh] max-w-none max-h-none bg-zinc-900 border-zinc-800 p-0 overflow-hidden [&_button.absolute.right-4.top-4]:hidden">
+      <DialogContent 
+        className="w-[90vw] sm:w-[500px] lg:w-[550px] h-[90vh] max-w-none max-h-none bg-zinc-900 border-zinc-800 p-0 overflow-hidden [&_button.absolute.right-4.top-4]:hidden"
+      >
         {/* Hidden DialogTitle for accessibility - required by Radix */}
         <DialogTitle className="sr-only">
           {getShareTitle()}
         </DialogTitle>
         
-        {/* Visible title at the top */}
-        <div className="absolute top-1 left-0 right-0 text-center z-10">
-          <div className="flex items-center justify-center gap-2 text-white">
+        {/* Hidden DialogDescription for accessibility - required by Radix */}
+        <DialogDescription className="sr-only">
+          Share your music taste verdict as an image. You can email, copy to clipboard, or download the image.
+        </DialogDescription>
+        
+        {/* Header container with title and X button */}
+        <div className="absolute top-0 left-0 right-0 h-12 flex items-center justify-between px-4 z-10 bg-zinc-900/80 backdrop-blur-sm border-b border-zinc-800">
+          <div className="flex items-center justify-center gap-2 text-white flex-1">
             <Share2 className="h-5 w-5 text-purple-500" />
             {getShareTitle()}
           </div>
+          
+          {/* Custom styled X button */}
+          <button
+            onClick={onClose}
+            className="w-8 h-8 rounded-lg bg-purple-600/20 hover:bg-purple-600/40 border border-purple-500/30 hover:border-purple-400 flex items-center justify-center transition-all duration-200 hover:scale-105 group"
+            aria-label="Close share modal"
+          >
+            <svg
+              className="w-4 h-4 text-purple-400 group-hover:text-purple-300 transition-colors"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
 
-        {/* Main content area - positioned absolutely to control spacing precisely */}
-        <div className="absolute top-8 left-4 right-4 bottom-20 flex items-center justify-center">
+        {/* Main content area - positioned between header and footer with reduced margins */}
+        <div className="absolute top-12 bottom-20 left-0 right-0 flex items-center justify-center p-4">
           {!showingImage ? (
-            <div className="w-full max-w-[400px] aspect-[5/8] bg-zinc-800 rounded-lg flex flex-col items-center justify-center p-6 text-center">
+            <div className="w-full max-w-[388px] aspect-[5/8] bg-zinc-800 rounded-lg flex flex-col items-center justify-center p-6 text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mb-4"></div>
               <p className="text-purple-300 font-medium text-lg">{loadingMessages[loadingMessageIndex]}</p>
               <p className="text-zinc-400 text-sm mt-2">This may take a few moments</p>
             </div>
           ) : (
-            <div className="relative w-full h-full flex flex-col items-center justify-center">
-              <div className="relative group w-full max-w-[400px]">
+            <div className="w-full max-w-[388px]">
+              {/* Image container with constrained height to prevent overflow */}
+              <div className="relative group w-full overflow-hidden rounded-lg">
                 <img
                   ref={imgRef}
-                  src={imageUrl || "/placeholder.svg"}
-                  alt="Share preview"
-                  className="w-full h-auto rounded-lg border border-zinc-700 object-contain cursor-pointer hover:opacity-90 transition-all duration-200 group-hover:scale-[1.02]"
+                  src={imageUrl || "/music-snob-vinyl.png"}
+                  alt="Share preview of your music taste verdict"
+                  className="w-full h-auto rounded-lg border border-zinc-700 object-contain cursor-pointer hover:opacity-90 transition-all duration-200 group-hover:scale-[1.02] block"
                   onClick={handleImageClick}
                   onError={() => {
                     toast({
@@ -649,14 +674,15 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
           )}
         </div>
 
-        {/* Buttons at the bottom - positioned absolutely */}
-        <div className="absolute bottom-4 left-4 right-4 flex flex-col items-center space-y-2">
+        {/* Footer container for buttons with increased bottom margin */}
+        <div className="absolute bottom-0 left-0 right-0 h-20 bg-zinc-900/80 backdrop-blur-sm border-t border-zinc-800 flex flex-col items-center justify-center px-4 space-y-2 mb-4">
           {/* Share button above the row */}
           {isAppleDevice() && (
             <Button
               onClick={handleNativeShare}
               disabled={!showingImage}
-              className="px-6 py-3 text-white font-medium relative overflow-hidden bg-purple-gradient hover:scale-105 transition-all duration-300 border-0 shadow-lg"
+              className="px-6 py-2 text-white font-medium relative overflow-hidden bg-purple-gradient hover:scale-105 transition-all duration-300 border-0 shadow-lg"
+              aria-label="Share your verdict using device share menu"
             >
               <div className="absolute inset-0 holographic-shimmer"></div>
               <div className="relative z-10 flex items-center justify-center">
@@ -673,6 +699,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
               disabled={!showingImage || isSendingEmail}
               variant="outline"
               className="flex-1 text-white border-zinc-700 hover:bg-zinc-800 text-sm"
+              aria-label="Send verdict via email"
             >
               {isSendingEmail ? (
                 <>
@@ -692,6 +719,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
               disabled={!showingImage}
               variant="outline"
               className="flex-1 text-white border-zinc-700 hover:bg-zinc-800 text-sm"
+              aria-label="Copy verdict image to clipboard"
             >
               <Copy className="mr-1 h-4 w-4" />
               Copy
@@ -702,27 +730,13 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
               disabled={!showingImage}
               variant="outline"
               className="flex-1 text-white border-zinc-700 hover:bg-zinc-800 text-sm"
+              aria-label="Download verdict image"
             >
               <Download className="mr-1 h-4 w-4" />
               Download
             </Button>
           </div>
         </div>
-
-        {/* Custom styled X button - bigger and more square */}
-        <button
-          onClick={onClose}
-          className="absolute top-1 right-1 z-50 w-12 h-12 rounded-lg bg-purple-600/20 hover:bg-purple-600/40 border border-purple-500/30 hover:border-purple-400 flex items-center justify-center transition-all duration-200 hover:scale-105 group"
-        >
-          <svg
-            className="w-6 h-6 text-purple-400 group-hover:text-purple-300 transition-colors"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
       </DialogContent>
     </Dialog>
   )

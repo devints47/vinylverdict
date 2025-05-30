@@ -57,23 +57,23 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/vinyl-favicon2.png", sizes: "16x16", type: "image/png" },
-      { url: "/vinyl-favicon2.png", sizes: "32x32", type: "image/png" },
-      { url: "/vinyl-favicon2.png", sizes: "48x48", type: "image/png" },
-      { url: "/vinyl-favicon2.png", sizes: "64x64", type: "image/png" },
+      { url: "/vinyl-favicon.png", sizes: "16x16", type: "image/png" },
+      { url: "/vinyl-favicon.png", sizes: "32x32", type: "image/png" },
+      { url: "/vinyl-favicon.png", sizes: "48x48", type: "image/png" },
+      { url: "/vinyl-favicon.png", sizes: "64x64", type: "image/png" },
     ],
     apple: [
-      { url: "/vinyl-favicon2.png", sizes: "180x180", type: "image/png" },
-      { url: "/vinyl-favicon2.png", sizes: "152x152", type: "image/png" },
-      { url: "/vinyl-favicon2.png", sizes: "144x144", type: "image/png" },
-      { url: "/vinyl-favicon2.png", sizes: "120x120", type: "image/png" },
-      { url: "/vinyl-favicon2.png", sizes: "114x114", type: "image/png" },
-      { url: "/vinyl-favicon2.png", sizes: "76x76", type: "image/png" },
-      { url: "/vinyl-favicon2.png", sizes: "72x72", type: "image/png" },
-      { url: "/vinyl-favicon2.png", sizes: "60x60", type: "image/png" },
-      { url: "/vinyl-favicon2.png", sizes: "57x57", type: "image/png" },
+      { url: "/vinyl-favicon.png", sizes: "180x180", type: "image/png" },
+      { url: "/vinyl-favicon.png", sizes: "152x152", type: "image/png" },
+      { url: "/vinyl-favicon.png", sizes: "144x144", type: "image/png" },
+      { url: "/vinyl-favicon.png", sizes: "120x120", type: "image/png" },
+      { url: "/vinyl-favicon.png", sizes: "114x114", type: "image/png" },
+      { url: "/vinyl-favicon.png", sizes: "76x76", type: "image/png" },
+      { url: "/vinyl-favicon.png", sizes: "72x72", type: "image/png" },
+      { url: "/vinyl-favicon.png", sizes: "60x60", type: "image/png" },
+      { url: "/vinyl-favicon.png", sizes: "57x57", type: "image/png" },
     ],
-    shortcut: "/vinyl-favicon2.png",
+    shortcut: "/vinyl-favicon.png",
   },
   manifest: "/manifest.json",
   robots: {
@@ -113,7 +113,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" href="/vinyl-favicon2.png" type="image/png" />
+        <link rel="icon" href="/vinyl-favicon.png" type="image/png" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

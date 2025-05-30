@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react"
 import ReactMarkdown from "react-markdown"
 import rehypeRaw from "rehype-raw"
+import React from "react"
 
 interface CursorTypewriterProps {
   markdown: string
@@ -87,10 +88,17 @@ export function CursorTypewriter({
     }
   }, [markdown, speed, onComplete, onProgress, startPosition])  // Added startPosition dependency
 
-  // Create the visible text without cursor
-  const getVisibleText = () => {
-    if (!markdown) return ""
-    return markdown.substring(0, displayPosition)
+  // Create the visible text with cursor replacement
+  const getVisibleTextWithCursor = () => {
+    if (!markdown) return cursorChar
+    
+    if (isComplete) {
+      return markdown
+    }
+    
+    // Get the text up to current position and add cursor at the end
+    const visibleText = markdown.substring(0, displayPosition)
+    return visibleText + cursorChar
   }
 
   return (
@@ -132,30 +140,95 @@ export function CursorTypewriter({
           -webkit-text-fill-color: transparent;
           background-clip: text;
         }
-        /* Make the cursor character purple */
-        .markdown-content p:last-child:after,
-        .markdown-content h1:last-child:after,
-        .markdown-content h2:last-child:after,
-        .markdown-content h3:last-child:after,
-        .markdown-content h4:last-child:after,
-        .markdown-content h5:last-child:after,
-        .markdown-content h6:last-child:after,
-        .markdown-content li:last-child:after,
-        .markdown-content blockquote:last-child:after {
+        /* Style the cursor character to be purple */
+        .cursor-char {
           color: #a855f7 !important;
+          background: none !important;
+          -webkit-text-fill-color: #a855f7 !important;
         }
       `}</style>
       <div className="markdown-content">
         <ReactMarkdown
           rehypePlugins={[rehypeRaw]}
+          components={{
+            // Custom component to handle cursor styling in text nodes
+            p: ({ children, ...props }) => {
+              // Convert children to string and find cursor character
+              const childString = React.Children.toArray(children).join('')
+              if (!isComplete && childString.includes(cursorChar)) {
+                // Split text around cursor and style the cursor
+                const parts = childString.split(cursorChar)
+                return (
+                  <p {...props}>
+                    {parts[0]}
+                    <span className="cursor-char">{cursorChar}</span>
+                    {parts[1]}
+                  </p>
+                )
+              }
+              return <p {...props}>{children}</p>
+            },
+            // Handle other elements that might contain the cursor
+            h1: ({ children, ...props }) => {
+              const childString = React.Children.toArray(children).join('')
+              if (!isComplete && childString.includes(cursorChar)) {
+                const parts = childString.split(cursorChar)
+                return (
+                  <h1 {...props}>
+                    {parts[0]}
+                    <span className="cursor-char">{cursorChar}</span>
+                    {parts[1]}
+                  </h1>
+                )
+              }
+              return <h1 {...props}>{children}</h1>
+            },
+            h2: ({ children, ...props }) => {
+              const childString = React.Children.toArray(children).join('')
+              if (!isComplete && childString.includes(cursorChar)) {
+                const parts = childString.split(cursorChar)
+                return (
+                  <h2 {...props}>
+                    {parts[0]}
+                    <span className="cursor-char">{cursorChar}</span>
+                    {parts[1]}
+                  </h2>
+                )
+              }
+              return <h2 {...props}>{children}</h2>
+            },
+            h3: ({ children, ...props }) => {
+              const childString = React.Children.toArray(children).join('')
+              if (!isComplete && childString.includes(cursorChar)) {
+                const parts = childString.split(cursorChar)
+                return (
+                  <h3 {...props}>
+                    {parts[0]}
+                    <span className="cursor-char">{cursorChar}</span>
+                    {parts[1]}
+                  </h3>
+                )
+              }
+              return <h3 {...props}>{children}</h3>
+            },
+            li: ({ children, ...props }) => {
+              const childString = React.Children.toArray(children).join('')
+              if (!isComplete && childString.includes(cursorChar)) {
+                const parts = childString.split(cursorChar)
+                return (
+                  <li {...props}>
+                    {parts[0]}
+                    <span className="cursor-char">{cursorChar}</span>
+                    {parts[1]}
+                  </li>
+                )
+              }
+              return <li {...props}>{children}</li>
+            },
+          }}
         >
-          {getVisibleText()}
+          {getVisibleTextWithCursor()}
         </ReactMarkdown>
-        {!isComplete && (
-          <span style={{ color: '#a855f7' }} className="terminal-cursor">
-            {cursorChar}
-          </span>
-        )}
       </div>
     </div>
   )
