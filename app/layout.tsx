@@ -11,7 +11,7 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   metadataBase: new URL("https://vinylverdict.fm"),
   title: {
-    default: "VinylVerdict.FM 🎧 Your Personal Music Taste Analyst",
+    default: "VinylVerdict.FM - Your Personal Music Taste Analyst",
     template: "%s | VinylVerdict.FM",
   },
   description:
