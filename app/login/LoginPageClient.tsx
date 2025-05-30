@@ -7,6 +7,12 @@ import Link from "next/link"
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
 import { VinylVerdictLogo } from "@/components/vinyl-verdict-logo"
+import { Breadcrumbs } from "@/components/breadcrumbs"
+
+const breadcrumbItems = [
+  { label: "Home", href: "/" },
+  { label: "Login", href: "/login" }
+]
 
 export default function LoginPageClient() {
   const { isAuthenticated, isLoading } = useAuth()
@@ -23,12 +29,15 @@ export default function LoginPageClient() {
     <div className="min-h-screen bg-gradient-to-b from-black to-zinc-900 flex flex-col">
       <header className="p-4 flex flex-col items-center justify-center">
         <VinylVerdictLogo size={80} className="mb-4" />
-        <Link
-          href="/"
-          className="text-white bg-purple-700 hover:bg-purple-800 transition-colors px-4 py-2 rounded-md flex items-center gap-2"
-        >
-          <span>← Back to Home</span>
-        </Link>
+        <div className="flex flex-col items-center gap-4">
+          <Breadcrumbs items={breadcrumbItems} />
+          <Link
+            href="/"
+            className="text-white bg-purple-700 hover:bg-purple-800 transition-colors px-4 py-2 rounded-md flex items-center gap-2"
+          >
+            <span>← Back to Home</span>
+          </Link>
+        </div>
       </header>
 
       <main className="flex-1 flex items-center justify-center p-4">

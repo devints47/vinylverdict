@@ -1,17 +1,89 @@
+import type { Metadata } from "next"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { ReturnHomeButton } from "@/components/return-home-button"
 import { ScrollToTop } from "@/components/scroll-to-top"
+import { Breadcrumbs, BreadcrumbStructuredData } from "@/components/breadcrumbs"
+
+export const metadata: Metadata = {
+  title: "Terms of Service",
+  description:
+    "Read VinylVerdict.fm's terms of service covering Spotify integration, user responsibilities, and service usage guidelines. Understand your rights and obligations.",
+  keywords: [
+    "terms of service",
+    "user agreement",
+    "spotify terms",
+    "service terms",
+    "user rights",
+    "legal terms",
+    "vinylverdict terms",
+  ],
+  openGraph: {
+    title: "Terms of Service | VinylVerdict.fm",
+    description: "Read VinylVerdict.fm's terms of service covering Spotify integration and user responsibilities.",
+    type: "article",
+  },
+  twitter: {
+    title: "Terms of Service | VinylVerdict.fm",
+    description: "Read VinylVerdict.fm's terms of service covering Spotify integration and user responsibilities.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+}
+
+const breadcrumbItems = [
+  { label: "Home", href: "/" },
+  { label: "Terms of Service", href: "/terms-of-service" }
+]
+
+// Structured data for the terms of service article
+const articleStructuredData = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Terms of Service - VinylVerdict.fm",
+  "description": "Read VinylVerdict.fm's terms of service covering Spotify integration, user responsibilities, and service usage guidelines. Understand your rights and obligations.",
+  "author": {
+    "@type": "Organization",
+    "name": "VinylVerdict.fm",
+    "url": "https://vinylverdict.fm"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "VinylVerdict.fm",
+    "url": "https://vinylverdict.fm",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://vinylverdict.fm/vinyl-favicon.png"
+    }
+  },
+  "datePublished": "2025-05-08",
+  "dateModified": "2025-05-08",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://vinylverdict.fm/terms-of-service"
+  },
+  "articleSection": "Legal",
+  "keywords": ["terms of service", "user agreement", "spotify terms", "service terms", "user rights"],
+  "inLanguage": "en-US"
+}
 
 export default function TermsOfServicePage() {
   return (
     <ScrollToTop>
+      <BreadcrumbStructuredData items={breadcrumbItems} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleStructuredData) }}
+      />
       <div className="min-h-screen bg-black flex flex-col">
         <Navbar />
 
         <main className="flex-1 container mx-auto px-4 py-12 mt-16">
           <div className="max-w-4xl mx-auto">
-            <div className="mb-6">
+            <div className="mb-6 space-y-4">
+              <Breadcrumbs items={breadcrumbItems} />
               <ReturnHomeButton />
             </div>
 

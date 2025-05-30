@@ -1,11 +1,24 @@
 User-agent: *
 Allow: /
 
+# Allow public pages that don't require authentication
+Allow: /
+Allow: /login
+Allow: /login/
+Allow: /privacy-policy
+Allow: /privacy-policy/
+Allow: /terms-of-service
+Allow: /terms-of-service/
+Allow: /cookie-policy
+Allow: /cookie-policy/
+Allow: /about
+Allow: /about/
+
 # Disallow authentication-protected routes
 Disallow: /dashboard/
 Disallow: /dashboard
-Disallow: /login/
-Disallow: /login
+
+# Disallow OAuth callback (not useful for crawlers)
 Disallow: /callback/
 Disallow: /callback
 
@@ -26,12 +39,6 @@ Disallow: /.next/
 Disallow: /tmp/
 Disallow: /temp/
 Disallow: /test/
-
-# Allow important public pages
-Allow: /
-Allow: /privacy
-Allow: /terms
-Allow: /about
 
 # Sitemap location
 Sitemap: https://vinylverdict.fm/sitemap.xml

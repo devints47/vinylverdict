@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import LoginPageClient from "./LoginPageClient"
+import { BreadcrumbStructuredData } from "@/components/breadcrumbs"
 
 export const metadata: Metadata = {
   title: "Login with Spotify",
@@ -11,6 +12,16 @@ export const metadata: Metadata = {
   },
 }
 
+const breadcrumbItems = [
+  { label: "Home", href: "/" },
+  { label: "Login", href: "/login" }
+]
+
 export default function LoginPage() {
-  return <LoginPageClient />
+  return (
+    <>
+      <BreadcrumbStructuredData items={breadcrumbItems} />
+      <LoginPageClient />
+    </>
+  )
 }

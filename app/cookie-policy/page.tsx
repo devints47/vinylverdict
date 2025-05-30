@@ -1,17 +1,90 @@
+import type { Metadata } from "next"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { ReturnHomeButton } from "@/components/return-home-button"
 import { ScrollToTop } from "@/components/scroll-to-top"
+import { Breadcrumbs, BreadcrumbStructuredData } from "@/components/breadcrumbs"
+
+export const metadata: Metadata = {
+  title: "Cookie Policy",
+  description:
+    "Learn about VinylVerdict.fm's cookie usage, including authentication cookies for Spotify integration. Understand how we use cookies to enhance your experience.",
+  keywords: [
+    "cookie policy",
+    "cookies",
+    "web tracking",
+    "spotify cookies",
+    "authentication cookies",
+    "privacy",
+    "data collection",
+    "vinylverdict cookies",
+  ],
+  openGraph: {
+    title: "Cookie Policy | VinylVerdict.fm",
+    description: "Learn about VinylVerdict.fm's cookie usage and how we protect your privacy.",
+    type: "article",
+  },
+  twitter: {
+    title: "Cookie Policy | VinylVerdict.fm",
+    description: "Learn about VinylVerdict.fm's cookie usage and how we protect your privacy.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+}
+
+const breadcrumbItems = [
+  { label: "Home", href: "/" },
+  { label: "Cookie Policy", href: "/cookie-policy" }
+]
+
+// Structured data for the cookie policy article
+const articleStructuredData = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Cookie Policy - VinylVerdict.fm",
+  "description": "Learn about VinylVerdict.fm's cookie usage, including authentication cookies for Spotify integration. Understand how we use cookies to enhance your experience.",
+  "author": {
+    "@type": "Organization",
+    "name": "VinylVerdict.fm",
+    "url": "https://vinylverdict.fm"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "VinylVerdict.fm",
+    "url": "https://vinylverdict.fm",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://vinylverdict.fm/vinyl-favicon.png"
+    }
+  },
+  "datePublished": "2025-05-08",
+  "dateModified": "2025-05-08",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://vinylverdict.fm/cookie-policy"
+  },
+  "articleSection": "Legal",
+  "keywords": ["cookie policy", "cookies", "web tracking", "spotify cookies", "authentication cookies"],
+  "inLanguage": "en-US"
+}
 
 export default function CookiePolicyPage() {
   return (
     <ScrollToTop>
+      <BreadcrumbStructuredData items={breadcrumbItems} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleStructuredData) }}
+      />
       <div className="min-h-screen bg-black flex flex-col">
         <Navbar />
 
         <main className="flex-1 container mx-auto px-4 py-12 mt-16">
           <div className="max-w-4xl mx-auto">
-            <div className="mb-6">
+            <div className="mb-6 space-y-4">
+              <Breadcrumbs items={breadcrumbItems} />
               <ReturnHomeButton />
             </div>
 

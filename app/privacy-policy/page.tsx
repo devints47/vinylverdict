@@ -1,17 +1,89 @@
+import type { Metadata } from "next"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { ReturnHomeButton } from "@/components/return-home-button"
 import { ScrollToTop } from "@/components/scroll-to-top"
+import { Breadcrumbs, BreadcrumbStructuredData } from "@/components/breadcrumbs"
+
+export const metadata: Metadata = {
+  title: "Privacy Policy",
+  description:
+    "Learn how VinylVerdict.fm protects your privacy and handles your Spotify data. Our comprehensive privacy policy covers data collection, usage, and your rights.",
+  keywords: [
+    "privacy policy",
+    "data protection",
+    "spotify privacy",
+    "user data",
+    "privacy rights",
+    "data security",
+    "vinylverdict privacy",
+  ],
+  openGraph: {
+    title: "Privacy Policy | VinylVerdict.fm",
+    description: "Learn how VinylVerdict.fm protects your privacy and handles your Spotify data.",
+    type: "article",
+  },
+  twitter: {
+    title: "Privacy Policy | VinylVerdict.fm",
+    description: "Learn how VinylVerdict.fm protects your privacy and handles your Spotify data.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+}
+
+const breadcrumbItems = [
+  { label: "Home", href: "/" },
+  { label: "Privacy Policy", href: "/privacy-policy" }
+]
+
+// Structured data for the privacy policy article
+const articleStructuredData = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Privacy Policy - VinylVerdict.fm",
+  "description": "Learn how VinylVerdict.fm protects your privacy and handles your Spotify data. Our comprehensive privacy policy covers data collection, usage, and your rights.",
+  "author": {
+    "@type": "Organization",
+    "name": "VinylVerdict.fm",
+    "url": "https://vinylverdict.fm"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "VinylVerdict.fm",
+    "url": "https://vinylverdict.fm",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://vinylverdict.fm/vinyl-favicon.png"
+    }
+  },
+  "datePublished": "2025-05-08",
+  "dateModified": "2025-05-08",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://vinylverdict.fm/privacy-policy"
+  },
+  "articleSection": "Legal",
+  "keywords": ["privacy policy", "data protection", "spotify privacy", "user data", "privacy rights"],
+  "inLanguage": "en-US"
+}
 
 export default function PrivacyPolicyPage() {
   return (
     <ScrollToTop>
+      <BreadcrumbStructuredData items={breadcrumbItems} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleStructuredData) }}
+      />
       <div className="min-h-screen bg-black flex flex-col">
         <Navbar />
 
         <main className="flex-1 container mx-auto px-4 py-12 mt-16">
           <div className="max-w-4xl mx-auto">
-            <div className="mb-6">
+            <div className="mb-6 space-y-4">
+              <Breadcrumbs items={breadcrumbItems} />
               <ReturnHomeButton />
             </div>
 
