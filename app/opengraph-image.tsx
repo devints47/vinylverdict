@@ -14,6 +14,11 @@ export const contentType = "image/png"
 
 // Image generation
 export default async function Image() {
+  // Fetch the vinyl favicon
+  const vinylIconData = await fetch(new URL('/vinyl-favicon.png', 'https://vinylverdict.fm')).then(
+    (res) => res.arrayBuffer(),
+  )
+
   return new ImageResponse(
     <div
       style={{
@@ -64,16 +69,13 @@ export default async function Image() {
             marginBottom: "20px",
           }}
         >
-          <span style={{ fontSize: 56, marginRight: "16px" }}>🔥</span>
+          <span style={{ fontSize: 56, marginRight: "16px" }}>🎧</span>
           <h1
             style={{
               fontSize: 56,
               fontWeight: "bold",
-              color: "white",
+              color: "#9333ea",
               margin: 0,
-              background: "linear-gradient(to right, #9333ea, #c084fc)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
               lineHeight: 1,
             }}
           >
@@ -92,7 +94,7 @@ export default async function Image() {
             textShadow: "0 2px 10px rgba(0, 0, 0, 0.8)",
           }}
         >
-          Your Music Taste, Roasted to Perfection
+          Your Personal Music Taste Analyst
         </div>
 
         {/* Description */}
@@ -106,7 +108,7 @@ export default async function Image() {
             maxWidth: "500px",
           }}
         >
-          Your Personal Music Taste Analyst
+          Connect your Spotify and take a look in the mirror.
         </div>
 
         {/* Call to action button */}
@@ -124,7 +126,7 @@ export default async function Image() {
           }}
         >
           <span style={{ marginRight: "12px" }}>🎵</span>
-          Get Roasted Now
+          Face the Music
         </div>
       </div>
 
@@ -140,67 +142,16 @@ export default async function Image() {
           zIndex: 2,
         }}
       >
-        {/* Outer vinyl record */}
-        <div
+        {/* Vinyl favicon */}
+        <img
+          src={`data:image/png;base64,${Buffer.from(vinylIconData).toString('base64')}`}
+          alt="VinylVerdict Logo"
+          width="380"
+          height="380"
           style={{
-            width: "380px",
-            height: "380px",
-            borderRadius: "50%",
-            background: "linear-gradient(45deg, #1a1a1a, #000000, #1a1a1a)",
-            border: "2px solid rgba(147, 51, 234, 0.5)",
-            boxShadow: "0 0 60px rgba(147, 51, 234, 0.4), inset 0 0 40px rgba(0, 0, 0, 0.8)",
-            position: "relative",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
+            filter: "drop-shadow(0 0 60px rgba(147, 51, 234, 0.6))",
           }}
-        >
-          {/* Vinyl grooves */}
-          <div
-            style={{
-              position: "absolute",
-              width: "320px",
-              height: "320px",
-              borderRadius: "50%",
-              border: "1px solid rgba(255, 255, 255, 0.1)",
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              width: "280px",
-              height: "280px",
-              borderRadius: "50%",
-              border: "1px solid rgba(255, 255, 255, 0.08)",
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              width: "240px",
-              height: "240px",
-              borderRadius: "50%",
-              border: "1px solid rgba(255, 255, 255, 0.06)",
-            }}
-          />
-          
-          {/* Center label */}
-          <div
-            style={{
-              width: "140px",
-              height: "140px",
-              borderRadius: "50%",
-              background: "linear-gradient(45deg, #9333ea, #c084fc)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 48,
-              boxShadow: "0 0 30px rgba(147, 51, 234, 0.8)",
-            }}
-          >
-            🎧
-          </div>
-        </div>
+        />
       </div>
     </div>,
     {
