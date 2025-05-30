@@ -57,6 +57,7 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
+      { url: "/favicon.ico", sizes: "any" },
       { url: "/vinyl-favicon.png", sizes: "16x16", type: "image/png" },
       { url: "/vinyl-favicon.png", sizes: "32x32", type: "image/png" },
       { url: "/vinyl-favicon.png", sizes: "48x48", type: "image/png" },
@@ -112,8 +113,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <head>
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" href="/vinyl-favicon.png" type="image/png" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
