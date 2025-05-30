@@ -174,7 +174,15 @@ export function Footer() {
                 className="hover:opacity-80 transition-opacity"
                 aria-label="Visit Spotify Developer Portal"
               >
-                <img src="/spotify_full_logo.svg" alt="Spotify" className="h-12" />
+                <img 
+                  src="/spotify_full_logo.svg" 
+                  alt="Spotify" 
+                  className="h-12" 
+                  width="150" 
+                  height="48"
+                  loading="eager"
+                  fetchPriority="high"
+                />
               </a>
             </div>
           </div>

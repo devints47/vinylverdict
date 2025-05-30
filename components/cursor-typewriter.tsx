@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState, useRef, useCallback, useMemo } from "react"
 import ReactMarkdown from "react-markdown"
 import rehypeRaw from "rehype-raw"
 import React from "react"
@@ -27,7 +27,10 @@ export function CursorTypewriter({
   const [displayPosition, setDisplayPosition] = useState(startPosition)
   const [isComplete, setIsComplete] = useState(false)
   const [currentText, setCurrentText] = useState<string>("")
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const [containerHeight, setContainerHeight] = useState<number | null>(null)
+  
+  const animationFrameRef = useRef<number | null>(null)
+  const lastUpdateTimeRef = useRef<number>(0)
   const isMountedRef = useRef(true)
 
   // Set up the mounted ref
@@ -35,18 +38,37 @@ export function CursorTypewriter({
     isMountedRef.current = true
     return () => {
       isMountedRef.current = false
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current)
+      }
     }
   }, [])
 
-  // Custom components for ReactMarkdown that match the final styling
-  const components = {
+  // Pre-calculate final content height to prevent layout shifts
+  const finalContentRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (markdown && !containerHeight) {
+      // Create a hidden element to measure final content height
+      const measureElement = document.createElement('div')
+      measureElement.style.position = 'absolute'
+      measureElement.style.visibility = 'hidden'
+      measureElement.style.width = '100%'
+      measureElement.style.pointerEvents = 'none'
+      measureElement.innerHTML = `<div class="prose prose-invert max-w-none text-zinc-300">${markdown}</div>`
+      
+      document.body.appendChild(measureElement)
+      const height = measureElement.offsetHeight
+      setContainerHeight(height)
+      document.body.removeChild(measureElement)
+    }
+  }, [markdown, containerHeight])
+
+  // Memoize custom components to prevent re-creation
+  const components = useMemo(() => ({
     h1: ({ ...props }: any) => {
-      // Process children to wrap text (but not emojis) in styled spans
       const children = React.Children.toArray(props.children).map((child, index) => {
         if (typeof child === "string") {
-          // Use regex to find emojis, cursor, and numbers
           return child.split(/(\p{Emoji}+|█|\d+)/gu).map((part, i) => {
-            // Check if this part is the cursor character
             if (part === cursorChar) {
               return (
                 <span key={`${index}-cursor-${i}`} className="cursor-char" style={{ color: '#a855f7' }}>
@@ -54,7 +76,6 @@ export function CursorTypewriter({
                 </span>
               )
             }
-            // Check if this part is a number
             else if (/^\d+$/.test(part)) {
               return (
                 <span key={`${index}-number-${i}`} style={{ color: '#a855f7' }}>
@@ -62,7 +83,6 @@ export function CursorTypewriter({
                 </span>
               )
             }
-            // Check if this part is an emoji
             else if (/\p{Emoji}/u.test(part)) {
               return (
                 <span key={`${index}-emoji-${i}`} className="emoji">
@@ -70,7 +90,6 @@ export function CursorTypewriter({
                 </span>
               )
             }
-            // Regular text gets the gradient styling
             return (
               <span key={`${index}-text-${i}`} className="gradient-text">
                 {part}
@@ -157,7 +176,6 @@ export function CursorTypewriter({
 
       return <h3 {...props}>{children}</h3>
     },
-    // Handle cursor and numbers in regular paragraphs too
     p: ({ ...props }: any) => {
       const children = React.Children.toArray(props.children).map((child, index) => {
         if (typeof child === "string") {
@@ -191,7 +209,38 @@ export function CursorTypewriter({
 
       return <p {...props}>{children}</p>
     }
-  }
+  }), [cursorChar])
+
+  // Optimized typewriter effect using requestAnimationFrame
+  const animateTypewriter = useCallback((currentPosition: number) => {
+    if (!isMountedRef.current || !markdown) return
+
+    const now = performance.now()
+    
+    // Throttle updates based on speed setting
+    if (now - lastUpdateTimeRef.current < speed) {
+      animationFrameRef.current = requestAnimationFrame(() => animateTypewriter(currentPosition))
+      return
+    }
+
+    lastUpdateTimeRef.current = now
+
+    if (currentPosition >= markdown.length) {
+      setCurrentText(markdown)
+      setIsComplete(true)
+      if (onComplete) onComplete()
+      return
+    }
+
+    const newPosition = currentPosition + 1
+    const newText = markdown.substring(0, newPosition)
+    setCurrentText(newText + cursorChar)
+    setDisplayPosition(newPosition)
+    
+    if (onProgress) onProgress(newPosition)
+    
+    animationFrameRef.current = requestAnimationFrame(() => animateTypewriter(newPosition))
+  }, [markdown, speed, onComplete, onProgress, cursorChar])
 
   // Handle the typewriter effect
   useEffect(() => {
@@ -202,62 +251,42 @@ export function CursorTypewriter({
       return
     }
 
-    // Initialize from startPosition
     setDisplayPosition(startPosition)
     const isAlreadyComplete = startPosition >= markdown.length
     setIsComplete(isAlreadyComplete)
 
     if (isAlreadyComplete) {
       setCurrentText(markdown)
-      if (onComplete) onComplete()
+          if (onComplete) onComplete()
       return
     }
 
-    // Set initial text based on startPosition - include cursor if not complete
     const initialText = markdown.substring(0, startPosition)
     setCurrentText(startPosition === 0 && !isAlreadyComplete ? cursorChar : initialText + cursorChar)
 
-    // Clear any existing timeout
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current)
+    // Cancel any existing animation
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current)
     }
 
-    let currentPosition = startPosition
-
-    const typeNextCharacter = () => {
-      if (!isMountedRef.current) return
-
-      if (currentPosition >= markdown.length) {
-        setCurrentText(markdown) // Final text without cursor
-          setIsComplete(true)
-          if (onComplete) onComplete()
-        return
-      }
-
-      currentPosition++
-      const newText = markdown.substring(0, currentPosition)
-      // Add cursor to the end of the current text
-      setCurrentText(newText + cursorChar)
-      setDisplayPosition(currentPosition)
-      
-      // Report progress to parent
-      if (onProgress) onProgress(currentPosition)
-      
-      timeoutRef.current = setTimeout(typeNextCharacter, speed)
-    }
-
-    // Start typing after a small delay
-    timeoutRef.current = setTimeout(typeNextCharacter, speed)
+    lastUpdateTimeRef.current = performance.now()
+    animationFrameRef.current = requestAnimationFrame(() => animateTypewriter(startPosition))
 
     return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current)
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current)
+      }
     }
-  }, [markdown, speed, onComplete, onProgress, startPosition, cursorChar])
+  }, [markdown, startPosition, animateTypewriter, onComplete, cursorChar])
 
   return (
     <div
       className={`${className} text-sm sm:text-base md:text-lg transition-opacity duration-300 ${isComplete ? "opacity-100" : "opacity-95"}`}
-      style={{ minHeight: isComplete ? 'auto' : '100px' }}
+      style={{ 
+        minHeight: containerHeight ? `${containerHeight}px` : '100px',
+        contain: 'layout style', // Improve rendering performance
+        contentVisibility: 'auto' // Optimize rendering for off-screen content
+      }}
     >
       {/* Global styles for consistent emoji and gradient rendering */}
       <style jsx global>{`

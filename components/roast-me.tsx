@@ -1,10 +1,10 @@
 "use client"
 
 import React from "react"
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useMemo, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
-import { Loader2, AlertCircle, Share2 } from "lucide-react"
+import { Loader2, AlertCircle, Share2, Trash2 } from "lucide-react"
 import ReactMarkdown from "react-markdown"
 import { formatTrackData, formatArtistData, formatRecentlyPlayedData } from "@/lib/format-utils"
 import { getRoast } from "@/lib/openai-service"
@@ -36,6 +36,10 @@ interface ResponseStore {
 // Create a session storage key
 const SESSION_STORAGE_KEY = "vinylVerdict_responses"
 const RESPONSE_EXPIRATION_TIME = 60 * 60 * 1000 // 1 hour in milliseconds
+
+// Memoized components for better performance
+const MemoizedCursorTypewriter = React.memo(CursorTypewriter)
+const MemoizedShareModal = React.memo(ShareModal)
 
 export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, selectedVinyl }: RoastMeProps) {
   const [isLoading, setIsLoading] = useState(false)
@@ -132,7 +136,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
   }, [])
 
   // Get the appropriate button text based on the active tab and assistant type
-  const getButtonText = () => {
+  const getButtonText = useCallback(() => {
     // Use a consistent action verb format based on assistant type
     let actionVerb
     switch (assistantType) {
@@ -158,10 +162,10 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
       default:
         return `${actionVerb} My Music Taste`
     }
-  }
+  }, [assistantType, activeTab])
 
   // Get the text for the "Share My Roast" button based on assistant type
-  const getShareButtonText = () => {
+  const getShareButtonText = useCallback(() => {
     switch (assistantType) {
       case "worshipper":
         return "Share My Validity"
@@ -171,10 +175,10 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
       default:
         return "Share My Roast"
     }
-  }
+  }, [assistantType])
 
   // Get loading text based on assistant type
-  const getLoadingText = () => {
+  const getLoadingText = useCallback(() => {
     // Use a standardized format for loading text
     switch (assistantType) {
       case "worshipper":
@@ -185,7 +189,35 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
       default:
         return "The Music Snob Is Judging You..."
     }
-  }
+  }, [assistantType])
+
+  // Memoize formatted data to prevent re-processing on every render
+  const formattedData = useMemo(() => {
+    switch (activeTab) {
+      case "top-tracks":
+        return formatTrackData(topTracks?.items)
+      case "top-artists":
+        return formatArtistData(topArtists?.items)
+      case "recently-played":
+        return formatRecentlyPlayedData(recentlyPlayed)
+      default:
+        return formatTrackData(topTracks?.items)
+    }
+  }, [activeTab, topTracks?.items, topArtists?.items, recentlyPlayed])
+
+  // Memoize view type
+  const viewType = useMemo(() => {
+    switch (activeTab) {
+      case "top-tracks":
+        return "top tracks"
+      case "top-artists":
+        return "top artists"
+      case "recently-played":
+        return "recently played"
+      default:
+        return "top tracks"
+    }
+  }, [activeTab])
 
   // Function to cancel an active request
   const cancelActiveRequest = (assistantType: string) => {
@@ -277,28 +309,6 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
       // Update the last active tab reference
       lastActiveTabRef.current = activeTab
 
-      // Determine which data to use based on the active tab
-      let formattedData
-      let viewType
-
-      switch (activeTab) {
-        case "top-tracks":
-          formattedData = formatTrackData(topTracks?.items)
-          viewType = "top tracks"
-          break
-        case "top-artists":
-          formattedData = formatArtistData(topArtists?.items)
-          viewType = "top artists"
-          break
-        case "recently-played":
-          formattedData = formatRecentlyPlayedData(recentlyPlayed)
-          viewType = "recently played"
-          break
-        default:
-          formattedData = formatTrackData(topTracks?.items)
-          viewType = "top tracks"
-      }
-
       // Call the API through our service with the assistant type
       const response = await getRoast(formattedData, viewType, assistantType)
 
@@ -363,7 +373,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
   }
 
   // Handle typewriter completion
-  const handleTypewriterComplete = () => {
+  const handleTypewriterComplete = useCallback(() => {
     // Defer the state update to avoid "Cannot update component while rendering" error
     setTimeout(() => {
       setResponseStore((prev) => ({
@@ -375,10 +385,10 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
         },
       }))
     }, 0)
-  }
+  }, [assistantType])
 
   // Handle typewriter progress updates
-  const handleTypewriterProgress = (position: number) => {
+  const handleTypewriterProgress = useCallback((position: number) => {
     setResponseStore((prev) => ({
       ...prev,
       [assistantType]: {
@@ -386,10 +396,10 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
         displayPosition: position, // Update current position
       },
     }))
-  }
+  }, [assistantType])
 
   // Get the appropriate footer text based on the assistant type
-  const getFooterText = () => {
+  const getFooterText = useCallback(() => {
     // Use the same format for all assistant types, just change the content
     switch (assistantType) {
       case "worshipper":
@@ -400,10 +410,10 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
       default:
         return "This roast is a satirical critique of your personal listening habits. It's all in good fun and not intended to insult any artists or fans."
     }
-  }
+  }, [assistantType])
 
   // Get emoji based on assistant type
-  const getEmoji = () => {
+  const getEmoji = useCallback(() => {
     // Use a standardized format for emojis
     switch (assistantType) {
       case "worshipper":
@@ -414,10 +424,10 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
       default:
         return "🔥"
     }
-  }
+  }, [assistantType])
 
   // Custom components for ReactMarkdown to preserve emoji colors
-  const components = {
+  const components = useMemo(() => ({
     h1: ({ ...props }: any) => {
       // Process children to wrap text (but not emojis) in styled spans
       const children = React.Children.toArray(props.children).map((child) => {
@@ -493,22 +503,24 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
 
       return <h3 {...props}>{children}</h3>
     },
-  }
+  }), [])
 
   // Create a stable position for the roast section that doesn't move when tabs change
-  const roastSectionStyle = {
+  const roastSectionStyle = useMemo(() => ({
     position: "sticky" as const,
     top: 0,
     zIndex: 10,
-  }
+    contentVisibility: 'auto' as const, // Optimize rendering for off-screen content
+    contain: 'layout style' as const, // Improve rendering performance
+  }), [])
 
   // Memoize the typewriter component to prevent re-rendering when tabs change
-  const typewriterComponent = React.useMemo(() => {
+  const typewriterComponent = useMemo(() => {
     if (!currentResponse.content) return null
 
-    // Always use the typewriter component - it handles both typing and final state
+    // Always use the memoized typewriter component - it handles both typing and final state
     return (
-      <CursorTypewriter
+      <MemoizedCursorTypewriter
         markdown={currentResponse.content}
         speed={12.5} // Doubled speed again: 12.5ms per character (~80 characters per second)
         onComplete={handleTypewriterComplete}
@@ -517,7 +529,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
         cursorChar="█"
       />
     )
-  }, [currentResponse.content, currentResponse.isComplete, currentResponse.requestId])
+  }, [currentResponse.content, currentResponse.isComplete, currentResponse.requestId, handleTypewriterComplete, handleTypewriterProgress])
 
   useEffect(() => {
     // Set up an interval to check for expired responses
@@ -581,6 +593,46 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
     }
   }
 
+  // Function to clear the roast content and reset state
+  const clearRoast = useCallback(() => {
+    // Cancel any active request for this assistant type
+    cancelActiveRequest(assistantType)
+    
+    // Clear the response from store
+    setResponseStore((prev) => {
+      const newStore = { ...prev }
+      delete newStore[assistantType]
+      return newStore
+    })
+    
+    // Clear any error state
+    setError(null)
+    setIsLoading(false)
+    setIsFallback(false)
+    
+    // Scroll to top
+    scrollToTop()
+    
+    // Clear from session storage
+    if (typeof window !== "undefined") {
+      try {
+        const savedResponses = sessionStorage.getItem(SESSION_STORAGE_KEY)
+        if (savedResponses) {
+          const parsedResponses = JSON.parse(savedResponses)
+          delete parsedResponses[assistantType]
+          
+          if (Object.keys(parsedResponses).length > 0) {
+            sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(parsedResponses))
+          } else {
+            sessionStorage.removeItem(SESSION_STORAGE_KEY)
+          }
+        }
+      } catch (err) {
+        console.error("Error clearing response from storage:", err)
+      }
+    }
+  }, [assistantType])
+
   return (
     <div ref={containerRef} className="mb-8 flex flex-col items-center w-full" style={roastSectionStyle}>
       {/* Global styles for consistent emoji rendering */}
@@ -601,29 +653,32 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
         }
       `}</style>
       
-      <div id="roast-primary-button" className="flex justify-center w-full">
-        <Button
-          ref={primaryButtonRef}
-          onClick={() => handleRoastMe(false)}
-          disabled={isPrimaryButtonDisabled} // Disable button while typewriting
-          className={`btn-gradient holographic-shimmer text-white font-bold py-4 px-8 text-lg rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl max-w-md ${
-            isLoading || isPrimaryButtonDisabled ? "bg-purple-600 hover:bg-purple-700 opacity-90" : ""
-          }`}
-          size="lg"
-        >
-          {isLoading || isPrimaryButtonDisabled ? (
-            <>
-              <Loader2 className="h-5 w-5 animate-spin mr-2" />
-              {getLoadingText()}
-            </>
-          ) : (
-            <>
-              <span className="text-xl">{getEmoji()}</span>
-              <span>{getButtonText()}</span>
-              <span className="text-xl">{getEmoji()}</span>
-            </>
-          )}
-        </Button>
+      {/* Container for primary button and clear button */}
+      <div className="relative flex justify-center w-full">
+        <div id="roast-primary-button" className="flex justify-center">
+          <Button
+            ref={primaryButtonRef}
+            onClick={() => handleRoastMe(false)}
+            disabled={isPrimaryButtonDisabled} // Disable button while typewriting
+            className={`btn-gradient holographic-shimmer text-white font-bold py-4 px-8 text-lg rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl max-w-md ${
+              isLoading || isPrimaryButtonDisabled ? "bg-purple-600 hover:bg-purple-700 opacity-90" : ""
+            }`}
+            size="lg"
+          >
+            {isLoading || isPrimaryButtonDisabled ? (
+              <>
+                <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                {getLoadingText()}
+              </>
+            ) : (
+              <>
+                <span className="text-xl">{getEmoji()}</span>
+                <span>{getButtonText()}</span>
+                <span className="text-xl">{getEmoji()}</span>
+              </>
+            )}
+          </Button>
+        </div>
       </div>
 
       {error && (
@@ -661,7 +716,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
 
       {/* Secondary roast button below the roast card */}
       {showShareButton && (
-        <div className="mt-6 flex justify-center w-full">
+        <div className="mt-6 flex justify-center items-center gap-4 w-full">
           <Button
             onClick={() => handleRoastMe(true)}
             className="btn-gradient holographic-shimmer text-white font-bold py-4 px-8 text-lg rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl max-w-md"
@@ -671,11 +726,22 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
             <span>{getButtonText()}</span>
             <span className="text-xl">{getEmoji()}</span>
           </Button>
+          
+          {/* Clear button - only shown when roast is completed */}
+          <Button
+            onClick={clearRoast}
+            variant="ghost"
+            size="sm"
+            className="text-zinc-400 hover:text-white hover:bg-zinc-800 p-3 rounded-full transition-colors"
+            title="Clear roast"
+          >
+            <Trash2 className="h-5 w-5" />
+          </Button>
         </div>
       )}
 
       {/* Main Share Modal */}
-      <ShareModal
+      <MemoizedShareModal
         isOpen={showShareModal}
         onClose={() => setShowShareModal(false)}
         text={currentResponse.content}

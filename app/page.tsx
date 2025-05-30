@@ -268,6 +268,8 @@ export default function LandingPage() {
                       src="/spotify_full_logo.svg"
                       alt="Spotify"
                       className="h-[60px] md:h-[70px] w-auto"
+                      width="240"
+                      height="70"
                       loading="lazy"
                     />
                   </a>

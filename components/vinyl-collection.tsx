@@ -19,6 +19,15 @@ export interface VinylDesign {
 // Define flip direction for animation
 type FlipDirection = "left" | "right" | "none"
 
+// Helper function to convert VinylDesign to vinyl context format
+const convertToContextFormat = (design: VinylDesign) => ({
+  id: design.assistantType || design.id,
+  name: design.name,
+  description: design.description,
+  color: design.labelColor, // Map labelColor to color
+  assistantType: design.assistantType || design.id,
+})
+
 export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: VinylDesign) => void }) {
   const [activeIndex, setActiveIndex] = useState(0)
   const [isTransitioning, setIsTransitioning] = useState(false)
@@ -95,13 +104,18 @@ export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: Vi
     // Only set if not already set from localStorage
     if (!selectedVinyl || !selectedVinyl.assistantType) {
       const initialVinyl = vinylDesigns[activeIndex]
-      setSelectedVinyl(initialVinyl)
+      setSelectedVinyl(convertToContextFormat(initialVinyl))
       if (onSelectVinyl) {
         onSelectVinyl(initialVinyl)
       }
     } else if (onSelectVinyl) {
-      // If we already have a selected vinyl from localStorage, still call onSelectVinyl
-      onSelectVinyl(selectedVinyl)
+      // If we already have a selected vinyl from localStorage, find the corresponding design and call onSelectVinyl
+      const correspondingDesign = vinylDesigns.find(
+        (design) => design.assistantType === selectedVinyl.assistantType || design.id === selectedVinyl.id
+      )
+      if (correspondingDesign) {
+        onSelectVinyl(correspondingDesign)
+      }
     }
   }, []) // Empty dependency array ensures this only runs once on mount
 
@@ -116,7 +130,7 @@ export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: Vi
     setTimeout(() => {
       setActiveIndex(newIndex)
       const newVinyl = vinylDesigns[newIndex]
-      setSelectedVinyl(newVinyl)
+      setSelectedVinyl(convertToContextFormat(newVinyl))
       if (onSelectVinyl) {
         onSelectVinyl(newVinyl)
       }
@@ -139,7 +153,7 @@ export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: Vi
     setTimeout(() => {
       setActiveIndex(newIndex)
       const newVinyl = vinylDesigns[newIndex]
-      setSelectedVinyl(newVinyl)
+      setSelectedVinyl(convertToContextFormat(newVinyl))
       if (onSelectVinyl) {
         onSelectVinyl(newVinyl)
       }
@@ -164,7 +178,7 @@ export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: Vi
     setTimeout(() => {
       setActiveIndex(index)
       const newVinyl = vinylDesigns[index]
-      setSelectedVinyl(newVinyl)
+      setSelectedVinyl(convertToContextFormat(newVinyl))
       if (onSelectVinyl) {
         onSelectVinyl(newVinyl)
       }
@@ -178,7 +192,7 @@ export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: Vi
   }
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center" style={{ contain: 'layout' }}>
       {/* Vinyl Record Container - ensures proper centering and containment */}
       <div className="flex justify-center items-center w-full mb-4">
         {/* Fixed size container to prevent layout shifts */}
@@ -187,8 +201,9 @@ export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: Vi
           style={{
             width: "300px",
             height: "300px",
-            contain: "layout",
+            contain: "layout style",
             overflow: "visible",
+            flexShrink: 0, // Prevent shrinking
           }}
         >
           {/* Vinyl sizing wrapper with 3D perspective */}

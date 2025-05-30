@@ -647,26 +647,26 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
             <div className="w-full max-w-[388px]">
               {/* Image container with constrained height to prevent overflow */}
               <div className="relative group w-full overflow-hidden rounded-lg">
-                <img
-                  ref={imgRef}
+              <img
+                ref={imgRef}
                   src={imageUrl || "/music-snob-vinyl.png"}
                   alt="Share preview of your music taste verdict"
                   className="w-full h-auto rounded-lg border border-zinc-700 object-contain cursor-pointer hover:opacity-90 transition-all duration-200 group-hover:scale-[1.02] block"
-                  onClick={handleImageClick}
-                  onError={() => {
-                    toast({
-                      title: "Preview failed",
-                      description: "Could not load image preview.",
-                      variant: "destructive",
-                    })
-                  }}
-                />
+                onClick={handleImageClick}
+                onError={() => {
+                  toast({
+                    title: "Preview failed",
+                    description: "Could not load image preview.",
+                    variant: "destructive",
+                  })
+                }}
+              />
                 
                 {/* Hover overlay with better styling */}
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-200 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100">
                   <div className="bg-black/80 text-white px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 backdrop-blur-sm">
                     <Copy className="h-4 w-4" />
-                    Click to copy
+                Click to copy
                   </div>
                 </div>
               </div>
@@ -714,27 +714,27 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
               )}
             </Button>
 
-            <Button
-              onClick={handleCopyToClipboard}
-              disabled={!showingImage}
-              variant="outline"
+          <Button
+            onClick={handleCopyToClipboard}
+            disabled={!showingImage}
+            variant="outline"
               className="flex-1 text-white border-zinc-700 hover:bg-zinc-800 text-sm"
               aria-label="Copy verdict image to clipboard"
-            >
+          >
               <Copy className="mr-1 h-4 w-4" />
               Copy
-            </Button>
+          </Button>
 
-            <Button
-              onClick={handleDownloadImage}
-              disabled={!showingImage}
-              variant="outline"
+          <Button
+            onClick={handleDownloadImage}
+            disabled={!showingImage}
+            variant="outline"
               className="flex-1 text-white border-zinc-700 hover:bg-zinc-800 text-sm"
               aria-label="Download verdict image"
-            >
+          >
               <Download className="mr-1 h-4 w-4" />
               Download
-            </Button>
+          </Button>
           </div>
         </div>
       </DialogContent>

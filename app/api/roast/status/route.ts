@@ -5,8 +5,8 @@ import { checkAuth } from "@/lib/env-check"
 // Create OpenAI client lazily
 function getOpenAIClient() {
   return new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  })
+  apiKey: process.env.OPENAI_API_KEY,
+})
 }
 
 export async function POST(request: NextRequest) {

@@ -10,7 +10,11 @@ import { usePathname } from "next/navigation"
 import { VinylLogo } from "./vinyl-logo"
 import { AuthButtonWrapper } from "./auth-button-wrapper"
 
-export function Navbar() {
+interface NavbarProps {
+  forceLogout?: boolean // New prop to force logout button
+}
+
+export function Navbar({ forceLogout = false }: NavbarProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const pathname = usePathname()
 
@@ -76,7 +80,7 @@ export function Navbar() {
               )}
 
               {/* Authentication buttons */}
-              <AuthButtonWrapper />
+              <AuthButtonWrapper forceLogout={forceLogout} />
             </nav>
 
             {/* Mobile Menu Button */}
@@ -127,7 +131,7 @@ export function Navbar() {
 
               {/* Authentication buttons for mobile */}
               <div className="pt-2">
-                <AuthButtonWrapper />
+                <AuthButtonWrapper forceLogout={forceLogout} />
               </div>
             </nav>
           )}

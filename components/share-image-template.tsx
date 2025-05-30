@@ -119,7 +119,14 @@ export function ShareImageTemplate({ children, assistantType }: ShareImageTempla
           >
             Built Using the
           </span>
-          <img src="/spotify_full_logo.svg" alt="Spotify" className="h-8" style={{ height: "32px" }} />
+          <img 
+            src="/spotify_full_logo.svg" 
+            alt="Spotify" 
+            className="h-8" 
+            style={{ height: "32px" }} 
+            width="100" 
+            height="32"
+          />
           <span
             className="text-lg text-white"
             style={{

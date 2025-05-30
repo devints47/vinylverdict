@@ -23,12 +23,12 @@ export function VinylVerdictLogo({ size = 40, className = "" }: VinylVerdictLogo
         width={size}
         height={size}
         className={`transition-all duration-300 ${isHovered ? 'scale-110 brightness-110' : 'scale-100'}`}
-        style={{
+          style={{
           width: size,
           height: size,
           objectFit: 'contain'
-        }}
-      />
+          }}
+        />
     </div>
   )
 }

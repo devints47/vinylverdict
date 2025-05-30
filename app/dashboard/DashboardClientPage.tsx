@@ -14,7 +14,7 @@ import { TrackItem } from "@/components/track-item"
 import { ArtistItem } from "@/components/artist-item"
 import { RoastMe } from "@/components/roast-me"
 import { TechGridBackground } from "@/components/tech-grid-background"
-import { VinylCollection, type VinylDesign } from "@/components/vinyl-collection"
+import { VinylCollection } from "@/components/vinyl-collection"
 import { AudioWave } from "@/components/audio-wave"
 import type { TimeRange } from "@/lib/spotify-api"
 import { formatDate, getArtists } from "@/lib/spotify-api"
@@ -39,7 +39,7 @@ interface ArtistInfo {
 }
 
 // Collapsible Critic Info Component
-function CollapsibleCriticInfo({ selectedVinyl }: { selectedVinyl: VinylDesign | null }) {
+function CollapsibleCriticInfo({ selectedVinyl }: { selectedVinyl: any }) {
   const [isExpanded, setIsExpanded] = useState(false)
 
   const toggleExpand = () => {
@@ -47,10 +47,13 @@ function CollapsibleCriticInfo({ selectedVinyl }: { selectedVinyl: VinylDesign |
   }
 
   return (
-    <div className="bg-zinc-900/50 rounded-xl border border-zinc-800 overflow-hidden md:h-[132px]">
+    <div 
+      className="bg-zinc-900/50 rounded-xl border border-zinc-800 overflow-hidden md:h-[132px] flex items-center justify-center"
+      style={{ contain: 'layout style' }}
+    >
       {selectedVinyl ? (
         <>
-          <div className="p-3 md:p-3 h-full flex flex-col justify-center">
+          <div className="p-3 md:p-3 h-full flex flex-col justify-center w-full">
             {/* Mobile view - Collapsible content */}
             <div className="md:hidden">
               <button
@@ -68,13 +71,13 @@ function CollapsibleCriticInfo({ selectedVinyl }: { selectedVinyl: VinylDesign |
               <div
                 className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? "max-h-96 pb-2" : "max-h-0"}`}
               >
-                <p className="text-zinc-300">{selectedVinyl.description}</p>
+                <p className="text-zinc-300 text-center">{selectedVinyl.description}</p>
               </div>
             </div>
 
             {/* Desktop view - Always visible content */}
             <div className="hidden md:block overflow-hidden mt-1 py-1">
-              <p className="text-zinc-300 text-base leading-relaxed">
+              <p className="text-zinc-300 text-base leading-relaxed text-center">
                 <span className="font-bold text-purple-gradient">{selectedVinyl.name}:</span>{" "}
                 {selectedVinyl.description}
               </p>
@@ -239,7 +242,7 @@ function RecentlyPlayedContent({
       <div className="h-px w-full bg-gradient-to-r from-zinc-800 via-bright-purple/20 to-zinc-800"></div>
       <CardContent>
         {isLoadingRecent || isRefreshing ? (
-          <ContentLoading message="Loading your recently played tracks..." />
+          <ContentLoading message="Loading your recently played tracks..." showSkeleton={true} itemCount={20} />
         ) : recentlyPlayed?.items?.length > 0 ? (
           <>
             <ListContainer>
@@ -347,7 +350,7 @@ function TopTracksContent({
       <div className="h-px w-full bg-gradient-to-r from-zinc-800 via-bright-purple/20 to-zinc-800"></div>
       <CardContent>
         {isLoadingTracks || isRefreshing ? (
-          <ContentLoading message="Loading your top tracks..." />
+          <ContentLoading message="Loading your top tracks..." showSkeleton={true} itemCount={20} />
         ) : currentTopTracks?.items?.length > 0 ? (
           <>
             <ListContainer>
@@ -444,7 +447,7 @@ function TopArtistsContent({
       <div className="h-px w-full bg-gradient-to-r from-zinc-800 via-bright-purple/20 to-zinc-800"></div>
       <CardContent>
         {isLoadingArtists || isRefreshing ? (
-          <ContentLoading message="Loading your top artists..." />
+          <ContentLoading message="Loading your top artists..." showSkeleton={true} itemCount={20} />
         ) : currentTopArtists?.items?.length > 0 ? (
           <>
             <ListContainer>
@@ -474,7 +477,7 @@ function TopArtistsContent({
 
 export default function DashboardClientPage() {
   const { isAuthenticated, isLoading } = useAuth()
-  const { selectedVinyl, handleVinylSelect } = useVinyl()
+  const { selectedVinyl } = useVinyl()
   const router = useRouter()
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [isLoadingProfile, setIsLoadingProfile] = useState(true)
@@ -787,6 +790,36 @@ export default function DashboardClientPage() {
     }
   }, [isAuthenticated, isLoading, router, fetchAllData])
 
+  // Add page visibility handling for better performance and back/forward cache
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        // Page became visible - check if data needs refreshing
+        const now = Date.now()
+        if (lastFetched > 0 && now - lastFetched > CACHE_DURATION) {
+          // Data is stale, refresh it
+          fetchAllData(false)
+        }
+      }
+      // When page becomes hidden, we could clean up resources here if needed
+    }
+
+    // Add beforeunload handler for better cache performance
+    const handleBeforeUnload = () => {
+      // Cancel any ongoing requests before page unload
+      // This helps with back/forward cache
+      return undefined
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange, { passive: true })
+    window.addEventListener('beforeunload', handleBeforeUnload, { passive: true })
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+    }
+  }, [lastFetched, fetchAllData])
+
   // Scroll event listener
   useEffect(() => {
     const handleScroll = () => {
@@ -802,9 +835,11 @@ export default function DashboardClientPage() {
     return (
       <div className="min-h-screen bg-black flex flex-col relative overflow-hidden">
         <TechGridBackground />
-        <Navbar />
-        <div className="flex-1 flex items-center justify-center relative z-10">
-          <div className="flex flex-col items-center">
+        <Navbar forceLogout={true} />
+        
+        {/* Fixed positioned loading content to appear in viewport center */}
+        <div className="fixed inset-0 flex items-center justify-center z-20 pointer-events-none">
+          <div className="flex flex-col items-center pointer-events-auto">
             <VinylVerdictLogo size={50} className="mb-4" />
             <h1 className="text-xl font-bold text-white mb-2">Loading your profile</h1>
             <p className="text-zinc-400">Please wait while we fetch your data...</p>
@@ -815,6 +850,15 @@ export default function DashboardClientPage() {
             )}
           </div>
         </div>
+        
+        {/* Invisible spacer to maintain layout during loading */}
+        <main className="flex-1 container mx-auto px-4 py-6 mt-20 relative z-10 mb-12 min-h-[calc(100vh-280px)]">
+          <div className="opacity-0 pointer-events-none">
+            {/* Invisible content to maintain space */}
+            <div className="h-96"></div>
+          </div>
+        </main>
+        
         <Footer />
       </div>
     )
@@ -833,9 +877,9 @@ export default function DashboardClientPage() {
   return (
     <div className="min-h-screen bg-black flex flex-col relative overflow-hidden">
       <TechGridBackground />
-      <Navbar />
+      <Navbar forceLogout={true} />
 
-      <main className="flex-1 container mx-auto px-4 py-6 mt-20 relative z-10 mb-12">
+      <main className="flex-1 container mx-auto px-4 py-6 mt-20 relative z-10 mb-12 min-h-[calc(100vh-280px)]">
         {/* Top Section with Grid Layout */}
         <div className="flex flex-col md:flex-row gap-6 mb-6 md:mb-4">
           {/* Mobile-first layout: Profile Card first on mobile, then Vinyl Collection */}
@@ -844,17 +888,25 @@ export default function DashboardClientPage() {
           {/* Left Column - Vinyl Collection (25% on desktop) */}
           <div className="w-full md:w-[25%]">
             <div className="sticky top-24">
-              <VinylCollection onSelectVinyl={handleVinylSelect} />
+              {/* Fixed vinyl container to prevent layout shifts */}
+              <div className="flex justify-center">
+                <div className="w-[300px]" style={{ contain: 'layout' }}>
+                  <VinylCollection />
+                </div>
+              </div>
             </div>
           </div>
 
           {/* Middle Column - Critic Description and Roast Me Button (50% on desktop) */}
-          <div className="w-full md:w-[50%] flex flex-col">
-            {/* Collapsible critic info box */}
-            <CollapsibleCriticInfo selectedVinyl={selectedVinyl} />
+          <div className="w-full md:w-[50%] flex flex-col items-center">
+            {/* Fixed width container for stable text rendering */}
+            <div className="w-full max-w-[600px] mx-auto" style={{ contain: 'layout' }}>
+              {/* Collapsible critic info box */}
+              <CollapsibleCriticInfo selectedVinyl={selectedVinyl} />
+            </div>
 
             {/* Roast Me button positioned directly below the description box */}
-            <div className="mt-6 md:mt-4">
+            <div className="mt-6 md:mt-4 w-full max-w-[600px] mx-auto">
               <RoastMe
                 topTracks={currentTopTracks}
                 topArtists={currentTopArtists}

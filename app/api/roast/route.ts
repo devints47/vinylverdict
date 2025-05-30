@@ -8,8 +8,8 @@ const API_BASE_URL = "https://api.openai.com/v1"
 // Create OpenAI client lazily
 function getOpenAIClient() {
   return new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  })
+  apiKey: process.env.OPENAI_API_KEY,
+})
 }
 
 // Map assistant types to their IDs
