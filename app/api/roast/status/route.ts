@@ -2,10 +2,12 @@ import { type NextRequest, NextResponse } from "next/server"
 import OpenAI from "openai"
 import { checkAuth } from "@/lib/env-check"
 
-// Create OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
+// Create OpenAI client lazily
+function getOpenAIClient() {
+  return new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  })
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,6 +26,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get the run status
+    const openai = getOpenAIClient()
     const run = await openai.beta.threads.runs.retrieve(threadId, runId)
 
     // If the run is completed, get the messages

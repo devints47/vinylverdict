@@ -5,10 +5,12 @@ import { checkAuth } from "@/lib/env-check"
 // OpenAI API constants
 const API_BASE_URL = "https://api.openai.com/v1"
 
-// Create OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
+// Create OpenAI client lazily
+function getOpenAIClient() {
+  return new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  })
+}
 
 // Map assistant types to their IDs
 function getAssistantId(assistantType: string): string | null {
@@ -172,18 +174,18 @@ export async function POST(request: NextRequest) {
     try {
       console.log("Creating OpenAI thread")
       // Create a thread
-      const thread = await openai.beta.threads.create()
+      const thread = await getOpenAIClient().beta.threads.create()
 
       console.log("Adding message to thread")
       // Add a message to the thread
-      await openai.beta.threads.messages.create(thread.id, {
+      await getOpenAIClient().beta.threads.messages.create(thread.id, {
         role: "user",
         content: JSON.stringify(data),
       })
 
       console.log("Running assistant")
       // Run the assistant
-      const run = await openai.beta.threads.runs.create(thread.id, {
+      const run = await getOpenAIClient().beta.threads.runs.create(thread.id, {
         assistant_id: assistantId,
       })
 
