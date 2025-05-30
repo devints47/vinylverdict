@@ -1,8 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
 
-export async function GET(request: NextRequest, { params }: { params: { code: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ code: string }> }) {
   try {
-    const code = params.code
+    const { code } = await params
 
     if (!code) {
       return NextResponse.redirect(new URL("/", request.url))

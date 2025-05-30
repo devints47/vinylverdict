@@ -3,9 +3,7 @@ import type { Metadata } from "next"
 import { SharedImageDisplay } from "./shared-image-display"
 
 interface PageProps {
-  params: {
-    code: string
-  }
+  params: Promise<{ code: string }>
 }
 
 // Helper function to decode the URL and reconstruct the blob URL
@@ -53,7 +51,7 @@ function decodeShareCode(code: string): { imageUrl: string } | null {
 // Generate metadata for social sharing
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   try {
-    const code = params.code
+    const { code } = await params
     if (!code) {
       return {
         title: "VinylVerdict.fm",
@@ -102,9 +100,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 }
 
-export default function SharedVerdictPage({ params }: PageProps) {
+export default async function SharedVerdictPage({ params }: PageProps) {
   try {
-    const code = params.code
+    const { code } = await params
     if (!code) {
       notFound()
     }

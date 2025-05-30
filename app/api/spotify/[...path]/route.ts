@@ -2,20 +2,24 @@ import { type NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { API_BASE_URL } from "@/lib/spotify-config"
 
-export async function GET(request: NextRequest, { params }: { params: { path: string[] } }) {
-  return handleSpotifyRequest(request, params.path, "GET")
+export async function GET(request: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
+  const { path } = await params
+  return handleSpotifyRequest(request, path, "GET")
 }
 
-export async function POST(request: NextRequest, { params }: { params: { path: string[] } }) {
-  return handleSpotifyRequest(request, params.path, "POST")
+export async function POST(request: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
+  const { path } = await params
+  return handleSpotifyRequest(request, path, "POST")
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { path: string[] } }) {
-  return handleSpotifyRequest(request, params.path, "PUT")
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
+  const { path } = await params
+  return handleSpotifyRequest(request, path, "PUT")
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { path: string[] } }) {
-  return handleSpotifyRequest(request, params.path, "DELETE")
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
+  const { path } = await params
+  return handleSpotifyRequest(request, path, "DELETE")
 }
 
 async function handleSpotifyRequest(request: NextRequest, pathSegments: string[], method: string) {

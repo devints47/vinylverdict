@@ -28,6 +28,7 @@ interface RoastMeProps {
 interface ResponseStore {
   content: string
   isComplete: boolean
+  displayPosition?: number // Add display position to track typewriter progress
   requestId?: string // Add requestId to track requests
   timestamp: number // Add timestamp for expiration
 }
@@ -344,6 +345,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
         [assistantType]: {
           content: mainContent,
           isComplete: false,
+          displayPosition: 0, // Start from beginning for new content
           requestId,
           timestamp: Date.now(), // Add timestamp
         },
@@ -362,11 +364,26 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
 
   // Handle typewriter completion
   const handleTypewriterComplete = () => {
+    // Defer the state update to avoid "Cannot update component while rendering" error
+    setTimeout(() => {
+      setResponseStore((prev) => ({
+        ...prev,
+        [assistantType]: {
+          ...prev[assistantType],
+          isComplete: true,
+          displayPosition: prev[assistantType]?.content?.length || 0, // Store final position
+        },
+      }))
+    }, 0)
+  }
+
+  // Handle typewriter progress updates
+  const handleTypewriterProgress = (position: number) => {
     setResponseStore((prev) => ({
       ...prev,
       [assistantType]: {
         ...prev[assistantType],
-        isComplete: true,
+        displayPosition: position, // Update current position
       },
     }))
   }
@@ -401,7 +418,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
 
   // Custom components for ReactMarkdown to preserve emoji colors
   const components = {
-    h1: ({ node, ...props }) => {
+    h1: ({ ...props }: any) => {
       // Process children to wrap text (but not emojis) in styled spans
       const children = React.Children.toArray(props.children).map((child) => {
         if (typeof child === "string") {
@@ -415,9 +432,9 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
                 </span>
               )
             }
-            // Regular text gets the gradient
+            // Regular text gets the gradient styling
             return (
-              <span key={i} className="text-purple-gradient">
+              <span key={i} className="gradient-text">
                 {part}
               </span>
             )
@@ -428,13 +445,11 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
 
       return <h1 {...props}>{children}</h1>
     },
-    h2: ({ node, ...props }) => {
+    h2: ({ ...props }: any) => {
       // Process children to wrap text (but not emojis) in styled spans
       const children = React.Children.toArray(props.children).map((child) => {
         if (typeof child === "string") {
-          // Use regex to find emojis
           return child.split(/(\p{Emoji}+)/gu).map((part, i) => {
-            // Check if this part is an emoji
             if (/\p{Emoji}/u.test(part)) {
               return (
                 <span key={i} className="emoji">
@@ -442,9 +457,8 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
                 </span>
               )
             }
-            // Regular text gets the gradient
             return (
-              <span key={i} className="text-purple-gradient">
+              <span key={i} className="gradient-text">
                 {part}
               </span>
             )
@@ -455,13 +469,11 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
 
       return <h2 {...props}>{children}</h2>
     },
-    h3: ({ node, ...props }) => {
+    h3: ({ ...props }: any) => {
       // Process children to wrap text (but not emojis) in styled spans
       const children = React.Children.toArray(props.children).map((child) => {
         if (typeof child === "string") {
-          // Use regex to find emojis
           return child.split(/(\p{Emoji}+)/gu).map((part, i) => {
-            // Check if this part is an emoji
             if (/\p{Emoji}/u.test(part)) {
               return (
                 <span key={i} className="emoji">
@@ -469,9 +481,8 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
                 </span>
               )
             }
-            // Regular text gets the gradient
             return (
-              <span key={i} className="text-purple-gradient">
+              <span key={i} className="gradient-text">
                 {part}
               </span>
             )
@@ -499,21 +510,24 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
       return (
         <CursorTypewriter
           markdown={currentResponse.content}
-          speed={12} // Slowed down from 7ms to 12ms
+          speed={12.5} // Doubled speed again: 12.5ms per character (~80 characters per second)
           onComplete={handleTypewriterComplete}
+          onProgress={handleTypewriterProgress}
+          startPosition={currentResponse.displayPosition || 0} // Start from saved position
           cursorChar="█"
         />
       )
     }
 
     return (
-      <ReactMarkdown
-        className="prose prose-invert max-w-none text-zinc-300 prose-strong:text-white prose-em:text-zinc-400 prose-li:marker:text-purple-gradient animate-fadeIn"
-        rehypePlugins={[rehypeRaw]}
-        components={components}
-      >
-        {currentResponse.content}
-      </ReactMarkdown>
+      <div className="prose prose-invert max-w-none text-zinc-300 prose-strong:text-white prose-em:text-zinc-400 prose-li:marker:text-purple-gradient animate-fadeIn">
+        <ReactMarkdown
+          rehypePlugins={[rehypeRaw]}
+          components={components}
+        >
+          {currentResponse.content}
+        </ReactMarkdown>
+      </div>
     )
   }, [currentResponse.content, currentResponse.isComplete, currentResponse.requestId])
 
@@ -562,7 +576,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
   const showShareButton = currentResponse.content && currentResponse.isComplete
 
   // Determine if the primary button should be disabled
-  const isPrimaryButtonDisabled = currentResponse.content && !currentResponse.isComplete
+  const isPrimaryButtonDisabled = Boolean(currentResponse.content && !currentResponse.isComplete)
 
   // Function to handle sharing
   const handleShare = async (platform: string) => {
