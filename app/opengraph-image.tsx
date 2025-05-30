@@ -69,10 +69,10 @@ export default async function Image() {
             marginBottom: "20px",
           }}
         >
-          <span style={{ fontSize: 56, marginRight: "16px" }}>🎧</span>
+          <span style={{ fontSize: 64, marginRight: "16px" }}>🎧</span>
           <h1
             style={{
-              fontSize: 56,
+              fontSize: 64,
               fontWeight: "bold",
               color: "#9333ea",
               margin: 0,
@@ -86,7 +86,7 @@ export default async function Image() {
         {/* Tagline */}
         <div
           style={{
-            fontSize: 32,
+            fontSize: 38,
             fontWeight: "600",
             color: "white",
             lineHeight: 1.3,
@@ -100,7 +100,7 @@ export default async function Image() {
         {/* Description */}
         <div
           style={{
-            fontSize: 22,
+            fontSize: 26,
             fontWeight: "normal",
             color: "#d4d4d8",
             lineHeight: 1.4,
@@ -114,7 +114,7 @@ export default async function Image() {
         {/* Call to action button */}
         <div
           style={{
-            fontSize: 20,
+            fontSize: 24,
             fontWeight: "bold",
             color: "white",
             padding: "16px 32px",
