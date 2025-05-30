@@ -4,7 +4,7 @@ import { cookies } from "next/headers"
 export async function GET(request: NextRequest) {
   try {
     // Get the access token from cookies
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     const accessToken = cookieStore.get("spotify_access_token")?.value
 
     if (!accessToken) {

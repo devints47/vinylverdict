@@ -1,15 +1,59 @@
 User-agent: *
 Allow: /
 
-# Disallow admin and API routes
-Disallow: /admin/
-Disallow: /api/
+# Disallow authentication-protected routes
+Disallow: /dashboard/
+Disallow: /dashboard
+Disallow: /login/
+Disallow: /login
+Disallow: /callback/
+Disallow: /callback
 
-# Allow specific API routes that should be crawled
+# Disallow API routes (except public ones)
+Disallow: /api/
 Allow: /api/og/
+
+# Disallow share routes (authentication required)
+Disallow: /s/
+Disallow: /share/
+
+# Disallow admin and internal routes
+Disallow: /admin/
+Disallow: /_next/
+Disallow: /.next/
+
+# Disallow temporary and test files
+Disallow: /tmp/
+Disallow: /temp/
+Disallow: /test/
+
+# Allow important public pages
+Allow: /
+Allow: /privacy
+Allow: /terms
+Allow: /about
 
 # Sitemap location
 Sitemap: https://vinylverdict.fm/sitemap.xml
 
-# Crawl delay (optional)
+# Crawl delay (be respectful)
 Crawl-delay: 1
+
+# Additional directives for better SEO
+# Google-specific
+User-agent: Googlebot
+Crawl-delay: 1
+
+# Bing-specific  
+User-agent: Bingbot
+Crawl-delay: 1
+
+# Social media crawlers (allow for better sharing)
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /

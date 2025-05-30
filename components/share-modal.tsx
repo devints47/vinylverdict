@@ -126,7 +126,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       header.style.maxWidth = "880px"
 
       const vinylLogo = document.createElement("img")
-      vinylLogo.src = "/vinyl-favicon.png"
+      vinylLogo.src = "/music-snob-vinyl.png"
       vinylLogo.alt = "VinylVerdict Logo"
       vinylLogo.style.height = "120px"
       vinylLogo.style.width = "120px"
@@ -185,7 +185,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       logoContainer.style.marginBottom = "16px"
 
       const logoImg = document.createElement("img")
-      logoImg.src = "/vinyl-favicon.png"
+      logoImg.src = "/music-snob-vinyl.png"
       logoImg.alt = "VinylVerdict Logo"
       logoImg.style.height = "60px"
       logoImg.style.width = "60px"

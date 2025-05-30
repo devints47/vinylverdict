@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     const state = generateCodeVerifier(16)
 
     // Store code verifier and state in secure HTTP-only cookies
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
 
     // Set cookies with HTTP-only flag and short expiration (10 minutes)
     cookieStore.set("spotify_code_verifier", codeVerifier, {

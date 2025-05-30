@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get the code verifier from the cookie
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     const codeVerifier = cookieStore.get("spotify_code_verifier")?.value
 
     if (!codeVerifier) {
@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     // Get the access token from cookies
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     const accessToken = cookieStore.get("spotify_access_token")?.value
     const expiryTimeStr = cookieStore.get("spotify_token_expiry")?.value
 

@@ -5,7 +5,7 @@ import { cookies } from "next/headers"
 export async function POST(request: NextRequest) {
   try {
     // Get the refresh token from cookies
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     const refreshToken = cookieStore.get("spotify_refresh_token")?.value
 
     if (!refreshToken) {

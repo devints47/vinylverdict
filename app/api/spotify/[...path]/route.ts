@@ -21,7 +21,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { path:
 async function handleSpotifyRequest(request: NextRequest, pathSegments: string[], method: string) {
   try {
     // Get the access token from cookies
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     const accessToken = cookieStore.get("spotify_access_token")?.value
     const expiryTimeStr = cookieStore.get("spotify_token_expiry")?.value
 

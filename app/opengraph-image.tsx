@@ -108,7 +108,7 @@ export default async function Image() {
             maxWidth: "500px",
           }}
         >
-          Connect your Spotify and take a look in the mirror.
+          Ready for some introspection? Connect your Spotify and take a look in the mirror.
         </div>
 
         {/* Call to action button */}
@@ -146,8 +146,8 @@ export default async function Image() {
         <img
           src={`data:image/png;base64,${Buffer.from(musicSnobVinylData).toString('base64')}`}
           alt="Music Snob Vinyl"
-          width="380"
-          height="380"
+          width="500"
+          height="500"
           style={{
             // Glow effect is now built into the image, so no filter needed
           }}

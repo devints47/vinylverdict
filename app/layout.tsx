@@ -46,31 +46,34 @@ export const metadata: Metadata = {
     title: "VinylVerdict.FM 🎧 Your Personal Music Taste Analyst",
     description:
       "Ready to face the music? Connect your Spotify account for personalized music insights, track analysis, and a shareable analysis. From brutal honesty to historical insights - prepare for your verdict. 💀",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "VinylVerdict.FM 🎧 Your Personal Music Taste Analyst",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "VinylVerdict.FM 🎧 Your Personal Music Taste Analyst",
     description:
       "Ready to face the music? Connect your Spotify account for personalized music insights, track analysis, and a shareable analysis. From brutal honesty to historical insights - prepare for your verdict. 💀",
-    images: ["/og-image.png"],
     creator: "@vinylverdict",
     site: "@vinylverdict",
   },
   icons: {
     icon: [
-      { url: "/vinyl-favicon.png", sizes: "32x32", type: "image/png" },
-      { url: "/vinyl-favicon.png", sizes: "16x16", type: "image/png" },
+      { url: "/vinyl-favicon2.png", sizes: "16x16", type: "image/png" },
+      { url: "/vinyl-favicon2.png", sizes: "32x32", type: "image/png" },
+      { url: "/vinyl-favicon2.png", sizes: "48x48", type: "image/png" },
+      { url: "/vinyl-favicon2.png", sizes: "64x64", type: "image/png" },
     ],
-    apple: [{ url: "/vinyl-favicon.png", sizes: "180x180", type: "image/png" }],
-    shortcut: "/vinyl-favicon.png",
+    apple: [
+      { url: "/vinyl-favicon2.png", sizes: "180x180", type: "image/png" },
+      { url: "/vinyl-favicon2.png", sizes: "152x152", type: "image/png" },
+      { url: "/vinyl-favicon2.png", sizes: "144x144", type: "image/png" },
+      { url: "/vinyl-favicon2.png", sizes: "120x120", type: "image/png" },
+      { url: "/vinyl-favicon2.png", sizes: "114x114", type: "image/png" },
+      { url: "/vinyl-favicon2.png", sizes: "76x76", type: "image/png" },
+      { url: "/vinyl-favicon2.png", sizes: "72x72", type: "image/png" },
+      { url: "/vinyl-favicon2.png", sizes: "60x60", type: "image/png" },
+      { url: "/vinyl-favicon2.png", sizes: "57x57", type: "image/png" },
+    ],
+    shortcut: "/vinyl-favicon2.png",
   },
   manifest: "/manifest.json",
   robots: {
@@ -88,13 +91,29 @@ export const metadata: Metadata = {
     google: "your-google-verification-code", // Replace with actual verification code
   },
   category: "entertainment",
-    generator: 'v0.dev'
+  referrer: "origin-when-cross-origin",
+  generator: "Next.js",
+  applicationName: "VinylVerdict.FM",
+  appleWebApp: {
+    capable: true,
+    title: "VinylVerdict.FM",
+    statusBarStyle: "black-translucent",
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-status-bar-style": "black-translucent",
+    "theme-color": "#a855f7",
+    "msapplication-TileColor": "#a855f7",
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/vinyl-favicon2.png" type="image/png" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -102,27 +121,50 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               "@context": "https://schema.org",
               "@type": "WebApplication",
               name: "VinylVerdict.fm",
+              alternateName: "VinylVerdict.FM",
               description:
                 "Ready to face the music? Connect your Spotify account for personalized music insights, track analysis, and a shareable analysis. From brutal honesty to historical insights - prepare for your verdict. 🎵💀",
               url: "https://vinylverdict.fm",
               applicationCategory: "EntertainmentApplication",
               operatingSystem: "Web Browser",
+              browserRequirements: "Requires JavaScript. Requires HTML5.",
+              softwareVersion: "1.0",
+              releaseNotes: "AI-powered music taste analysis with multiple critic personalities",
+              screenshot: "https://vinylverdict.fm/og-image.png",
               offers: {
                 "@type": "Offer",
                 price: "0",
                 priceCurrency: "USD",
+                availability: "https://schema.org/InStock",
               },
               creator: {
                 "@type": "Organization",
                 name: "VinylVerdict.fm",
+                url: "https://vinylverdict.fm",
+                logo: "https://vinylverdict.fm/music-snob-vinyl.png",
+                sameAs: [
+                  "https://twitter.com/vinylverdict",
+                  "https://github.com/vinylverdict"
+                ]
               },
               featureList: [
                 "Spotify Integration",
-                "AI Music Roasting",
+                "AI Music Analysis",
                 "Multiple Critic Personalities", 
-                "Shareable Roast Results",
-                "Musical Judgment & Humiliation",
+                "Shareable Analysis Results",
+                "Music Taste Insights",
+                "Track and Artist Analysis",
+                "Listening History Review"
               ],
+              audience: {
+                "@type": "Audience",
+                audienceType: "Music Lovers"
+              },
+              inLanguage: "en-US",
+              isAccessibleForFree: true,
+              usageInfo: "https://vinylverdict.fm/terms",
+              privacyPolicy: "https://vinylverdict.fm/privacy",
+              termsOfService: "https://vinylverdict.fm/terms"
             }),
           }}
         />
