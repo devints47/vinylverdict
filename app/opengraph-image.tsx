@@ -14,6 +14,11 @@ export const contentType = "image/png"
 
 // Image generation
 export default async function Image() {
+  // Fetch the generated Music Snob vinyl image
+  const musicSnobVinylData = await fetch(new URL('/music-snob-vinyl.png', 'https://vinylverdict.fm')).then(
+    (res) => res.arrayBuffer(),
+  )
+
   return new ImageResponse(
     <div
       style={{
@@ -137,59 +142,16 @@ export default async function Image() {
           zIndex: 2,
         }}
       >
-        <svg
+        {/* Music Snob vinyl image - exact same as component with built-in glow */}
+        <img
+          src={`data:image/png;base64,${Buffer.from(musicSnobVinylData).toString('base64')}`}
+          alt="Music Snob Vinyl"
           width="380"
           height="380"
-          viewBox="0 0 380 380"
           style={{
-            filter: "drop-shadow(0 0 60px rgba(147, 51, 234, 0.6))",
+            // Glow effect is now built into the image, so no filter needed
           }}
-        >
-          {/* Outer vinyl record */}
-          <circle cx="190" cy="190" r="190" fill="#1a1a1a" />
-          
-          {/* Vinyl grooves */}
-          <circle cx="190" cy="190" r="170" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
-          <circle cx="190" cy="190" r="150" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
-          <circle cx="190" cy="190" r="130" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
-          <circle cx="190" cy="190" r="110" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
-          
-          {/* Purple center label */}
-          <defs>
-            <linearGradient id="purpleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#a855f7" />
-              <stop offset="100%" stopColor="#9333ea" />
-            </linearGradient>
-          </defs>
-          <circle cx="190" cy="190" r="80" fill="url(#purpleGrad)" />
-          
-          {/* Label edge */}
-          <circle cx="190" cy="190" r="80" fill="none" stroke="rgba(0,0,0,0.3)" strokeWidth="1" />
-          
-          {/* Music Snob Face - Glasses */}
-          <ellipse cx="170" cy="175" rx="12" ry="8" fill="none" stroke="black" strokeWidth="2" />
-          <ellipse cx="210" cy="175" rx="12" ry="8" fill="none" stroke="black" strokeWidth="2" />
-          
-          {/* Bridge */}
-          <line x1="182" y1="175" x2="198" y2="175" stroke="black" strokeWidth="2" />
-          
-          {/* Raised eyebrow */}
-          <path d="M 158 165 Q 170 160 185 165" fill="none" stroke="black" strokeWidth="2" />
-          
-          {/* Unimpressed mouth */}
-          <line x1="180" y1="200" x2="200" y2="198" stroke="black" strokeWidth="2" />
-          
-          {/* Center hole */}
-          <circle cx="190" cy="190" r="8" fill="#000" />
-          
-          {/* VinylVerdict text around the label */}
-          <path id="circle-text" d="M 190,110 A 80,80 0 1,1 189,110" fill="none" />
-          <text fontSize="10" fill="black" fontWeight="bold">
-            <textPath href="#circle-text" startOffset="0%">
-              • VINYLVERDICT • PREMIUM VINYL • AUDIOPHILE COLLECTION •
-            </textPath>
-          </text>
-        </svg>
+        />
       </div>
     </div>,
     {

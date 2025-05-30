@@ -615,26 +615,26 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
           ) : (
             <div className="relative w-full h-full flex flex-col items-center justify-center">
               <div className="relative group">
-                <img
-                  ref={imgRef}
-                  src={imageUrl || "/placeholder.svg"}
-                  alt="Share preview"
+              <img
+                ref={imgRef}
+                src={imageUrl || "/placeholder.svg"}
+                alt="Share preview"
                   className="max-w-full max-h-full rounded-lg border border-zinc-700 object-contain cursor-pointer hover:opacity-90 transition-all duration-200 group-hover:scale-[1.02]"
-                  onClick={handleImageClick}
-                  onError={() => {
-                    toast({
-                      title: "Preview failed",
-                      description: "Could not load image preview.",
-                      variant: "destructive",
-                    })
-                  }}
-                />
+                onClick={handleImageClick}
+                onError={() => {
+                  toast({
+                    title: "Preview failed",
+                    description: "Could not load image preview.",
+                    variant: "destructive",
+                  })
+                }}
+              />
                 
                 {/* Hover overlay with better styling */}
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-200 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100">
                   <div className="bg-black/80 text-white px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 backdrop-blur-sm">
                     <Copy className="h-4 w-4" />
-                    Click to copy
+                Click to copy
                   </div>
                 </div>
               </div>
