@@ -98,9 +98,9 @@ const ContentLoading = memo(function ContentLoading({
             </div>
           </div>
         </div>
-      </div>
-    )
-  }
+    </div>
+  )
+}
 
   // Fallback spinner loading (for other use cases)
   return (

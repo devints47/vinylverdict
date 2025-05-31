@@ -47,12 +47,12 @@ export function ListContainer({
             }
           }
         `}</style>
-        <VirtualizedList
-          items={items}
-          renderItem={renderItem}
-          itemHeight={itemHeight}
+      <VirtualizedList
+        items={items}
+        renderItem={renderItem}
+        itemHeight={itemHeight}
           className={`list-container space-y-1 divide-y divide-zinc-800/30 px-0 ${className}`}
-        />
+      />
       </>
     )
   }

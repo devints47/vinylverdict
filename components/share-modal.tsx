@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/compone
 import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/use-toast"
 import { Mail, Copy, Share2, Share, Download } from "lucide-react"
+import { VinylRecord } from "@/components/vinyl-record"
 
 interface ShareModalProps {
   isOpen: boolean
@@ -15,26 +16,33 @@ interface ShareModalProps {
 }
 
 const loadingMessages = [
-  "Generating your image...",
-  "Making it look perfect...",
-  "Adding some vinyl magic...",
-  "Preparing your share...",
-  "Almost ready...",
-  "Finalizing your verdict...",
-  "Crafting your story...",
+  "Spinning up the turntables...",
+  "Adding vinyl magic...",
+  "Crafting your verdict...", 
+  "Mixing the perfect roast...",
+  "Dropping the needle...",
+  "Finalizing your story...",
+  "Almost ready to drop...",
 ]
 
 export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: ShareModalProps) {
   const [imageUrl, setImageUrl] = useState<string>("")
-  const [showingImage, setShowingImage] = useState(false)
-  const [imageFullyLoaded, setImageFullyLoaded] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0)
   const [userProfile, setUserProfile] = useState<any>(null)
   const [isSendingEmail, setIsSendingEmail] = useState(false)
   const [supportsNativeShare, setSupportsNativeShare] = useState(false)
+  const [showCopiedFeedback, setShowCopiedFeedback] = useState(false)
+  const [showCopiedText, setShowCopiedText] = useState(false)
+  const [notifications, setNotifications] = useState<{[key: string]: boolean}>({})
   const loadingIntervalRef = useRef<NodeJS.Timeout | null>(null)
-  const imgRef = useRef<HTMLImageElement>(null)
-  const cleanupTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Fixed dimensions matching the loading preview - increased by 10%
+  const PREVIEW_DIMENSIONS = {
+    width: 385, // Increased from 350 to match image resolution better
+    aspectRatio: 3/4, // aspect-[3/4] from loading preview
+    get height() { return (this.width / this.aspectRatio) * 1.1 } // 10% increase
+  }
 
   // Detect Web Share API support on client side only to avoid hydration errors
   useEffect(() => {
@@ -63,11 +71,12 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
   useEffect(() => {
     if (isOpen) {
       // Reset states
-      console.log("🔄 Modal opened, resetting states")
       setImageUrl("")
-      setShowingImage(false)
-      setImageFullyLoaded(false)
+      setIsLoading(true)
       setIsSendingEmail(false)
+      setShowCopiedFeedback(false)
+      setShowCopiedText(false)
+      setNotifications({})
 
       // Start cycling through loading messages
       setLoadingMessageIndex(0)
@@ -84,49 +93,31 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
         try {
           // Get username from profile
           const username = userProfile?.display_name || userProfile?.id || "Your Music"
-          
+
           // Create URL parameters for the server-side image generation
           const params = new URLSearchParams({
             text: text, // Send raw markdown text
             type: assistantType,
             username: username
           })
-          
+
           // Call the server-side image generation API
           const imageApiUrl = `/api/share-image?${params.toString()}`
           
-          // Create a new image element to preload the server-generated image
-          const img = new Image()
-          img.crossOrigin = "anonymous"
+          // Simple approach: just set the URL and let the image load naturally
+          setImageUrl(imageApiUrl)
           
-          // Wait for the image to load before showing it
-          await new Promise((resolve, reject) => {
-            img.onload = () => {
-              console.log("✅ Preload image loaded successfully")
-              setImageUrl(imageApiUrl)
-              setShowingImage(true)
-              
-              // Add a small delay to ensure UI image renders properly, then mark as fully loaded
-              setTimeout(() => {
-                console.log("✅ UI image should be rendered now")
-                setImageFullyLoaded(true)
-                if (loadingIntervalRef.current) {
-                  clearInterval(loadingIntervalRef.current)
-                }
-              }, 100)
-              
-              resolve(img)
+          // Stop loading after a reasonable delay to let the image load
+          setTimeout(() => {
+            setIsLoading(false)
+            if (loadingIntervalRef.current) {
+              clearInterval(loadingIntervalRef.current)
             }
-            img.onerror = () => {
-              console.log("❌ Preload image failed to load")
-              reject(new Error("Failed to load generated image"))
-            }
-            console.log("🔄 Starting preload of image:", imageApiUrl)
-            img.src = imageApiUrl
-          })
+          }, 3000)
           
         } catch (error) {
           console.error('Error generating share image:', error)
+          setIsLoading(false)
           if (loadingIntervalRef.current) {
             clearInterval(loadingIntervalRef.current)
           }
@@ -146,11 +137,27 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       if (loadingIntervalRef.current) {
         clearInterval(loadingIntervalRef.current)
       }
-      if (cleanupTimeoutRef.current) {
-        clearTimeout(cleanupTimeoutRef.current)
-      }
     }
   }, [isOpen, text, assistantType, userProfile])
+
+  // Helper function to show temporary notifications
+  const showNotification = (key: string, duration: number = 3000) => {
+    setNotifications(prev => ({ ...prev, [key]: true }))
+    setTimeout(() => {
+      setNotifications(prev => ({ ...prev, [key]: false }))
+    }, duration)
+  }
+
+  // Helper function to show instant notifications (no delay)
+  const showInstantNotification = (key: string, duration: number = 3000) => {
+    // Use requestAnimationFrame to ensure immediate update
+    requestAnimationFrame(() => {
+      setNotifications(prev => ({ ...prev, [key]: true }))
+      setTimeout(() => {
+        setNotifications(prev => ({ ...prev, [key]: false }))
+      }, duration)
+    })
+  }
 
   const getPersonalityName = (type: string): string => {
     switch (type) {
@@ -253,13 +260,13 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     if (!imageUrl) return
 
     try {
+      showInstantNotification('copy')
       await copyImageToClipboard(imageUrl)
-      toast({
-        title: "Image copied!",
-        description: "The verdict image has been copied to your clipboard.",
-      })
-      onClose()
+      // Don't close modal - let user continue sharing
     } catch (error) {
+      console.error('Copy failed:', error)
+      // Hide the notification if copy failed
+      setNotifications(prev => ({ ...prev, copy: false }))
       toast({
         title: "Copy failed",
         description: "Could not copy image to clipboard. Please try downloading instead.",
@@ -271,13 +278,25 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
   const handleImageClick = async () => {
     if (!imageUrl) return
 
+    // Show feedback immediately when clicked (before clipboard operation)
+    setShowCopiedFeedback(true)
+    setShowCopiedText(true)
+    showInstantNotification('imageClick', 1500)
+
     try {
+      // Copy to clipboard (async operation happens after feedback is shown)
       await copyImageToClipboard(imageUrl)
-      toast({
-        title: "Image copied!",
-        description: "Clicked to copy! The image has been copied to your clipboard.",
-      })
+      
+      // Reset both feedbacks after their respective durations
+      setTimeout(() => setShowCopiedFeedback(false), 1500)
+      setTimeout(() => setShowCopiedText(false), 2000)
+      
     } catch (error) {
+      console.error('Copy failed:', error)
+      // Hide the notification if copy failed
+      setNotifications(prev => ({ ...prev, imageClick: false }))
+      setShowCopiedText(false)
+      setShowCopiedFeedback(false)
       toast({
         title: "Copy failed",
         description: "Could not copy image to clipboard. Please try the copy button instead.",
@@ -359,13 +378,9 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       }
 
       const result = await response.json()
+      showInstantNotification('email')
+      // Don't close modal - let user continue sharing
 
-      toast({
-        title: "Email sent!",
-        description: `Your verdict has been sent to ${result.email}`,
-      })
-
-      onClose()
     } catch (error) {
       toast({
         title: "Email failed",
@@ -382,13 +397,13 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
 
     try {
       const filename = `vinylverdict-${assistantType}-${Date.now()}.png`
+      showInstantNotification('download')
       await downloadImage(imageUrl, filename)
-      toast({
-        title: "Download successful",
-        description: "Your verdict image has been downloaded.",
-      })
-      onClose()
+      // Don't close modal - let user continue sharing
     } catch (error) {
+      console.error('Download failed:', error)
+      // Hide the notification if download failed
+      setNotifications(prev => ({ ...prev, download: false }))
       toast({
         title: "Download failed",
         description: "Could not download image. Please try copying to clipboard instead.",
@@ -397,35 +412,10 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     }
   }
 
-  // Handle when the UI image element finishes loading (backup)
-  const handleImageLoad = () => {
-    console.log("✅ UI image onLoad event fired (backup)")
-    if (!imageFullyLoaded) {
-      setImageFullyLoaded(true)
-      if (loadingIntervalRef.current) {
-        clearInterval(loadingIntervalRef.current)
-      }
-    }
-  }
-
-  // Handle image load error in UI
-  const handleImageError = () => {
-    console.log("❌ UI image failed to load")
-    setImageFullyLoaded(false)
-    if (loadingIntervalRef.current) {
-      clearInterval(loadingIntervalRef.current)
-    }
-    toast({
-      title: "Preview failed",
-      description: "Could not load image preview.",
-      variant: "destructive",
-    })
-  }
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent 
-        className="w-[95vw] max-w-[500px] lg:max-w-[550px] max-h-[95vh] bg-zinc-900 border-zinc-800 p-0 overflow-hidden [&_button.absolute.right-4.top-4]:hidden mx-auto"
+        className="w-[95vw] max-w-[550px] lg:max-w-[600px] max-h-[95vh] bg-zinc-900 border-zinc-800 p-0 overflow-hidden [&_button.absolute.right-4.top-4]:hidden mx-auto"
       >
         <DialogTitle className="sr-only">
           {getShareTitle()}
@@ -437,127 +427,196 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
         
         <div className="flex flex-col min-h-0">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-1.5 z-10 bg-zinc-900/80 backdrop-blur-sm border-b border-zinc-800 flex-shrink-0">
+          <div className="flex items-center justify-between px-4 py-3 z-10 bg-zinc-900/80 backdrop-blur-sm border-b border-zinc-800 flex-shrink-0">
             <div className="flex items-center justify-center gap-2 text-white flex-1">
-              <Share2 className="h-5 w-5 text-purple-500" />
-              {getShareTitle()}
+            <Share2 className="h-5 w-5 text-purple-500" />
+            {getShareTitle()}
             </div>
-            
-            <button
-              onClick={onClose}
-              className="w-8 h-8 rounded-lg bg-purple-600/20 hover:bg-purple-600/40 border border-purple-500/30 hover:border-purple-400 flex items-center justify-center transition-all duration-200 hover:scale-105 group"
-              aria-label="Close share modal"
-            >
-              <svg
-                className="w-4 h-4 text-purple-400 group-hover:text-purple-300 transition-colors"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
           </div>
+
+          {/* Absolute X button in top right */}
+          <button
+            onClick={onClose}
+            className="w-[49px] h-[49px] m-0 rounded-lg bg-purple-600/20 hover:bg-purple-600/40 border border-purple-500/30 hover:border-purple-400 flex items-center justify-center transition-all duration-200 hover:scale-105 group absolute right-0 top-0 z-20"
+            aria-label="Close share modal"
+          >
+            <svg
+              className="w-5 h-5 text-purple-400 group-hover:text-purple-300 transition-colors"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
 
           {/* Main content area */}
           <div className="flex items-center justify-center p-4 flex-shrink-0">
-            {!showingImage || !imageFullyLoaded ? (
-              <div className="w-full max-w-[350px] aspect-[3/4] bg-zinc-800 rounded-lg flex flex-col items-center justify-center p-6 text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mb-4"></div>
-                <p className="text-purple-300 font-medium text-lg">{loadingMessages[loadingMessageIndex]}</p>
-                <p className="text-zinc-400 text-sm mt-2">This may take a few moments</p>
-                {/* Debug info */}
-                <p className="text-xs text-zinc-600 mt-2">
-                  Debug: showingImage={showingImage.toString()}, imageFullyLoaded={imageFullyLoaded.toString()}
-                </p>
-              </div>
-            ) : (
-              <div className="w-full max-w-[350px]">
-                <div className="relative group w-full overflow-hidden rounded-lg bg-transparent">
-                  <img
-                    ref={imgRef}
-                    src={imageUrl || "/music-snob-vinyl.png"}
-                    alt="Share preview of your music taste verdict"
-                    className="w-full h-auto rounded-lg border border-zinc-700 object-contain cursor-pointer hover:opacity-90 transition-all duration-200 group-hover:scale-[1.02] block bg-transparent"
-                    style={{ backgroundColor: 'transparent' }}
-                    onClick={handleImageClick}
-                    onLoad={handleImageLoad}
-                    onError={handleImageError}
-                  />
-                  
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-200 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100">
-                    <div className="bg-black/80 text-white px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 backdrop-blur-sm">
-                      <Copy className="h-4 w-4" />
-                      Click to copy
+            <div 
+              className="w-full relative"
+              style={{
+                maxWidth: `${PREVIEW_DIMENSIONS.width}px`,
+                aspectRatio: '3/4',
+                minHeight: `${PREVIEW_DIMENSIONS.height}px`,
+                maxHeight: `${PREVIEW_DIMENSIONS.height}px`
+              }}
+            >
+              {isLoading ? (
+                // Loading state with fancy vinyl spinner - same background as modal
+                <div className="absolute inset-0 bg-zinc-900 rounded-lg flex flex-col items-center justify-center p-6 text-center">
+                  {/* Fancy Vinyl Spinner */}
+                  <div className="relative mb-6">
+                    <div className="w-24 h-24">
+                      <VinylRecord size={96} />
                     </div>
                   </div>
+                  
+                  <p className="text-purple-300 font-medium text-lg mb-2">{loadingMessages[loadingMessageIndex]}</p>
+                  <p className="text-zinc-400 text-sm">Creating your vinyl verdict...</p>
                 </div>
-              </div>
-            )}
+              ) : (
+                // Final image state
+                <div className="absolute inset-0">
+                  <div className="relative group w-full h-full overflow-hidden rounded-lg bg-transparent cursor-pointer">
+                    <img
+                      src={imageUrl || "/music-snob-vinyl.png"}
+                      alt="Share preview of your music taste verdict"
+                      className="w-full h-full rounded-lg object-contain hover:opacity-90 transition-all duration-200 group-hover:scale-[1.02] block bg-transparent animate-in fade-in-0 duration-300"
+                      style={{ backgroundColor: 'transparent' }}
+                      onClick={handleImageClick}
+                    />
+                    
+                    {/* Hover overlay with dynamic text - pointer-events-none so it doesn't block clicks */}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-200 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 pointer-events-none">
+                      <div className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 backdrop-blur-sm transition-all duration-200 ${
+                        showCopiedText 
+                          ? 'bg-green-600/90 text-white' 
+                          : 'bg-black/80 text-white'
+                      }`}>
+                        {showCopiedText ? (
+                          <>
+                            <span>✓</span>
+                            Copied!
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="h-4 w-4" />
+                            Click to copy
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Copied feedback */}
+                    {showCopiedFeedback && (
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div className="bg-green-600 text-white px-4 py-2 rounded-full text-sm font-medium animate-in fade-in-0 zoom-in-95 duration-200">
+                          ✓ Copied!
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Image click notification */}
+                    {notifications.imageClick && (
+                      <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-3 py-1 rounded-full text-xs font-medium animate-in fade-in-0 slide-in-from-bottom-2 duration-200 whitespace-nowrap">
+                        ✓ Copied to clipboard!
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Footer buttons */}
           <div className="bg-zinc-900/80 backdrop-blur-sm border-t border-zinc-800 flex flex-col items-center justify-center px-4 py-2 pb-3 space-y-1.5 flex-shrink-0">
             {/* Share button above the row */}
             {supportsNativeShare && (
-              <Button
-                onClick={handleNativeShare}
-                disabled={!imageFullyLoaded}
+            <Button
+              onClick={handleNativeShare}
+                disabled={isLoading}
                 className="px-6 py-3 h-12 text-white font-medium relative overflow-hidden bg-purple-gradient hover:scale-105 transition-all duration-300 border-0 shadow-lg"
                 aria-label="Share your verdict using device share menu"
-              >
-                <div className="absolute inset-0 holographic-shimmer"></div>
-                <div className="relative z-10 flex items-center justify-center">
-                  <Share className="mr-2 h-4 w-4" />
-                  Share Your Verdict
-                </div>
-              </Button>
-            )}
+            >
+              <div className="absolute inset-0 holographic-shimmer"></div>
+              <div className="relative z-10 flex items-center justify-center">
+                <Share className="mr-2 h-4 w-4" />
+                Share Your Verdict
+              </div>
+            </Button>
+          )}
 
             {/* Three buttons in a row */}
             <div className="flex gap-2 w-full max-w-[400px]">
-              <Button
-                onClick={handleSendEmail}
-                disabled={!imageFullyLoaded || isSendingEmail}
-                variant="outline"
-                className="flex-1 text-white border-zinc-700 hover:bg-zinc-800 text-sm"
-                aria-label="Send verdict via email"
-              >
-                {isSendingEmail ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-1"></div>
-                    Sending...
-                  </>
-                ) : (
-                  <>
-                    <Mail className="mr-1 h-4 w-4" />
-                    Email
-                  </>
+              <div className="relative flex-1">
+                <Button
+                  onClick={handleSendEmail}
+                  disabled={isLoading || isSendingEmail}
+                  variant="outline"
+                  className="w-full text-white border-zinc-700 hover:bg-zinc-800 text-sm"
+                  aria-label="Send verdict via email"
+                >
+                  {isSendingEmail ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-1"></div>
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Mail className="mr-1 h-4 w-4" />
+                      Email
+                    </>
+                  )}
+                </Button>
+                
+                {/* Email notification */}
+                {notifications.email && (
+                  <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-3 py-1 rounded-full text-xs font-medium animate-in fade-in-0 slide-in-from-bottom-2 duration-200 whitespace-nowrap">
+                    ✓ Email sent!
+                  </div>
                 )}
-              </Button>
+              </div>
 
-              <Button
-                onClick={handleCopyToClipboard}
-                disabled={!imageFullyLoaded}
-                variant="outline"
-                className="flex-1 text-white border-zinc-700 hover:bg-zinc-800 text-sm"
-                aria-label="Copy verdict image to clipboard"
-              >
-                <Copy className="mr-1 h-4 w-4" />
-                Copy
-              </Button>
+              <div className="relative flex-1">
+                <Button
+                  onClick={handleCopyToClipboard}
+                  disabled={isLoading}
+                  variant="outline"
+                  className="w-full text-white border-zinc-700 hover:bg-zinc-800 text-sm"
+                  aria-label="Copy verdict image to clipboard"
+                >
+                  <Copy className="mr-1 h-4 w-4" />
+                  Copy
+                </Button>
+                
+                {/* Copy notification */}
+                {notifications.copy && (
+                  <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-3 py-1 rounded-full text-xs font-medium animate-in fade-in-0 slide-in-from-bottom-2 duration-200 whitespace-nowrap">
+                    ✓ Copied to clipboard!
+                  </div>
+                )}
+              </div>
 
-              <Button
-                onClick={handleDownloadImage}
-                disabled={!imageFullyLoaded}
-                variant="outline"
-                className="flex-1 text-white border-zinc-700 hover:bg-zinc-800 text-sm"
-                aria-label="Download verdict image"
-              >
-                <Download className="mr-1 h-4 w-4" />
-                Download
-              </Button>
+              <div className="relative flex-1">
+                <Button
+                  onClick={handleDownloadImage}
+                  disabled={isLoading}
+                  variant="outline"
+                  className="w-full text-white border-zinc-700 hover:bg-zinc-800 text-sm"
+                  aria-label="Download verdict image"
+                >
+                  <Download className="mr-1 h-4 w-4" />
+                  Download
+                </Button>
+                
+                {/* Download notification */}
+                {notifications.download && (
+                  <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-3 py-1 rounded-full text-xs font-medium animate-in fade-in-0 slide-in-from-bottom-2 duration-200 whitespace-nowrap">
+                    ✓ Downloaded!
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

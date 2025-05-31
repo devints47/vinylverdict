@@ -529,11 +529,17 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
   const typewriterComponent = useMemo(() => {
     if (!currentResponse.content) return null
 
+    // Calculate speed based on device type
+    // Desktop: 50% faster (6.25ms), Mobile: Keep current speed
+    const baseSpeed = 12.5 // Original speed
+    const desktopSpeedBoost = 0.3 // 50% faster = 50% of original time
+    const typewriterSpeed = baseSpeed * desktopSpeedBoost // 6.25ms for desktop
+
     // Always use the memoized typewriter component - it handles both typing and final state
     return (
       <MemoizedCursorTypewriter
         markdown={currentResponse.content}
-        speed={12.5} // Doubled speed again: 12.5ms per character (~80 characters per second)
+        speed={typewriterSpeed}
         onComplete={handleTypewriterComplete}
         onProgress={handleTypewriterProgress}
         startPosition={currentResponse.displayPosition || 0} // Start from saved position
@@ -709,20 +715,27 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
           <CardFooter className="flex flex-col gap-4">
             {/* Disclaimer and Share button - only shown when typewriter is complete */}
             {showShareButton && (
-              <>
-                <p className="text-sm text-zinc-500 italic">{getFooterText()}</p>
+              <div 
+                className="w-full animate-[fadeInUp_600ms_ease-out_forwards] opacity-0"
+                style={{
+                  animationDelay: '200ms' // Small delay after typewriter completes
+                }}
+              >
+                <p className="text-sm text-zinc-500 italic transition-opacity duration-500">
+                  {getFooterText()}
+                </p>
 
-                {/* Share button - now opens the modal instead of dropdown */}
-                <div className="flex justify-center w-full mt-2">
+                {/* Share button - now with purple theming and smooth animation */}
+                <div className="flex justify-center w-full mt-4 transition-all duration-300">
                   <Button
                     onClick={() => setShowShareModal(true)}
-                    className="bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl"
+                    className="btn-gradient holographic-shimmer text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 transform"
                   >
                     <Share2 className="h-4 w-4 mr-1" />
                     {getShareButtonText()}
                   </Button>
                 </div>
-              </>
+              </div>
             )}
           </CardFooter>
         </Card>

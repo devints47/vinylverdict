@@ -15,7 +15,7 @@ interface CursorTypewriterProps {
   cursorChar?: string
 }
 
-// Mobile detection hook
+// Mobile detection hook - more stable version
 const useIsMobile = () => {
   const [isMobile, setIsMobile] = useState(false)
   
@@ -56,8 +56,13 @@ export function CursorTypewriter({
   // Mobile detection
   const isMobile = useIsMobile()
   
-  // Mobile-specific optimizations
-  const mobileSpeed = isMobile ? speed * 2 : speed // Slower on mobile (higher number = slower)
+  // Stable speed calculation - memoize it to prevent changes during tab switching
+  const stableSpeed = useMemo(() => {
+    // Calculate the final speed once and keep it stable
+    const finalSpeed = isMobile ? speed * 2 : speed // Slower on mobile (higher number = slower)
+    return finalSpeed
+  }, [speed, isMobile]) // Only recalculate if the actual speed prop or initial mobile state changes
+  
   const heightMeasureInterval = isMobile ? 100 : 10 // Less frequent height measurements on mobile
 
   // Set up the mounted ref
@@ -68,6 +73,21 @@ export function CursorTypewriter({
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current)
       }
+    }
+  }, [])
+
+  // Handle page visibility changes to maintain consistent timing when tab switching
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && animationFrameRef.current) {
+        // Reset the timer when the page becomes visible again to prevent speed issues
+        lastUpdateTimeRef.current = performance.now()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
   }, [])
 
@@ -278,7 +298,7 @@ export function CursorTypewriter({
     const now = performance.now()
     
     // Throttle updates based on speed setting
-    if (now - lastUpdateTimeRef.current < mobileSpeed) {
+    if (now - lastUpdateTimeRef.current < stableSpeed) {
       animationFrameRef.current = requestAnimationFrame(() => animateTypewriter(currentPosition))
       return
     }
@@ -300,7 +320,7 @@ export function CursorTypewriter({
     if (onProgress) onProgress(newPosition)
     
     animationFrameRef.current = requestAnimationFrame(() => animateTypewriter(newPosition))
-  }, [markdown, mobileSpeed, onComplete, onProgress, cursorChar])
+  }, [markdown, stableSpeed, onComplete, onProgress, cursorChar])
 
   // Handle the typewriter effect
   useEffect(() => {

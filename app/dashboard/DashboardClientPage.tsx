@@ -778,15 +778,15 @@ export default function DashboardClientPage() {
             <VinylVerdictLogo size={50} className="mb-4" />
             <h1 className="text-xl font-bold text-white mb-2">Loading your profile</h1>
             <p className="text-zinc-400">Please wait while we fetch your data...</p>
+              </div>
           </div>
-        </div>
         
         {/* Invisible spacer to maintain layout during loading */}
         <main className="flex-1 container mx-auto px-1 sm:px-4 py-6 mt-20 relative z-10 mb-12 min-h-[calc(100vh-280px)]">
           <div className="opacity-0 pointer-events-none">
             {/* Invisible content to maintain space */}
             <div className="h-96"></div>
-          </div>
+        </div>
         </main>
         
         <Footer />
