@@ -29,21 +29,14 @@ export const vinylOptions = [
     color: "from-blue-400 to-indigo-500",
     assistantType: "historian",
   },
-  // Pop Sensation and Rock Legend are hidden for now
-  // {
-  //   id: "pop-sensation",
-  //   name: "Pop Sensation",
-  //   description: "A chart-topping pop star who evaluates your music through the lens of commercial appeal and trend-setting potential.",
-  //   color: "from-pink-400 to-purple-500",
-  //   assistantType: "pop-sensation",
-  // },
-  // {
-  //   id: "rock-legend",
-  //   name: "Rock Legend",
-  //   description: "A veteran rocker who's seen it all and judges your taste based on its raw energy, authenticity, and rebellious spirit.",
-  //   color: "from-yellow-500 to-red-600",
-  //   assistantType: "rock-legend",
-  // },
+  {
+    id: "therapist",
+    name: "Armchair Therapist",
+    description:
+      "A straight-shooting psychological analyst who connects your music choices to your deepest emotional patterns and relationship dynamics. They'll tell you exactly what your playlist reveals about your psyche, personal growth, and love life.",
+    color: "from-orange-400 to-red-500",
+    assistantType: "therapist",
+  },
 ]
 
 // Define the context type

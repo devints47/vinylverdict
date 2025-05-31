@@ -42,6 +42,8 @@ export async function GET(request: NextRequest) {
       title = "Taste Validator"
     } else if (type === "historian") {
       title = "Music Historian"
+    } else if (type === "therapist") {
+      title = "Armchair Therapist"
     }
 
     // Get background color based on assistant type
@@ -50,6 +52,8 @@ export async function GET(request: NextRequest) {
       bgColor = "#2d1b4e"
     } else if (type === "historian") {
       bgColor = "#1e293b"
+    } else if (type === "therapist") {
+      bgColor = "#c2410c"
     }
 
     // Create a simpler image with fewer nested elements

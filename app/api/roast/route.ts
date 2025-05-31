@@ -21,6 +21,8 @@ function getAssistantId(assistantType: string): string | null {
       return process.env.OPENAI_TASTE_VALIDATOR_ID || null
     case "historian":
       return process.env.OPENAI_HISTORIAN_ID || null
+    case "therapist":
+      return process.env.OPENAI_ARMCHAIR_THERAPIST_ID || null
     default:
       return null
   }
@@ -47,6 +49,12 @@ function generateFallbackResponse(data: any, viewType: string, assistantType = "
       title: "Historical Analysis",
       noteText:
         "The Historian is currently researching obscure musical archives. This analysis was compiled from their preliminary notes.",
+    },
+    therapist: {
+      name: "The Armchair Therapist",
+      title: "Psychological Analysis",
+      noteText:
+        "The Armchair Therapist is currently analyzing complex emotional patterns. This assessment was drafted between therapy sessions.",
     },
   }[assistantType]
 
@@ -107,6 +115,27 @@ function generateFallbackResponse(data: any, viewType: string, assistantType = "
     } else {
       response +=
         "Your recent listening choices trace an interesting path through contemporary musical currents, revealing subtle patterns of taste formation and cultural engagement."
+    }
+  } else if (assistantType === "therapist") {
+    if (viewType === "top tracks") {
+      response += "Your listening patterns reveal some fascinating psychological tendencies. "
+      if (data && data.length > 0) {
+        const artists = [...new Set(data.map((track: any) => track.artist.split(",")[0].trim()))].slice(0, 3)
+        response += `Your connection to ${artists.join(", ")} suggests specific emotional needs and coping mechanisms. `
+        response += `Your repeated plays of "${data[0].song}" indicate you're working through something significant – music as emotional processing. 🧠💭`
+      } else {
+        response += "Your sparse listening data suggests either emotional overwhelm or a defensive disconnection from feelings."
+      }
+    } else if (viewType === "top artists") {
+      response += "Your artist preferences paint a psychological portrait of your inner world. "
+      if (data && data.length > 0) {
+        response += `Your attachment to ${data[0].artist} reveals key aspects of your emotional landscape and relationship patterns. `
+      } else {
+        response += "The absence of clear artist preferences suggests possible commitment issues or fear of emotional vulnerability."
+      }
+    } else {
+      response +=
+        "Your recent musical choices reflect your current emotional state and relationship dynamics. The patterns here suggest you're navigating some complex feelings about connection and self-worth."
     }
   } else {
     // Music Snob content

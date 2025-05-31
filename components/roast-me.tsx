@@ -146,6 +146,9 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
       case "historian":
         actionVerb = "Analyze"
         break
+      case "therapist":
+        actionVerb = "Psychoanalyze"
+        break
       case "snob":
       default:
         actionVerb = "Roast"
@@ -171,6 +174,8 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
         return "Share My Validity"
       case "historian":
         return "Share My Knowledge"
+      case "therapist":
+        return "Share My Analysis"
       case "snob":
       default:
         return "Share My Roast"
@@ -185,6 +190,8 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
         return "The Taste Validator Is Appreciating..."
       case "historian":
         return "The Historian Is Researching..."
+      case "therapist":
+        return "The Armchair Therapist Is Analyzing..."
       case "snob":
       default:
         return "The Music Snob Is Judging You..."
@@ -406,6 +413,8 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
         return "This validation is a celebration of your personal listening habits. It's all in good fun and meant to highlight the positive aspects of your music taste."
       case "historian":
         return "This analysis examines your music in its historical and cultural context. It's meant to be educational and thought-provoking, not judgmental."
+      case "therapist":
+        return "This psychological analysis explores the emotional connections between music choices and personal patterns. It's intended for self-reflection and entertainment, not as professional therapy."
       case "snob":
       default:
         return "This roast is a satirical critique of your personal listening habits. It's all in good fun and not intended to insult any artists or fans."
@@ -420,6 +429,8 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
         return "✨"
       case "historian":
         return "📚"
+      case "therapist":
+        return "🧠"
       case "snob":
       default:
         return "🔥"

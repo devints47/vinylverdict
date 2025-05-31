@@ -25,6 +25,8 @@ export async function GET(request: NextRequest) {
       title = "The Taste Validator's Adoration"
     } else if (type === "historian") {
       title = "The Historian's Analysis"
+    } else if (type === "therapist") {
+      title = "The Armchair Therapist's Analysis"
     }
 
     // Get emoji based on assistant type
@@ -33,6 +35,8 @@ export async function GET(request: NextRequest) {
       emoji = "✨"
     } else if (type === "historian") {
       emoji = "📚"
+    } else if (type === "therapist") {
+      emoji = "🧠"
     }
 
     // Get background gradient based on assistant type
@@ -41,6 +45,8 @@ export async function GET(request: NextRequest) {
       gradient = "linear-gradient(to bottom right, #2d1b4e, #1e1e1e, #121212)"
     } else if (type === "historian") {
       gradient = "linear-gradient(to bottom right, #1e293b, #1e1e1e, #121212)"
+    } else if (type === "therapist") {
+      gradient = "linear-gradient(to bottom right, #c2410c, #1e1e1e, #121212)"
     }
 
     // Get the app URL from environment variable or use a default

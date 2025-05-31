@@ -67,22 +67,14 @@ export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: Vi
       assistantType: "historian", // Added assistantType for The Historian
     },
     {
-      id: "pop-hits",
-      name: "Pop Sensation",
-      labelColor: "pink",
-      faceType: "happy",
-      labelText: "TOP CHARTS • DANCE HITS • PARTY ANTHEMS • REMIX •",
-      description:
-        "Enthusiastic about all things mainstream and catchy. Pop Sensation judges your playlist based on its danceability, chart performance, and viral potential. Expects maximum energy and hooks.",
-    },
-    {
-      id: "classic-rock",
-      name: "Rock Legend",
-      labelColor: "red",
+      id: "armchair-therapist",
+      name: "Armchair Therapist",
+      labelColor: "orange",
       faceType: "surprised",
-      labelText: "CLASSIC ROCK • GUITAR SOLOS • HEADBANGERS • LIVE •",
+      labelText: "THERAPY • PSYCHOANALYSIS • DEEP INSIGHTS • SESSION •",
       description:
-        "A true believer in the power of electric guitars and drum solos. Rock Legend evaluates your music based on its raw energy, instrumental prowess, and authenticity. Expects music that makes you want to headbang.",
+        "A straight-shooting psychological analyst who connects your music choices to your deepest emotional patterns and relationship dynamics. They'll tell you exactly what your playlist reveals about your psyche, personal growth, and love life.",
+      assistantType: "therapist", // New assistant type for Armchair Therapist
     },
   ]
 
@@ -237,7 +229,7 @@ export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: Vi
         {/* Title and Navigation Buttons with fixed width container */}
         <div className="relative flex items-center justify-center w-full mb-2">
           {/* Fixed width container for consistent layout */}
-          <div className="w-64 h-10 flex items-center justify-between">
+          <div className="w-80 h-10 flex items-center justify-between">
             {/* Left button with fixed position */}
             <button
               onClick={prevVinyl}

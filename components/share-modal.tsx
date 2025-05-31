@@ -329,6 +329,8 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
         return "The Taste Validator"
       case "historian":
         return "The Music Historian"
+      case "therapist":
+        return "The Armchair Therapist"
       case "snob":
       default:
         return "The Music Snob"

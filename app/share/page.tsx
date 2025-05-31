@@ -27,6 +27,8 @@ export default function SharePage() {
     title = "The Taste Validator's Adoration"
   } else if (type === "historian") {
     title = "The Historian's Analysis"
+  } else if (type === "therapist") {
+    title = "The Armchair Therapist's Analysis"
   }
 
   // Get emoji based on assistant type
@@ -35,6 +37,8 @@ export default function SharePage() {
     emoji = "✨"
   } else if (type === "historian") {
     emoji = "📚"
+  } else if (type === "therapist") {
+    emoji = "🧠"
   }
 
   // Custom components for ReactMarkdown to preserve emoji colors
@@ -92,6 +96,8 @@ export default function SharePage() {
         return "This validation is a celebration of personal listening habits. It's all in good fun and meant to highlight the positive aspects of music taste."
       case "historian":
         return "This analysis examines music in its historical and cultural context. It's meant to be educational and thought-provoking, not judgmental."
+      case "therapist":
+        return "This psychological analysis explores emotional connections between music choices and personal patterns. It's intended for self-reflection and entertainment, not as professional therapy."
       case "snob":
       default:
         return "This roast is a satirical critique of personal listening habits. It's all in good fun and not intended to insult any artists or fans."

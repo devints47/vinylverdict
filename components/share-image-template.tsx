@@ -16,6 +16,8 @@ export function ShareImageTemplate({ children, assistantType }: ShareImageTempla
         return "Music Taste Validation"
       case "historian":
         return "Music History Analysis"
+      case "therapist":
+        return "Music Psychology Analysis"
       case "snob":
       default:
         return "Music Taste Verdict"
