@@ -42,6 +42,7 @@ export function AuthButtonWrapper({ forceLogout = false }: AuthButtonWrapperProp
       <div className="flex items-center gap-4">
         <button
           disabled
+          style={{width: '132px'}}
           className="relative overflow-hidden btn-gradient holographic-shimmer text-white font-bold py-2 px-6 text-base rounded-full transition-all duration-300 flex items-center gap-2 shadow-lg min-w-[120px] justify-center"
         >
           <Loader2 size={18} className="animate-spin" />
@@ -62,6 +63,7 @@ export function AuthButtonWrapper({ forceLogout = false }: AuthButtonWrapperProp
         )}
         <button
           onClick={logout}
+          style={{width: '132px'}}
           className="relative overflow-hidden btn-gradient holographic-shimmer text-white font-bold py-2 px-6 text-base rounded-full transition-all duration-300 hover:scale-105 flex items-center gap-2 shadow-lg min-w-[120px] justify-center"
         >
           <LogOut size={18} />

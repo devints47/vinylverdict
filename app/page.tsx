@@ -75,13 +75,13 @@ export default function LandingPage() {
                 </div>
 
                 <div className="relative flex flex-col items-center">
-                  {/* Vinyl Collection with ref */}
+                  {/* Vinyl Collection */}
                   <div>
                     <VinylCollection />
                   </div>
 
                   {/* Simple Description Box */}
-                  <div className="mt-4 mb-6">
+                  <div className="mt-4 mb-6 w-full max-w-[644px] px-4 sm:px-0">
                     <SimpleDescription
                       description={currentDescription}
                     />

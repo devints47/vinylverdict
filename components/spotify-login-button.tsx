@@ -32,6 +32,7 @@ export function SpotifyLoginButton({ className, text = "Log in", showHoverEffect
       disabled={isLoading}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      style={{width: '226px'}}
       className={`relative overflow-hidden btn-gradient holographic-shimmer text-white font-bold py-3 px-8 rounded-full text-lg transition-all duration-300 ${showHoverEffect ? "hover:scale-110 hover:shadow-purple-glow" : "hover:scale-105"} flex items-center gap-2 shadow-lg ${className || ""}`}
     >
       {/* Pulsing background effect - only shown when showHoverEffect is true */}

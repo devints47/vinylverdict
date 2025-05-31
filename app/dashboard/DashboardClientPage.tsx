@@ -21,6 +21,7 @@ import { formatDate, getArtists } from "@/lib/spotify-api"
 import { ListContainer } from "@/components/list-container"
 import { VinylVerdictLogo } from "@/components/vinyl-verdict-logo"
 import { ContentLoading } from "@/components/content-loading"
+import { SimpleDescription } from "@/components/simple-description"
 
 interface UserProfile {
   display_name: string
@@ -36,61 +37,6 @@ interface ArtistInfo {
   name: string
   genres: string[]
   [key: string]: any
-}
-
-// Collapsible Critic Info Component
-function CollapsibleCriticInfo({ selectedVinyl }: { selectedVinyl: any }) {
-  const [isExpanded, setIsExpanded] = useState(false)
-
-  const toggleExpand = () => {
-    setIsExpanded(!isExpanded)
-  }
-
-  return (
-    <div 
-      className="bg-zinc-900/50 rounded-xl border border-zinc-800 overflow-hidden md:h-[132px] flex items-center justify-center"
-      style={{ contain: 'layout style' }}
-    >
-      {selectedVinyl ? (
-        <>
-          <div className="p-3 md:p-3 h-full flex flex-col justify-center w-full">
-            {/* Mobile view - Collapsible content */}
-            <div className="md:hidden">
-              <button
-                onClick={toggleExpand}
-                className="flex items-center justify-between w-full text-sm text-zinc-400 hover:text-white transition-colors py-2"
-                aria-expanded={isExpanded}
-              >
-                <span className="flex items-center">
-                  <Info className="h-4 w-4 mr-1" />
-                  {isExpanded ? "Hide details" : `Learn more about ${selectedVinyl.name}`}
-                </span>
-                {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-              </button>
-
-              <div
-                className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? "max-h-96 pb-2" : "max-h-0"}`}
-              >
-                <p className="text-zinc-300 text-center">{selectedVinyl.description}</p>
-              </div>
-            </div>
-
-            {/* Desktop view - Always visible content */}
-            <div className="hidden md:block overflow-hidden mt-1 py-1">
-              <p className="text-zinc-300 text-base leading-relaxed text-center">
-                <span className="font-bold text-purple-gradient">{selectedVinyl.name}:</span>{" "}
-                {selectedVinyl.description}
-              </p>
-            </div>
-          </div>
-        </>
-      ) : (
-        <div className="p-6 flex items-center justify-center">
-          <p className="text-zinc-400 text-center">Select a personality to see their description</p>
-        </div>
-      )}
-    </div>
-  )
 }
 
 // User Profile Card Component
@@ -885,8 +831,12 @@ export default function DashboardClientPage() {
           <div className="w-full md:w-[50%] flex flex-col items-center">
             {/* Fixed width container for stable text rendering */}
             <div className="w-full max-w-[600px] mx-auto" style={{ contain: 'layout' }}>
-              {/* Collapsible critic info box */}
-              <CollapsibleCriticInfo selectedVinyl={selectedVinyl} />
+              {/* SimpleDescription component */}
+              <SimpleDescription
+                description={selectedVinyl?.description || ""}
+                variant="dashboard"
+                selectedVinyl={selectedVinyl}
+              />
             </div>
 
             {/* Roast Me button positioned directly below the description box */}
