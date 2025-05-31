@@ -34,6 +34,39 @@ export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: Vi
   const [flipDirection, setFlipDirection] = useState<FlipDirection>("none")
   const { selectedVinyl, setSelectedVinyl } = useVinyl()
 
+  // Touch/swipe state
+  const [touchStart, setTouchStart] = useState<number | null>(null)
+  const [touchEnd, setTouchEnd] = useState<number | null>(null)
+
+  // Minimum distance for a swipe (in pixels)
+  const minSwipeDistance = 50
+
+  // Touch event handlers for swipe detection
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null) // Reset touch end
+    setTouchStart(e.targetTouches[0].clientX)
+  }
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX)
+  }
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return
+    
+    const distance = touchStart - touchEnd
+    const isLeftSwipe = distance > minSwipeDistance
+    const isRightSwipe = distance < -minSwipeDistance
+
+    if (isLeftSwipe) {
+      // Swipe left = move to next vinyl (right direction)
+      nextVinyl()
+    } else if (isRightSwipe) {
+      // Swipe right = move to previous vinyl (left direction)
+      prevVinyl()
+    }
+  }
+
   // Define our vinyl designs
   const vinylDesigns: VinylDesign[] = [
     {
@@ -189,14 +222,19 @@ export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: Vi
       <div className="flex justify-center items-center w-full mb-4">
         {/* Fixed size container to prevent layout shifts */}
         <div
-          className="vinyl-container relative"
+          className="vinyl-container relative select-none"
           style={{
             width: "300px",
             height: "300px",
             contain: "layout style",
             overflow: "visible",
             flexShrink: 0, // Prevent shrinking
+            touchAction: "pan-y", // Allow vertical scrolling but prevent horizontal pan
+            userSelect: "none", // Prevent text selection during swipe
           }}
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
         >
           {/* Vinyl sizing wrapper with 3D perspective */}
           <div
