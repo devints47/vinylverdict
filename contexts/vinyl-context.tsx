@@ -14,6 +14,14 @@ export const vinylOptions = [
     assistantType: "snob",
   },
   {
+    id: "therapist",
+    name: "Armchair Therapist",
+    description:
+      "A straight-shooting psychological analyst who connects your music choices to your deepest emotional patterns and relationship dynamics. The Armchair Therapist doesn't sugarcoat anything – they'll tell you exactly what your playlist reveals about your psyche, personal growth, and love life.",
+    color: "from-orange-400 to-red-500",
+    assistantType: "therapist",
+  },
+  {
     id: "worshipper",
     name: "Taste Validator",
     description:
@@ -28,14 +36,6 @@ export const vinylOptions = [
       "An ancient keeper of musical secrets who unveils the mysterious and forgotten lore behind your listening habits. The Historian analyzes your taste through an esoteric lens, revealing hidden connections and mythical knowledge about your musical journey.",
     color: "from-blue-400 to-indigo-500",
     assistantType: "historian",
-  },
-  {
-    id: "therapist",
-    name: "Armchair Therapist",
-    description:
-      "A straight-shooting psychological analyst who connects your music choices to your deepest emotional patterns and relationship dynamics. They'll tell you exactly what your playlist reveals about your psyche, personal growth, and love life.",
-    color: "from-orange-400 to-red-500",
-    assistantType: "therapist",
   },
 ]
 

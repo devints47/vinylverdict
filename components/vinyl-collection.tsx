@@ -47,6 +47,16 @@ export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: Vi
       assistantType: "snob", // This is the Music Snob assistant
     },
     {
+      id: "armchair-therapist",
+      name: "Armchair Therapist",
+      labelColor: "orange",
+      faceType: "surprised",
+      labelText: "THERAPY • PSYCHOANALYSIS • DEEP INSIGHTS • SESSION •",
+      description:
+        "A straight-shooting psychological analyst who connects your music choices to your deepest emotional patterns and relationship dynamics. They'll tell you exactly what your playlist reveals about your psyche, personal growth, and love life.",
+      assistantType: "therapist", // New assistant type for Armchair Therapist
+    },
+    {
       id: "taste-validator",
       name: "Taste Validator",
       labelColor: "teal",
@@ -65,16 +75,6 @@ export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: Vi
       description:
         "An ancient keeper of musical secrets who unveils the mysterious and forgotten lore behind your listening habits. The Historian analyzes your taste through an esoteric lens, revealing hidden connections and mythical knowledge about your musical journey.",
       assistantType: "historian", // Added assistantType for The Historian
-    },
-    {
-      id: "armchair-therapist",
-      name: "Armchair Therapist",
-      labelColor: "orange",
-      faceType: "surprised",
-      labelText: "THERAPY • PSYCHOANALYSIS • DEEP INSIGHTS • SESSION •",
-      description:
-        "A straight-shooting psychological analyst who connects your music choices to your deepest emotional patterns and relationship dynamics. They'll tell you exactly what your playlist reveals about your psyche, personal growth, and love life.",
-      assistantType: "therapist", // New assistant type for Armchair Therapist
     },
   ]
 
