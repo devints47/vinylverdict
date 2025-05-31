@@ -114,7 +114,7 @@ const TrackItem = memo(function TrackItem({
               href={track.external_urls.spotify}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-medium text-white hover:underline truncate"
+              className="font-medium text-white hover:underline truncate text-sm sm:text-base"
             >
               {track.name}
             </a>
@@ -122,7 +122,7 @@ const TrackItem = memo(function TrackItem({
               <span className="text-zinc-500 text-xs">- {additionalInfo}</span>
             )}
           </div>
-          <p className="text-zinc-400 text-sm truncate">
+          <p className="text-zinc-400 text-xs sm:text-sm truncate">
             {track.artists.map((artist, i) => (
               <span key={artist.name}>
                 {i > 0 && ", "}
@@ -159,7 +159,7 @@ const TrackItem = memo(function TrackItem({
         )}
       </div>
 
-      <div className="text-zinc-500 text-sm mr-1 sm:mr-0">{formatDuration(track.duration_ms)}</div>
+      <div className="text-zinc-500 text-xs sm:text-sm mr-1 sm:mr-0">{formatDuration(track.duration_ms)}</div>
     </div>
   )
 })

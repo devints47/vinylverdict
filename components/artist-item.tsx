@@ -94,7 +94,7 @@ const ArtistItem = memo(function ArtistItem({ artist, index }: ArtistItemProps) 
           href={artist.external_urls.spotify}
           target="_blank"
           rel="noopener noreferrer"
-          className="font-medium text-white hover:underline truncate block"
+          className="font-medium text-white hover:underline truncate block text-sm sm:text-base"
         >
           {artist.name}
         </a>

@@ -93,7 +93,7 @@ const ContentLoading = memo(function ContentLoading({
           
           {/* Skeleton Load More button */}
           <div className="flex justify-center mt-6">
-            <div className="bg-zinc-700 hover:bg-zinc-600 text-transparent px-6 py-2 rounded-full text-sm animate-pulse">
+            <div className="bg-zinc-700 hover:bg-zinc-600 text-transparent px-6 py-2 rounded-full text-xs sm:text-sm animate-pulse">
               Load More
             </div>
           </div>

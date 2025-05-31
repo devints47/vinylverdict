@@ -172,13 +172,13 @@ function RecentlyPlayedContent({
               </a>
             </div>
             <div className="flex flex-col justify-center">
-              <CardTitle className="text-2xl">Recently Played</CardTitle>
+              <CardTitle className="text-xl sm:text-2xl">Recently Played</CardTitle>
               <CardDescription className="min-h-[1.5rem]">Your most recent listening history</CardDescription>
             </div>
           </div>
           <div className="flex items-center text-zinc-400 bg-zinc-800/50 px-4 py-2 rounded-lg">
             <Clock className="h-4 w-4 mr-2 text-bright-purple" />
-            <span className="text-sm">Your Spotify recently played tracks</span>
+            <span className="text-xs sm:text-sm">Your Spotify recently played tracks</span>
           </div>
         </div>
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-xs pointer-events-none z-0">
@@ -186,7 +186,7 @@ function RecentlyPlayedContent({
         </div>
       </CardHeader>
       <div className="h-px w-full bg-gradient-to-r from-zinc-800 via-bright-purple/20 to-zinc-800"></div>
-      <CardContent>
+      <CardContent className="px-1 sm:px-6 py-6 pt-0">
         {isLoadingRecent || isRefreshing ? (
           <ContentLoading message="Loading your recently played tracks..." showSkeleton={true} itemCount={20} />
         ) : recentlyPlayed?.items?.length > 0 ? (
@@ -216,7 +216,7 @@ function RecentlyPlayedContent({
               <div className="flex justify-center mt-6">
                 <button
                   onClick={loadMoreRecent}
-                  className="bg-zinc-800 hover:bg-zinc-700 text-white px-6 py-2 rounded-full text-sm transition-colors"
+                  className="bg-zinc-800 hover:bg-zinc-700 text-white px-6 py-2 rounded-full text-xs sm:text-sm transition-colors"
                 >
                   Load More
                 </button>
@@ -274,7 +274,7 @@ function TopTracksContent({
               </a>
             </div>
             <div className="flex flex-col justify-center">
-              <CardTitle className="text-2xl">Your Top Tracks</CardTitle>
+              <CardTitle className="text-xl sm:text-2xl">Your Top Tracks</CardTitle>
               <CardDescription className="min-h-[1.5rem]">
                 Songs you've listened to the most{" "}
                 {timeRange === "short_term"
@@ -294,7 +294,7 @@ function TopTracksContent({
         </div>
       </CardHeader>
       <div className="h-px w-full bg-gradient-to-r from-zinc-800 via-bright-purple/20 to-zinc-800"></div>
-      <CardContent>
+      <CardContent className="px-1 sm:px-6 py-6 pt-0">
         {isLoadingTracks || isRefreshing ? (
           <ContentLoading message="Loading your top tracks..." showSkeleton={true} itemCount={20} />
         ) : currentTopTracks?.items?.length > 0 ? (
@@ -315,7 +315,7 @@ function TopTracksContent({
               <div className="flex justify-center mt-6">
                 <button
                   onClick={loadMoreTracks}
-                  className="bg-zinc-800 hover:bg-zinc-700 text-white px-6 py-2 rounded-full text-sm transition-colors"
+                  className="bg-zinc-800 hover:bg-zinc-700 text-white px-6 py-2 rounded-full text-xs sm:text-sm transition-colors"
                 >
                   Load More
                 </button>
@@ -371,7 +371,7 @@ function TopArtistsContent({
               </a>
             </div>
             <div className="flex flex-col justify-center">
-              <CardTitle className="text-2xl">Your Top Artists</CardTitle>
+              <CardTitle className="text-xl sm:text-2xl">Your Top Artists</CardTitle>
               <CardDescription className="min-h-[1.5rem]">
                 Artists you've listened to the most{" "}
                 {timeRange === "short_term"
@@ -391,7 +391,7 @@ function TopArtistsContent({
         </div>
       </CardHeader>
       <div className="h-px w-full bg-gradient-to-r from-zinc-800 via-bright-purple/20 to-zinc-800"></div>
-      <CardContent>
+      <CardContent className="px-1 sm:px-6 py-6 pt-0">
         {isLoadingArtists || isRefreshing ? (
           <ContentLoading message="Loading your top artists..." showSkeleton={true} itemCount={20} />
         ) : currentTopArtists?.items?.length > 0 ? (
@@ -406,7 +406,7 @@ function TopArtistsContent({
               <div className="flex justify-center mt-6">
                 <button
                   onClick={loadMoreArtists}
-                  className="bg-zinc-800 hover:bg-zinc-700 text-white px-6 py-2 rounded-full text-sm transition-colors"
+                  className="bg-zinc-800 hover:bg-zinc-700 text-white px-6 py-2 rounded-full text-xs sm:text-sm transition-colors"
                 >
                   Load More
                 </button>
@@ -782,7 +782,7 @@ export default function DashboardClientPage() {
         </div>
         
         {/* Invisible spacer to maintain layout during loading */}
-        <main className="flex-1 container mx-auto px-4 py-6 mt-20 relative z-10 mb-12 min-h-[calc(100vh-280px)]">
+        <main className="flex-1 container mx-auto px-1 sm:px-4 py-6 mt-20 relative z-10 mb-12 min-h-[calc(100vh-280px)]">
           <div className="opacity-0 pointer-events-none">
             {/* Invisible content to maintain space */}
             <div className="h-96"></div>
@@ -809,7 +809,7 @@ export default function DashboardClientPage() {
       <TechGridBackground />
       <Navbar forceLogout={true} />
 
-      <main className="flex-1 container mx-auto px-4 py-6 mt-20 relative z-10 mb-12 min-h-[calc(100vh-280px)]">
+      <main className="flex-1 container mx-auto px-1 sm:px-4 py-6 mt-20 relative z-10 mb-12 min-h-[calc(100vh-280px)]">
         {/* Top Section with Grid Layout */}
         <div className="flex flex-col md:flex-row gap-6 mb-6 md:mb-4">
           {/* Mobile-first layout: Profile Card first on mobile, then Vinyl Collection */}
@@ -828,7 +828,7 @@ export default function DashboardClientPage() {
           </div>
 
           {/* Middle Column - Critic Description and Roast Me Button (50% on desktop) */}
-          <div className="w-full md:w-[50%] flex flex-col items-center">
+          <div className="w-full md:w-[50%] flex flex-col items-center px-[2.5%]">
             {/* Fixed width container for stable text rendering */}
             <div className="w-full max-w-[600px] mx-auto" style={{ contain: 'layout' }}>
               {/* SimpleDescription component */}

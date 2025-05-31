@@ -51,7 +51,7 @@ export function ListContainer({
           items={items}
           renderItem={renderItem}
           itemHeight={itemHeight}
-          className={`list-container space-y-1 divide-y divide-zinc-800/30 sm:px-0 ${className}`}
+          className={`list-container space-y-1 divide-y divide-zinc-800/30 px-0 ${className}`}
         />
       </>
     )
@@ -70,7 +70,7 @@ export function ListContainer({
           }
         }
       `}</style>
-      <div className={`list-container space-y-1 divide-y divide-zinc-800/30 sm:px-0 ${className}`}>
+      <div className={`list-container space-y-1 divide-y divide-zinc-800/30 px-0 ${className}`}>
         {children}
       </div>
     </>

@@ -671,7 +671,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
             ref={primaryButtonRef}
             onClick={() => handleRoastMe(false)}
             disabled={isPrimaryButtonDisabled} // Disable button while typewriting
-            className={`btn-gradient holographic-shimmer text-white font-bold py-4 px-8 text-lg rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl max-w-md ${
+            className={`btn-gradient holographic-shimmer text-white font-bold py-4 px-8 text-base sm:text-lg rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl max-w-md ${
               isLoading || isPrimaryButtonDisabled ? "bg-purple-600 hover:bg-purple-700 opacity-90" : ""
             }`}
             size="lg"
@@ -727,27 +727,54 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
 
       {/* Secondary roast button below the roast card */}
       {showShareButton && (
-        <div className="mt-6 flex justify-center items-center gap-4 w-full">
-          <Button
-            onClick={() => handleRoastMe(true)}
-            className="btn-gradient holographic-shimmer text-white font-bold py-4 px-8 text-lg rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl max-w-md"
-            size="lg"
-          >
-            <span className="text-xl">{getEmoji()}</span>
-            <span>{getButtonText()}</span>
-            <span className="text-xl">{getEmoji()}</span>
-          </Button>
-          
-          {/* Clear button - only shown when roast is completed */}
-          <Button
-            onClick={clearRoast}
-            variant="ghost"
-            size="sm"
-            className="text-zinc-400 hover:text-white hover:bg-zinc-800 p-3 rounded-full transition-colors"
-            title="Clear roast"
-          >
-            <Trash2 className="h-5 w-5" />
-          </Button>
+        <div className="mt-6 w-full">
+          {/* Mobile layout - stacked */}
+          <div className="flex flex-col items-center gap-3 sm:hidden">
+            <Button
+              onClick={() => handleRoastMe(true)}
+              className="btn-gradient holographic-shimmer text-white font-bold py-4 px-8 text-base sm:text-lg rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl w-full max-w-md"
+              size="lg"
+            >
+              <span className="text-xl">{getEmoji()}</span>
+              <span>{getButtonText()}</span>
+              <span className="text-xl">{getEmoji()}</span>
+            </Button>
+            
+            {/* Clear button below on mobile */}
+            <Button
+              onClick={clearRoast}
+              variant="ghost"
+              size="sm"
+              className="text-zinc-400 hover:text-white hover:bg-zinc-800 p-3 rounded-full transition-colors"
+              title="Clear roast"
+            >
+              <Trash2 className="h-5 w-5" />
+            </Button>
+          </div>
+
+          {/* Desktop layout - side by side */}
+          <div className="hidden sm:flex justify-center items-center gap-4 w-full">
+            <Button
+              onClick={() => handleRoastMe(true)}
+              className="btn-gradient holographic-shimmer text-white font-bold py-4 px-8 text-base sm:text-lg rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl max-w-md"
+              size="lg"
+            >
+              <span className="text-xl">{getEmoji()}</span>
+              <span>{getButtonText()}</span>
+              <span className="text-xl">{getEmoji()}</span>
+            </Button>
+            
+            {/* Clear button - only shown when roast is completed */}
+            <Button
+              onClick={clearRoast}
+              variant="ghost"
+              size="sm"
+              className="text-zinc-400 hover:text-white hover:bg-zinc-800 p-3 rounded-full transition-colors"
+              title="Clear roast"
+            >
+              <Trash2 className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
       )}
 
