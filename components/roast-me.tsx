@@ -707,19 +707,22 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
           </CardContent>
 
           <CardFooter className="flex flex-col gap-4">
-            <p className="text-sm text-zinc-500 italic">{getFooterText()}</p>
-
-            {/* Share button - now opens the modal instead of dropdown */}
+            {/* Disclaimer and Share button - only shown when typewriter is complete */}
             {showShareButton && (
-              <div className="flex justify-center w-full mt-2">
-                <Button
-                  onClick={() => setShowShareModal(true)}
-                  className="bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl"
-                >
-                  <Share2 className="h-4 w-4 mr-1" />
-                  {getShareButtonText()}
-                </Button>
-              </div>
+              <>
+                <p className="text-sm text-zinc-500 italic">{getFooterText()}</p>
+
+                {/* Share button - now opens the modal instead of dropdown */}
+                <div className="flex justify-center w-full mt-2">
+                  <Button
+                    onClick={() => setShowShareModal(true)}
+                    className="bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl"
+                  >
+                    <Share2 className="h-4 w-4 mr-1" />
+                    {getShareButtonText()}
+                  </Button>
+                </div>
+              </>
             )}
           </CardFooter>
         </Card>

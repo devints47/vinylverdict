@@ -1,10 +1,10 @@
 "use client"
+
 import { useState, useEffect, useRef } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/use-toast"
 import { Mail, Copy, Share2, Share, Download } from "lucide-react"
-import html2canvas from "html2canvas"
 
 interface ShareModalProps {
   isOpen: boolean
@@ -30,9 +30,27 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0)
   const [userProfile, setUserProfile] = useState<any>(null)
   const [isSendingEmail, setIsSendingEmail] = useState(false)
+  const [isAppleDevice, setIsAppleDevice] = useState(false)
+  const [supportsNativeShare, setSupportsNativeShare] = useState(false)
   const loadingIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const imgRef = useRef<HTMLImageElement>(null)
   const cleanupTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Detect Web Share API support on client side only to avoid hydration errors
+  useEffect(() => {
+    // Check if the browser supports the Web Share API with file sharing
+    const hasWebShareAPI = 'share' in navigator && 'canShare' in navigator
+    setSupportsNativeShare(hasWebShareAPI)
+    
+    // Keep the Apple device detection for any Apple-specific logic if needed later
+    const userAgent = navigator.userAgent
+    const platform = navigator.platform
+
+    const isIOS = /iPad|iPhone|iPod/.test(userAgent)
+    const isMacOS = platform.toLowerCase().includes("mac")
+
+    setIsAppleDevice(isIOS || isMacOS)
+  }, [])
 
   // Fetch user profile when modal opens
   useEffect(() => {
@@ -73,234 +91,64 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
         setLoadingMessageIndex((prev) => (prev + 1) % loadingMessages.length)
       }, 2000)
 
-      // Create the template element directly in the DOM
-      const templateContainer = document.createElement("div")
-      templateContainer.id = "share-image-template"
-      templateContainer.style.position = "fixed"
-      templateContainer.style.left = "-9999px"
-      templateContainer.style.top = "-9999px"
-      templateContainer.style.width = "1080px"
-      templateContainer.style.minHeight = "1728px"
-      templateContainer.style.backgroundColor = "#121212"
-      templateContainer.style.backgroundImage = "url(/waveform-bg.png)"
-      templateContainer.style.backgroundSize = "cover"
-      templateContainer.style.backgroundPosition = "center"
-      templateContainer.style.display = "flex"
-      templateContainer.style.flexDirection = "column"
-      templateContainer.style.justifyContent = "center"
-      templateContainer.style.alignItems = "center"
-      templateContainer.style.padding = "40px 40px"
-      templateContainer.style.fontFamily = "'Inter', sans-serif"
-      templateContainer.style.color = "white"
-      templateContainer.style.zIndex = "-1000"
-      templateContainer.className = "vinyl-verdict-share-template"
-      document.body.appendChild(templateContainer)
-
-      // Calculate optimal font size based on text length
-      const textLength = text.length
-      let fontSize = 32
-
-      if (textLength > 3000) {
-        fontSize = 18
-      } else if (textLength > 2500) {
-        fontSize = 20
-      } else if (textLength > 2000) {
-        fontSize = 22
-      } else if (textLength > 1500) {
-        fontSize = 24
-      } else if (textLength > 1000) {
-        fontSize = 26
-      } else if (textLength > 700) {
-        fontSize = 28
-      } else if (textLength > 500) {
-        fontSize = 30
-      }
-
-      // Create header with vinyl logo
-      const header = document.createElement("div")
-      header.style.display = "flex"
-      header.style.flexDirection = "column"
-      header.style.alignItems = "center"
-      header.style.marginBottom = "20px"
-      header.style.width = "100%"
-      header.style.maxWidth = "880px"
-
-      const vinylLogo = document.createElement("img")
-      vinylLogo.src = "/music-snob-vinyl.png"
-      vinylLogo.alt = "VinylVerdict Logo"
-      vinylLogo.style.height = "120px"
-      vinylLogo.style.width = "120px"
-      vinylLogo.style.marginBottom = "20px"
-      vinylLogo.style.filter = "drop-shadow(0 0 20px rgba(147, 51, 234, 0.6))"
-      vinylLogo.crossOrigin = "anonymous"
-
-      const subtitle = document.createElement("div")
-      subtitle.style.textAlign = "center"
-      subtitle.style.width = "100%"
-
-      const subtitleText = document.createElement("h2")
-      const personalityName = getPersonalityName(assistantType)
-      const username = userProfile?.display_name || userProfile?.id || "Your Music"
-
-      subtitleText.innerHTML = `<span style="color: #c026d3; font-weight: bold;">${personalityName}</span>'s analysis of <span style="color: #c026d3; font-weight: bold;">${username}</span>`
-
-      subtitleText.style.fontSize = "32px"
-      subtitleText.style.fontWeight = "600"
-      subtitleText.style.color = "#d4d4d8"
-      subtitleText.style.margin = "0"
-      subtitleText.style.padding = "0"
-      subtitleText.style.lineHeight = "1.4"
-
-      subtitle.appendChild(subtitleText)
-      header.appendChild(vinylLogo)
-      header.appendChild(subtitle)
-      templateContainer.appendChild(header)
-
-      // Create content area
-      const content = document.createElement("div")
-      content.style.backgroundColor = "rgba(24, 24, 27, 0.8)"
-      content.style.borderRadius = "12px"
-      content.style.padding = "44px"
-      content.style.border = "1px solid rgba(147, 51, 234, 0.3)"
-      content.style.width = "100%"
-      content.style.maxWidth = "880px"
-      content.style.boxSizing = "border-box"
-      content.style.marginBottom = "20px"
-
-      content.innerHTML = convertMarkdownToHtml(text, fontSize)
-      templateContainer.appendChild(content)
-
-      // Create footer
-      const footer = document.createElement("div")
-      footer.style.display = "flex"
-      footer.style.flexDirection = "column"
-      footer.style.alignItems = "center"
-      footer.style.width = "100%"
-      footer.style.maxWidth = "880px"
-
-      const logoContainer = document.createElement("div")
-      logoContainer.style.display = "flex"
-      logoContainer.style.alignItems = "center"
-      logoContainer.style.gap = "16px"
-      logoContainer.style.marginBottom = "16px"
-
-      const logoImg = document.createElement("img")
-      logoImg.src = "/music-snob-vinyl.png"
-      logoImg.alt = "VinylVerdict Logo"
-      logoImg.style.height = "60px"
-      logoImg.style.width = "60px"
-      logoImg.crossOrigin = "anonymous"
-
-      const title = document.createElement("h1")
-      title.textContent = "VinylVerdict.FM"
-      title.style.fontSize = "42px"
-      title.style.fontWeight = "bold"
-      title.style.color = "#c026d3"
-      title.style.margin = "0"
-      title.style.padding = "0"
-      title.style.lineHeight = "1"
-      title.style.marginBottom = "8px"
-
-      const promoText = document.createElement("p")
-      promoText.textContent = "Get your own personalized verdict at VinylVerdict.FM"
-      promoText.style.fontSize = "18px"
-      promoText.style.color = "#9ca3af"
-      promoText.style.margin = "0"
-      promoText.style.padding = "0"
-      promoText.style.textAlign = "center"
-      promoText.style.fontWeight = "400"
-
-      logoContainer.appendChild(logoImg)
-      logoContainer.appendChild(title)
-      footer.appendChild(promoText)
-      templateContainer.appendChild(footer)
-
-      const generateImage = () => {
-        const existingContainer = document.getElementById("share-image-template")
-        if (!existingContainer) {
-          return
-        }
-
-        const actualHeight = existingContainer.scrollHeight
-        existingContainer.style.height = `${Math.max(actualHeight, 1728)}px`
-
-        html2canvas(existingContainer, {
-          allowTaint: true,
-          useCORS: true,
-          scale: 2,
-          logging: false,
-          backgroundColor: null,
-          height: Math.max(actualHeight, 1728),
-          windowHeight: Math.max(actualHeight, 1728),
-          foreignObjectRendering: false,
-          removeContainer: false,
-        })
-          .then((canvas) => {
-            const imageUrl = canvas.toDataURL("image/png")
-            setImageUrl(imageUrl)
-            setShowingImage(true)
-
-            if (loadingIntervalRef.current) {
-              clearInterval(loadingIntervalRef.current)
-            }
-
-            cleanupTimeoutRef.current = setTimeout(() => {
-              const containerToRemove = document.getElementById("share-image-template")
-              if (containerToRemove && containerToRemove.parentNode) {
-                try {
-                  document.body.removeChild(containerToRemove)
-                } catch (error) {
-                  // Cleanup failed, continue
-                }
-              }
-            }, 100)
+      // Generate image using server-side API
+      const generateServerSideImage = async () => {
+        try {
+          // Get username from profile
+          const username = userProfile?.display_name || userProfile?.id || "Your Music"
+          
+          // Create URL parameters for the server-side image generation
+          const params = new URLSearchParams({
+            text: text,
+            type: assistantType,
+            username: username
           })
-          .catch((error) => {
-            toast({
-              title: "Image generation failed",
-              description: "Could not generate share image. Please try again.",
-              variant: "destructive",
-            })
-
-            const containerToRemove = document.getElementById("share-image-template")
-            if (containerToRemove && containerToRemove.parentNode) {
-              try {
-                document.body.removeChild(containerToRemove)
-              } catch (cleanupError) {
-                // Cleanup failed, continue
+          
+          // Call the server-side image generation API
+          const imageApiUrl = `/api/share-image?${params.toString()}`
+          
+          // Create a new image element to preload the server-generated image
+          const img = new Image()
+          img.crossOrigin = "anonymous"
+          
+          // Wait for the image to load before showing it
+          await new Promise((resolve, reject) => {
+            img.onload = () => {
+              // Image loaded successfully
+              setImageUrl(imageApiUrl)
+              setShowingImage(true)
+              
+              if (loadingIntervalRef.current) {
+                clearInterval(loadingIntervalRef.current)
               }
+              resolve(img)
             }
+            
+            img.onerror = () => {
+              reject(new Error("Failed to load generated image"))
+            }
+            
+            // Start loading the image
+            img.src = imageApiUrl
           })
-      }
-
-      let imagesLoaded = 0
-      const totalImages = 2
-
-      const checkImagesLoaded = () => {
-        imagesLoaded++
-        if (imagesLoaded === totalImages) {
-          setTimeout(generateImage, 500)
+          
+        } catch (error) {
+          console.error('Error generating share image:', error)
+          
+          if (loadingIntervalRef.current) {
+            clearInterval(loadingIntervalRef.current)
+          }
+          
+          toast({
+            title: "Image generation failed",
+            description: "Could not generate share image. Please try again.",
+            variant: "destructive",
+          })
         }
       }
 
-      vinylLogo.onload = checkImagesLoaded
-      vinylLogo.onerror = () => {
-        checkImagesLoaded()
-      }
-
-      logoImg.onload = checkImagesLoaded
-      logoImg.onerror = () => {
-        checkImagesLoaded()
-      }
-
-      if (vinylLogo.complete) checkImagesLoaded()
-      if (logoImg.complete) checkImagesLoaded()
-
-      setTimeout(() => {
-        if (imagesLoaded < totalImages) {
-          setTimeout(generateImage, 500)
-        }
-      }, 3000)
+      // Add a small delay to ensure user profile is loaded, then start generation
+      setTimeout(generateServerSideImage, 500)
     }
 
     return () => {
@@ -310,15 +158,6 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
 
       if (cleanupTimeoutRef.current) {
         clearTimeout(cleanupTimeoutRef.current)
-      }
-
-      const templateContainer = document.getElementById("share-image-template")
-      if (templateContainer && templateContainer.parentNode) {
-        try {
-          templateContainer.parentNode.removeChild(templateContainer)
-        } catch (error) {
-          // Cleanup failed, continue
-        }
       }
     }
   }, [isOpen, text, assistantType, userProfile])
@@ -337,67 +176,29 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     }
   }
 
-  const convertMarkdownToHtml = (markdown: string, fontSize: number): string => {
-    let title = ""
-    let content = markdown
-
-    const titleMatch = markdown.match(/^# (.+)$/m)
-    if (titleMatch) {
-      title = titleMatch[1]
-      content = markdown.replace(/^# .+$/m, "")
-    }
-
-    let html = content
-      .replace(
-        /^# (.*$)/gm,
-        `<h1 style="color: #c026d3; font-size: ${fontSize * 1.3}px; font-weight: bold; margin-bottom: 20px; line-height: 1.4;">$1</h1>`,
-      )
-      .replace(
-        /^## (.*$)/gm,
-        `<h2 style="color: #c026d3; font-size: ${fontSize * 1.15}px; font-weight: bold; margin-bottom: 16px; line-height: 1.4;">$2</h2>`,
-      )
-      .replace(
-        /^### (.*$)/gm,
-        `<h3 style="color: #c026d3; font-size: ${fontSize * 1.05}px; font-weight: bold; margin-bottom: 12px; line-height: 1.4;">$1</h3>`,
-      )
-      .replace(/\*\*(.*?)\*\*/g, `<strong style="color: white; font-weight: bold;">$1</strong>`)
-      .replace(/\*(.*?)\*/g, `<em style="color: #d4d4d8; font-style: italic;">$1</em>`)
-      .replace(
-        /\n\n/g,
-        `</p><p style="margin-bottom: ${fontSize * 0.8}px; color: #e4e4e7; font-size: ${fontSize}px; line-height: 1.6;">`,
-      )
-      .replace(
-        /^- (.*$)/gm,
-        `<li style="margin-left: 20px; color: #e4e4e7; font-size: ${fontSize}px; line-height: 1.6;">$1</li>`,
-      )
-
-    if (!html.startsWith("<h1") && !html.startsWith("<p")) {
-      html = `<p style="margin-bottom: ${fontSize * 0.8}px; color: #e4e4e7; font-size: ${fontSize}px; line-height: 1.6;">${html}</p>`
-    }
-
-    if (title) {
-      html =
-        `<h1 style="color: #c026d3; font-size: ${fontSize * 1.5}px; font-weight: bold; margin-bottom: ${fontSize}px; text-align: center; line-height: 1.3;">${title}</h1>` +
-        html
-    }
-
-    return html
-  }
-
-  const copyImageToClipboard = async (dataUrl: string): Promise<void> => {
+  const copyImageToClipboard = async (imageUrl: string): Promise<void> => {
     try {
       if (!navigator.clipboard || !navigator.clipboard.write) {
         throw new Error("Clipboard API not supported")
       }
 
-      const response = await fetch(dataUrl)
+      // For server-generated images, we need to fetch the image first
+      const response = await fetch(imageUrl)
+      if (!response.ok) {
+        throw new Error("Failed to fetch image")
+      }
+      
       const blob = await response.blob()
 
+      // Ensure we have a PNG blob for clipboard compatibility
       let finalBlob = blob
-      if (blob.type === "image/jpeg") {
+      if (blob.type !== "image/png") {
         const canvas = document.createElement("canvas")
         const ctx = canvas.getContext("2d")
         const img = new Image()
+        
+        // Add CORS handling for server-generated images
+        img.crossOrigin = "anonymous"
 
         await new Promise((resolve, reject) => {
           img.onload = () => {
@@ -409,12 +210,12 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
                 finalBlob = pngBlob
                 resolve(pngBlob)
               } else {
-                reject(new Error("Failed to convert to PNG"))
+                reject(new Error("Failed to convert image to PNG"))
               }
             }, "image/png")
           }
-          img.onerror = reject
-          img.src = dataUrl
+          img.onerror = () => reject(new Error("Failed to load image"))
+          img.src = imageUrl
         })
       }
 
@@ -425,14 +226,26 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     }
   }
 
-  const downloadImage = async (dataUrl: string, filename: string): Promise<void> => {
+  const downloadImage = async (imageUrl: string, filename: string): Promise<void> => {
     try {
+      // For server-generated images, fetch the image data first
+      const response = await fetch(imageUrl)
+      if (!response.ok) {
+        throw new Error("Failed to fetch image")
+      }
+      
+      const blob = await response.blob()
+      const blobUrl = URL.createObjectURL(blob)
+      
       const link = document.createElement("a")
-      link.href = dataUrl
+      link.href = blobUrl
       link.download = filename
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
+      
+      // Clean up the blob URL
+      URL.revokeObjectURL(blobUrl)
     } catch (error) {
       throw new Error("Failed to download image")
     }
@@ -448,16 +261,6 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       default:
         return "Share Your Roast"
     }
-  }
-
-  const isAppleDevice = () => {
-    const userAgent = navigator.userAgent
-    const platform = navigator.platform
-
-    const isIOS = /iPad|iPhone|iPod/.test(userAgent)
-    const isMacOS = platform.toLowerCase().includes("mac")
-
-    return isIOS || isMacOS
   }
 
   const handleCopyToClipboard = async () => {
@@ -501,28 +304,42 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     if (!imageUrl) return
 
     try {
+      // Fetch the server-generated image
       const response = await fetch(imageUrl)
+      if (!response.ok) {
+        throw new Error("Failed to fetch image")
+      }
+      
       const blob = await response.blob()
       const file = new File([blob], `vinylverdict-${assistantType}-${Date.now()}.png`, { type: "image/png" })
 
-      if (navigator.share && navigator.canShare({ files: [file] })) {
+      // Check if the device can share files
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
           title: "My Music Taste Verdict",
           text: "Check out my music taste verdict from VinylVerdict.fm!",
           files: [file],
         })
+      } else if (navigator.share) {
+        // Fallback to sharing just text and URL if file sharing isn't supported
+        await navigator.share({
+          title: "My Music Taste Verdict",
+          text: "Check out my music taste verdict from VinylVerdict.fm!",
+          url: window.location.origin,
+        })
       } else {
         toast({
           title: "Share not available",
-          description: "File sharing is not supported on this device.",
+          description: "Native sharing is not supported on this device.",
           variant: "destructive",
         })
       }
     } catch (error) {
       if (error instanceof Error && error.name !== "AbortError") {
+        console.error('Native share error:', error)
         toast({
           title: "Share failed",
-          description: "Could not share the image. Please try another method.",
+          description: "Could not share the image. Please try copying or downloading instead.",
           variant: "destructive",
         })
       }
@@ -600,7 +417,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent 
-        className="w-[90vw] sm:w-[500px] lg:w-[550px] h-[90vh] max-w-none max-h-none bg-zinc-900 border-zinc-800 p-0 overflow-hidden [&_button.absolute.right-4.top-4]:hidden"
+        className="w-[95vw] max-w-[500px] lg:max-w-[550px] max-h-[95vh] bg-zinc-900 border-zinc-800 p-0 overflow-hidden [&_button.absolute.right-4.top-4]:hidden mx-auto"
       >
         {/* Hidden DialogTitle for accessibility - required by Radix */}
         <DialogTitle className="sr-only">
@@ -612,131 +429,135 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
           Share your music taste verdict as an image. You can email, copy to clipboard, or download the image.
         </DialogDescription>
         
-        {/* Header container with title and X button */}
-        <div className="absolute top-0 left-0 right-0 h-12 flex items-center justify-between px-4 z-10 bg-zinc-900/80 backdrop-blur-sm border-b border-zinc-800">
-          <div className="flex items-center justify-center gap-2 text-white flex-1">
-            <Share2 className="h-5 w-5 text-purple-500" />
-            {getShareTitle()}
-          </div>
-          
-          {/* Custom styled X button */}
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-lg bg-purple-600/20 hover:bg-purple-600/40 border border-purple-500/30 hover:border-purple-400 flex items-center justify-center transition-all duration-200 hover:scale-105 group"
-            aria-label="Close share modal"
-          >
-            <svg
-              className="w-4 h-4 text-purple-400 group-hover:text-purple-300 transition-colors"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-
-        {/* Main content area - positioned between header and footer with reduced margins */}
-        <div className="absolute top-12 bottom-20 left-0 right-0 flex items-center justify-center p-4">
-          {!showingImage ? (
-            <div className="w-full max-w-[388px] aspect-[5/8] bg-zinc-800 rounded-lg flex flex-col items-center justify-center p-6 text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mb-4"></div>
-              <p className="text-purple-300 font-medium text-lg">{loadingMessages[loadingMessageIndex]}</p>
-              <p className="text-zinc-400 text-sm mt-2">This may take a few moments</p>
+        {/* Main container using flexbox for better control */}
+        <div className="flex flex-col min-h-0">
+          {/* Header container with title and X button - dynamic height */}
+          <div className="flex items-center justify-between px-4 py-1.5 z-10 bg-zinc-900/80 backdrop-blur-sm border-b border-zinc-800 flex-shrink-0">
+            <div className="flex items-center justify-center gap-2 text-white flex-1">
+              <Share2 className="h-5 w-5 text-purple-500" />
+              {getShareTitle()}
             </div>
-          ) : (
-            <div className="w-full max-w-[388px]">
-              {/* Image container with constrained height to prevent overflow */}
-              <div className="relative group w-full overflow-hidden rounded-lg">
-              <img
-                ref={imgRef}
-                  src={imageUrl || "/music-snob-vinyl.png"}
-                  alt="Share preview of your music taste verdict"
-                  className="w-full h-auto rounded-lg border border-zinc-700 object-contain cursor-pointer hover:opacity-90 transition-all duration-200 group-hover:scale-[1.02] block"
-                onClick={handleImageClick}
-                onError={() => {
-                  toast({
-                    title: "Preview failed",
-                    description: "Could not load image preview.",
-                    variant: "destructive",
-                  })
-                }}
-              />
-                
-                {/* Hover overlay with better styling */}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-200 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100">
-                  <div className="bg-black/80 text-white px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 backdrop-blur-sm">
-                    <Copy className="h-4 w-4" />
-                Click to copy
+            
+            {/* Custom styled X button */}
+            <button
+              onClick={onClose}
+              className="w-8 h-8 rounded-lg bg-purple-600/20 hover:bg-purple-600/40 border border-purple-500/30 hover:border-purple-400 flex items-center justify-center transition-all duration-200 hover:scale-105 group"
+              aria-label="Close share modal"
+            >
+              <svg
+                className="w-4 h-4 text-purple-400 group-hover:text-purple-300 transition-colors"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Main content area - positioned with appropriate spacing */}
+          <div className="flex items-center justify-center p-4 flex-shrink-0">
+            {!showingImage ? (
+              <div className="w-full max-w-[350px] aspect-[3/4] bg-zinc-800 rounded-lg flex flex-col items-center justify-center p-6 text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mb-4"></div>
+                <p className="text-purple-300 font-medium text-lg">{loadingMessages[loadingMessageIndex]}</p>
+                <p className="text-zinc-400 text-sm mt-2">This may take a few moments</p>
+              </div>
+            ) : (
+              <div className="w-full max-w-[350px]">
+                {/* Image container with constrained height to prevent overflow */}
+                <div className="relative group w-full overflow-hidden rounded-lg bg-transparent">
+                <img
+                  ref={imgRef}
+                    src={imageUrl || "/music-snob-vinyl.png"}
+                    alt="Share preview of your music taste verdict"
+                    className="w-full h-auto rounded-lg border border-zinc-700 object-contain cursor-pointer hover:opacity-90 transition-all duration-200 group-hover:scale-[1.02] block bg-transparent"
+                  style={{ backgroundColor: 'transparent' }}
+                  onClick={handleImageClick}
+                  onError={() => {
+                    toast({
+                      title: "Preview failed",
+                      description: "Could not load image preview.",
+                      variant: "destructive",
+                    })
+                  }}
+                />
+                  
+                  {/* Hover overlay with better styling */}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-200 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100">
+                    <div className="bg-black/80 text-white px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 backdrop-blur-sm">
+                      <Copy className="h-4 w-4" />
+                  Click to copy
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
 
-        {/* Footer container for buttons with increased bottom margin */}
-        <div className="absolute bottom-0 left-0 right-0 h-20 bg-zinc-900/80 backdrop-blur-sm border-t border-zinc-800 flex flex-col items-center justify-center px-4 space-y-2 mb-4">
-          {/* Share button above the row */}
-          {isAppleDevice() && (
+          {/* Footer container for buttons - directly under content with dynamic height */}
+          <div className="bg-zinc-900/80 backdrop-blur-sm border-t border-zinc-800 flex flex-col items-center justify-center px-4 py-2 pb-3 space-y-1.5 flex-shrink-0">
+            {/* Share button above the row */}
+            {supportsNativeShare && (
+              <Button
+                onClick={handleNativeShare}
+                disabled={!showingImage}
+                className="px-6 py-3 h-12 text-white font-medium relative overflow-hidden bg-purple-gradient hover:scale-105 transition-all duration-300 border-0 shadow-lg"
+                aria-label="Share your verdict using device share menu"
+              >
+                <div className="absolute inset-0 holographic-shimmer"></div>
+                <div className="relative z-10 flex items-center justify-center">
+                  <Share className="mr-2 h-4 w-4" />
+                  Share Your Verdict
+                </div>
+              </Button>
+            )}
+
+            {/* Three buttons in a row, 110% of preview width */}
+            <div className="flex gap-2 w-full max-w-[400px]">
+              <Button
+                onClick={handleSendEmail}
+                disabled={!showingImage || isSendingEmail}
+                variant="outline"
+                className="flex-1 text-white border-zinc-700 hover:bg-zinc-800 text-sm"
+                aria-label="Send verdict via email"
+              >
+                {isSendingEmail ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-1"></div>
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <Mail className="mr-1 h-4 w-4" />
+                    Email
+                  </>
+                )}
+              </Button>
+
             <Button
-              onClick={handleNativeShare}
+              onClick={handleCopyToClipboard}
               disabled={!showingImage}
-              className="px-6 py-2 text-white font-medium relative overflow-hidden bg-purple-gradient hover:scale-105 transition-all duration-300 border-0 shadow-lg"
-              aria-label="Share your verdict using device share menu"
-            >
-              <div className="absolute inset-0 holographic-shimmer"></div>
-              <div className="relative z-10 flex items-center justify-center">
-                <Share className="mr-2 h-4 w-4" />
-                Share Your Verdict
-              </div>
-            </Button>
-          )}
-
-          {/* Three buttons in a row, 110% of preview width */}
-          <div className="flex gap-2 w-full max-w-[440px]">
-            <Button
-              onClick={handleSendEmail}
-              disabled={!showingImage || isSendingEmail}
               variant="outline"
-              className="flex-1 text-white border-zinc-700 hover:bg-zinc-800 text-sm"
-              aria-label="Send verdict via email"
+                className="flex-1 text-white border-zinc-700 hover:bg-zinc-800 text-sm"
+                aria-label="Copy verdict image to clipboard"
             >
-              {isSendingEmail ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-1"></div>
-                  Sending...
-                </>
-              ) : (
-                <>
-                  <Mail className="mr-1 h-4 w-4" />
-                  Email
-                </>
-              )}
+                <Copy className="mr-1 h-4 w-4" />
+                Copy
             </Button>
 
-          <Button
-            onClick={handleCopyToClipboard}
-            disabled={!showingImage}
-            variant="outline"
-              className="flex-1 text-white border-zinc-700 hover:bg-zinc-800 text-sm"
-              aria-label="Copy verdict image to clipboard"
-          >
-              <Copy className="mr-1 h-4 w-4" />
-              Copy
-          </Button>
-
-          <Button
-            onClick={handleDownloadImage}
-            disabled={!showingImage}
-            variant="outline"
-              className="flex-1 text-white border-zinc-700 hover:bg-zinc-800 text-sm"
-              aria-label="Download verdict image"
-          >
-              <Download className="mr-1 h-4 w-4" />
-              Download
-          </Button>
+            <Button
+              onClick={handleDownloadImage}
+              disabled={!showingImage}
+              variant="outline"
+                className="flex-1 text-white border-zinc-700 hover:bg-zinc-800 text-sm"
+                aria-label="Download verdict image"
+            >
+                <Download className="mr-1 h-4 w-4" />
+                Download
+            </Button>
+            </div>
           </div>
         </div>
       </DialogContent>

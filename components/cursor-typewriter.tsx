@@ -15,6 +15,23 @@ interface CursorTypewriterProps {
   cursorChar?: string
 }
 
+// Mobile detection hook
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(false)
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+  
+  return isMobile
+}
+
 export function CursorTypewriter({
   markdown,
   speed = 12.5,
@@ -28,10 +45,20 @@ export function CursorTypewriter({
   const [isComplete, setIsComplete] = useState(false)
   const [currentText, setCurrentText] = useState<string>("")
   const [containerHeight, setContainerHeight] = useState<number | null>(null)
+  const [currentHeight, setCurrentHeight] = useState<number>(0) // Track current height as typewriter progresses
   
   const animationFrameRef = useRef<number | null>(null)
   const lastUpdateTimeRef = useRef<number>(0)
   const isMountedRef = useRef(true)
+  const contentRef = useRef<HTMLDivElement>(null) // Ref to measure content height
+  const lastHeightMeasureRef = useRef<number>(0) // Track last height measurement time
+  
+  // Mobile detection
+  const isMobile = useIsMobile()
+  
+  // Mobile-specific optimizations
+  const mobileSpeed = isMobile ? speed * 2 : speed // Slower on mobile (higher number = slower)
+  const heightMeasureInterval = isMobile ? 100 : 10 // Less frequent height measurements on mobile
 
   // Set up the mounted ref
   useEffect(() => {
@@ -62,6 +89,39 @@ export function CursorTypewriter({
       document.body.removeChild(measureElement)
     }
   }, [markdown, containerHeight])
+
+  // Function to measure current content height
+  const measureCurrentHeight = useCallback(() => {
+    const now = performance.now()
+    
+    // Throttle height measurements on mobile for better performance
+    if (isMobile && now - lastHeightMeasureRef.current < heightMeasureInterval) {
+      return
+    }
+    
+    if (contentRef.current) {
+      // Use requestAnimationFrame for smoother height updates
+      requestAnimationFrame(() => {
+        if (contentRef.current && isMountedRef.current) {
+          const height = contentRef.current.scrollHeight
+          setCurrentHeight(height)
+          lastHeightMeasureRef.current = now
+        }
+      })
+    }
+  }, [isMobile, heightMeasureInterval])
+
+  // Update height when content changes
+  useEffect(() => {
+    if (currentText) {
+      // Use a longer delay on mobile to reduce DOM thrashing
+      const delay = isMobile ? 50 : 10
+      const timeoutId = setTimeout(measureCurrentHeight, delay)
+      return () => clearTimeout(timeoutId)
+    } else {
+      setCurrentHeight(0)
+    }
+  }, [currentText, measureCurrentHeight, isMobile])
 
   // Memoize custom components to prevent re-creation
   const components = useMemo(() => ({
@@ -218,7 +278,7 @@ export function CursorTypewriter({
     const now = performance.now()
     
     // Throttle updates based on speed setting
-    if (now - lastUpdateTimeRef.current < speed) {
+    if (now - lastUpdateTimeRef.current < mobileSpeed) {
       animationFrameRef.current = requestAnimationFrame(() => animateTypewriter(currentPosition))
       return
     }
@@ -240,7 +300,7 @@ export function CursorTypewriter({
     if (onProgress) onProgress(newPosition)
     
     animationFrameRef.current = requestAnimationFrame(() => animateTypewriter(newPosition))
-  }, [markdown, speed, onComplete, onProgress, cursorChar])
+  }, [markdown, mobileSpeed, onComplete, onProgress, cursorChar])
 
   // Handle the typewriter effect
   useEffect(() => {
@@ -281,11 +341,19 @@ export function CursorTypewriter({
 
   return (
     <div
-      className={`${className} text-sm sm:text-base md:text-lg transition-opacity duration-300 ${isComplete ? "opacity-100" : "opacity-95"}`}
+      className={`${className} text-sm sm:text-base md:text-lg transition-all duration-300 ease-out ${isComplete ? "opacity-100" : "opacity-95"}`}
       style={{ 
-        minHeight: containerHeight ? `${containerHeight}px` : '100px',
+        height: currentHeight > 0 ? `${currentHeight}px` : 'auto',
+        minHeight: currentHeight > 0 ? `${currentHeight}px` : '20px',
+        overflow: 'hidden',
         contain: 'layout style', // Improve rendering performance
-        contentVisibility: 'auto' // Optimize rendering for off-screen content
+        contentVisibility: 'auto', // Optimize rendering for off-screen content
+        // Mobile-specific optimizations
+        ...(isMobile && {
+          willChange: 'height', // Hint to browser for optimization
+          transform: 'translateZ(0)', // Force hardware acceleration
+          backfaceVisibility: 'hidden', // Reduce rendering overhead
+        })
       }}
     >
       {/* Global styles for consistent emoji and gradient rendering */}
@@ -309,15 +377,31 @@ export function CursorTypewriter({
           background: none !important;
           -webkit-text-fill-color: #a855f7 !important;
         }
+        ${isMobile ? `
+          /* Mobile-specific optimizations */
+          .prose * {
+            will-change: auto !important;
+          }
+        ` : ''}
       `}</style>
       
-      <div className="prose prose-invert max-w-none text-zinc-300 prose-strong:text-white prose-em:text-zinc-400 prose-li:marker:text-purple-gradient">
-      <ReactMarkdown
-        rehypePlugins={[rehypeRaw]}
-          components={components}
+      <div 
+        ref={contentRef}
+        className="prose prose-invert max-w-none text-zinc-300 prose-strong:text-white prose-em:text-zinc-400 prose-li:marker:text-purple-gradient"
+        style={{
+          // Mobile-specific optimizations
+          ...(isMobile && {
+            contain: 'layout style',
+            transform: 'translateZ(0)',
+          })
+        }}
       >
+        <ReactMarkdown
+          rehypePlugins={[rehypeRaw]}
+          components={components}
+        >
           {currentText}
-      </ReactMarkdown>
+        </ReactMarkdown>
       </div>
     </div>
   )
