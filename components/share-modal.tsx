@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/use-toast"
 import { Mail, Copy, Share2, Share, Download } from "lucide-react"
@@ -27,10 +27,10 @@ const loadingMessages = [
 export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: ShareModalProps) {
   const [imageUrl, setImageUrl] = useState<string>("")
   const [showingImage, setShowingImage] = useState(false)
+  const [imageFullyLoaded, setImageFullyLoaded] = useState(false)
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0)
   const [userProfile, setUserProfile] = useState<any>(null)
   const [isSendingEmail, setIsSendingEmail] = useState(false)
-  const [isAppleDevice, setIsAppleDevice] = useState(false)
   const [supportsNativeShare, setSupportsNativeShare] = useState(false)
   const loadingIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const imgRef = useRef<HTMLImageElement>(null)
@@ -41,15 +41,6 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     // Check if the browser supports the Web Share API with file sharing
     const hasWebShareAPI = 'share' in navigator && 'canShare' in navigator
     setSupportsNativeShare(hasWebShareAPI)
-    
-    // Keep the Apple device detection for any Apple-specific logic if needed later
-    const userAgent = navigator.userAgent
-    const platform = navigator.platform
-
-    const isIOS = /iPad|iPhone|iPod/.test(userAgent)
-    const isMacOS = platform.toLowerCase().includes("mac")
-
-    setIsAppleDevice(isIOS || isMacOS)
   }, [])
 
   // Fetch user profile when modal opens
@@ -58,18 +49,13 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       const fetchProfile = async () => {
         try {
           const response = await fetch("/api/auth/me")
-
-          if (!response.ok) {
-            return
-          }
-
+          if (!response.ok) return
           const data = await response.json()
           setUserProfile(data)
         } catch (err) {
           // Continue without profile data
         }
       }
-
       fetchProfile()
     }
   }, [isOpen])
@@ -77,8 +63,10 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
   useEffect(() => {
     if (isOpen) {
       // Reset states
+      console.log("🔄 Modal opened, resetting states")
       setImageUrl("")
       setShowingImage(false)
+      setImageFullyLoaded(false)
       setIsSendingEmail(false)
 
       // Start cycling through loading messages
@@ -99,7 +87,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
           
           // Create URL parameters for the server-side image generation
           const params = new URLSearchParams({
-            text: text,
+            text: text, // Send raw markdown text
             type: assistantType,
             username: username
           })
@@ -114,31 +102,34 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
           // Wait for the image to load before showing it
           await new Promise((resolve, reject) => {
             img.onload = () => {
-              // Image loaded successfully
+              console.log("✅ Preload image loaded successfully")
               setImageUrl(imageApiUrl)
               setShowingImage(true)
               
-              if (loadingIntervalRef.current) {
-                clearInterval(loadingIntervalRef.current)
-              }
+              // Add a small delay to ensure UI image renders properly, then mark as fully loaded
+              setTimeout(() => {
+                console.log("✅ UI image should be rendered now")
+                setImageFullyLoaded(true)
+                if (loadingIntervalRef.current) {
+                  clearInterval(loadingIntervalRef.current)
+                }
+              }, 100)
+              
               resolve(img)
             }
-            
             img.onerror = () => {
+              console.log("❌ Preload image failed to load")
               reject(new Error("Failed to load generated image"))
             }
-            
-            // Start loading the image
+            console.log("🔄 Starting preload of image:", imageApiUrl)
             img.src = imageApiUrl
           })
           
         } catch (error) {
           console.error('Error generating share image:', error)
-          
           if (loadingIntervalRef.current) {
             clearInterval(loadingIntervalRef.current)
           }
-          
           toast({
             title: "Image generation failed",
             description: "Could not generate share image. Please try again.",
@@ -155,7 +146,6 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       if (loadingIntervalRef.current) {
         clearInterval(loadingIntervalRef.current)
       }
-
       if (cleanupTimeoutRef.current) {
         clearTimeout(cleanupTimeoutRef.current)
       }
@@ -182,7 +172,6 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
         throw new Error("Clipboard API not supported")
       }
 
-      // For server-generated images, we need to fetch the image first
       const response = await fetch(imageUrl)
       if (!response.ok) {
         throw new Error("Failed to fetch image")
@@ -197,7 +186,6 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
         const ctx = canvas.getContext("2d")
         const img = new Image()
         
-        // Add CORS handling for server-generated images
         img.crossOrigin = "anonymous"
 
         await new Promise((resolve, reject) => {
@@ -228,7 +216,6 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
 
   const downloadImage = async (imageUrl: string, filename: string): Promise<void> => {
     try {
-      // For server-generated images, fetch the image data first
       const response = await fetch(imageUrl)
       if (!response.ok) {
         throw new Error("Failed to fetch image")
@@ -244,7 +231,6 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       link.click()
       document.body.removeChild(link)
       
-      // Clean up the blob URL
       URL.revokeObjectURL(blobUrl)
     } catch (error) {
       throw new Error("Failed to download image")
@@ -304,7 +290,6 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     if (!imageUrl) return
 
     try {
-      // Fetch the server-generated image
       const response = await fetch(imageUrl)
       if (!response.ok) {
         throw new Error("Failed to fetch image")
@@ -313,7 +298,6 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       const blob = await response.blob()
       const file = new File([blob], `vinylverdict-${assistantType}-${Date.now()}.png`, { type: "image/png" })
 
-      // Check if the device can share files
       if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
           title: "My Music Taste Verdict",
@@ -321,7 +305,6 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
           files: [file],
         })
       } else if (navigator.share) {
-        // Fallback to sharing just text and URL if file sharing isn't supported
         await navigator.share({
           title: "My Music Taste Verdict",
           text: "Check out my music taste verdict from VinylVerdict.fm!",
@@ -414,31 +397,52 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     }
   }
 
+  // Handle when the UI image element finishes loading (backup)
+  const handleImageLoad = () => {
+    console.log("✅ UI image onLoad event fired (backup)")
+    if (!imageFullyLoaded) {
+      setImageFullyLoaded(true)
+      if (loadingIntervalRef.current) {
+        clearInterval(loadingIntervalRef.current)
+      }
+    }
+  }
+
+  // Handle image load error in UI
+  const handleImageError = () => {
+    console.log("❌ UI image failed to load")
+    setImageFullyLoaded(false)
+    if (loadingIntervalRef.current) {
+      clearInterval(loadingIntervalRef.current)
+    }
+    toast({
+      title: "Preview failed",
+      description: "Could not load image preview.",
+      variant: "destructive",
+    })
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent 
         className="w-[95vw] max-w-[500px] lg:max-w-[550px] max-h-[95vh] bg-zinc-900 border-zinc-800 p-0 overflow-hidden [&_button.absolute.right-4.top-4]:hidden mx-auto"
       >
-        {/* Hidden DialogTitle for accessibility - required by Radix */}
         <DialogTitle className="sr-only">
           {getShareTitle()}
         </DialogTitle>
         
-        {/* Hidden DialogDescription for accessibility - required by Radix */}
         <DialogDescription className="sr-only">
           Share your music taste verdict as an image. You can email, copy to clipboard, or download the image.
         </DialogDescription>
         
-        {/* Main container using flexbox for better control */}
         <div className="flex flex-col min-h-0">
-          {/* Header container with title and X button - dynamic height */}
+          {/* Header */}
           <div className="flex items-center justify-between px-4 py-1.5 z-10 bg-zinc-900/80 backdrop-blur-sm border-b border-zinc-800 flex-shrink-0">
             <div className="flex items-center justify-center gap-2 text-white flex-1">
               <Share2 className="h-5 w-5 text-purple-500" />
               {getShareTitle()}
             </div>
             
-            {/* Custom styled X button */}
             <button
               onClick={onClose}
               className="w-8 h-8 rounded-lg bg-purple-600/20 hover:bg-purple-600/40 border border-purple-500/30 hover:border-purple-400 flex items-center justify-center transition-all duration-200 hover:scale-105 group"
@@ -456,39 +460,36 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
             </button>
           </div>
 
-          {/* Main content area - positioned with appropriate spacing */}
+          {/* Main content area */}
           <div className="flex items-center justify-center p-4 flex-shrink-0">
-            {!showingImage ? (
+            {!showingImage || !imageFullyLoaded ? (
               <div className="w-full max-w-[350px] aspect-[3/4] bg-zinc-800 rounded-lg flex flex-col items-center justify-center p-6 text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mb-4"></div>
                 <p className="text-purple-300 font-medium text-lg">{loadingMessages[loadingMessageIndex]}</p>
                 <p className="text-zinc-400 text-sm mt-2">This may take a few moments</p>
+                {/* Debug info */}
+                <p className="text-xs text-zinc-600 mt-2">
+                  Debug: showingImage={showingImage.toString()}, imageFullyLoaded={imageFullyLoaded.toString()}
+                </p>
               </div>
             ) : (
               <div className="w-full max-w-[350px]">
-                {/* Image container with constrained height to prevent overflow */}
                 <div className="relative group w-full overflow-hidden rounded-lg bg-transparent">
-                <img
-                  ref={imgRef}
+                  <img
+                    ref={imgRef}
                     src={imageUrl || "/music-snob-vinyl.png"}
                     alt="Share preview of your music taste verdict"
                     className="w-full h-auto rounded-lg border border-zinc-700 object-contain cursor-pointer hover:opacity-90 transition-all duration-200 group-hover:scale-[1.02] block bg-transparent"
-                  style={{ backgroundColor: 'transparent' }}
-                  onClick={handleImageClick}
-                  onError={() => {
-                    toast({
-                      title: "Preview failed",
-                      description: "Could not load image preview.",
-                      variant: "destructive",
-                    })
-                  }}
-                />
+                    style={{ backgroundColor: 'transparent' }}
+                    onClick={handleImageClick}
+                    onLoad={handleImageLoad}
+                    onError={handleImageError}
+                  />
                   
-                  {/* Hover overlay with better styling */}
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-200 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100">
                     <div className="bg-black/80 text-white px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 backdrop-blur-sm">
                       <Copy className="h-4 w-4" />
-                  Click to copy
+                      Click to copy
                     </div>
                   </div>
                 </div>
@@ -496,13 +497,13 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
             )}
           </div>
 
-          {/* Footer container for buttons - directly under content with dynamic height */}
+          {/* Footer buttons */}
           <div className="bg-zinc-900/80 backdrop-blur-sm border-t border-zinc-800 flex flex-col items-center justify-center px-4 py-2 pb-3 space-y-1.5 flex-shrink-0">
             {/* Share button above the row */}
             {supportsNativeShare && (
               <Button
                 onClick={handleNativeShare}
-                disabled={!showingImage}
+                disabled={!imageFullyLoaded}
                 className="px-6 py-3 h-12 text-white font-medium relative overflow-hidden bg-purple-gradient hover:scale-105 transition-all duration-300 border-0 shadow-lg"
                 aria-label="Share your verdict using device share menu"
               >
@@ -514,11 +515,11 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
               </Button>
             )}
 
-            {/* Three buttons in a row, 110% of preview width */}
+            {/* Three buttons in a row */}
             <div className="flex gap-2 w-full max-w-[400px]">
               <Button
                 onClick={handleSendEmail}
-                disabled={!showingImage || isSendingEmail}
+                disabled={!imageFullyLoaded || isSendingEmail}
                 variant="outline"
                 className="flex-1 text-white border-zinc-700 hover:bg-zinc-800 text-sm"
                 aria-label="Send verdict via email"
@@ -536,27 +537,27 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
                 )}
               </Button>
 
-            <Button
-              onClick={handleCopyToClipboard}
-              disabled={!showingImage}
-              variant="outline"
+              <Button
+                onClick={handleCopyToClipboard}
+                disabled={!imageFullyLoaded}
+                variant="outline"
                 className="flex-1 text-white border-zinc-700 hover:bg-zinc-800 text-sm"
                 aria-label="Copy verdict image to clipboard"
-            >
+              >
                 <Copy className="mr-1 h-4 w-4" />
                 Copy
-            </Button>
+              </Button>
 
-            <Button
-              onClick={handleDownloadImage}
-              disabled={!showingImage}
-              variant="outline"
+              <Button
+                onClick={handleDownloadImage}
+                disabled={!imageFullyLoaded}
+                variant="outline"
                 className="flex-1 text-white border-zinc-700 hover:bg-zinc-800 text-sm"
                 aria-label="Download verdict image"
-            >
+              >
                 <Download className="mr-1 h-4 w-4" />
                 Download
-            </Button>
+              </Button>
             </div>
           </div>
         </div>

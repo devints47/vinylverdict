@@ -3,17 +3,26 @@ import type { NextRequest } from "next/server"
 
 export const runtime = "edge"
 
+/**
+ * Share Image Generation API
+ * 
+ * Current approach (simplified and working):
+ * 1. Receives raw markdown text via URL parameter
+ * 2. Strips inline formatting (**bold**, *italic*, _italic_) to prevent spacing issues
+ * 3. Preserves structure (headers, paragraphs, lists)
+ * 4. Headers render with solid purple color (#c026d3)
+ * 5. Body text renders as clean paragraphs with proper spacing
+ * 6. Emojis are preserved and display correctly
+ */
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     
     // Get parameters from URL
-    const rawText = searchParams.get("text") || "Your music taste is... interesting."
+    const markdownText = searchParams.get("text") || "Your music taste is... interesting."
     const assistantType = searchParams.get("type") || "snob"
     const username = searchParams.get("username") || "Your Music"
-    
-    // Clean the text of any HTML tags that might have been included
-    const text = rawText.replace(/<[^>]*>/g, '').trim()
     
     // Get the app URL for image assets
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
@@ -33,161 +42,102 @@ export async function GET(request: NextRequest) {
       }
     }
     
-    // Convert markdown-like text to styled elements with proper gradient styling
-    const convertTextToElements = (markdown: string) => {
+    // Convert markdown to structured content, keeping headers and paragraphs but stripping inline formatting
+    const parseMarkdownToElements = (markdown: string) => {
       const lines = markdown.split('\n').filter(line => line.trim())
+      const elements: any[] = []
       
-      return lines.map((line, index) => {
-        // Handle headers with gradient styling
-        if (line.startsWith('# ')) {
-          const content = line.replace('# ', '')
-          // Split content to separate emojis from text
-          const parts = content.split(/(\p{Emoji}+)/gu)
-          
-          return (
-            <h1 key={index} style={{
-              fontSize: '32px',
-              fontWeight: 'bold',
-              marginBottom: '16px',
-              lineHeight: 1.4,
-              display: 'flex',
-              flexWrap: 'wrap'
-            }}>
-              {parts.map((part, i) => {
-                if (/\p{Emoji}/u.test(part)) {
-                  return (
-                    <span key={i} style={{ 
-                      color: 'inherit'
-                    }}>
-                      {part}
-                    </span>
-                  )
-                }
-                return (
-                  <span key={i} style={{
-                    background: 'linear-gradient(135deg, #9333ea, #a855f7, #c026d3, #a855f7, #9333ea)',
-                    backgroundSize: '200% 200%',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text'
-                  }}>
-                    {part}
-                  </span>
-                )
-              })}
-            </h1>
-          )
+      lines.forEach((line, index) => {
+        const trimmedLine = line.trim()
+        if (!trimmedLine) return
+        
+        // Strip inline formatting from any line before processing
+        const cleanText = (text: string) => {
+          return text
+            // Remove bold
+            .replace(/\*\*(.*?)\*\*/g, '$1')
+            // Remove italic (both asterisk and underscore)
+            .replace(/\*(.*?)\*/g, '$1')
+            .replace(/_(.*?)_/g, '$1')
         }
         
-        if (line.startsWith('## ')) {
-          const content = line.replace('## ', '')
-          const parts = content.split(/(\p{Emoji}+)/gu)
-          
-          return (
-            <h2 key={index} style={{
-              fontSize: '28px',
-              fontWeight: 'bold',
-              marginBottom: '12px',
-              lineHeight: 1.4,
-              display: 'flex',
-              flexWrap: 'wrap'
-            }}>
-              {parts.map((part, i) => {
-                if (/\p{Emoji}/u.test(part)) {
-                  return (
-                    <span key={i} style={{ 
-                      color: 'inherit'
-                    }}>
-                      {part}
-                    </span>
-                  )
-                }
-                return (
-                  <span key={i} style={{
-                    background: 'linear-gradient(135deg, #9333ea, #a855f7, #c026d3, #a855f7, #9333ea)',
-                    backgroundSize: '200% 200%',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text'
-                  }}>
-                    {part}
-                  </span>
-                )
-              })}
-            </h2>
-          )
-        }
-        
-        if (line.startsWith('### ')) {
-          const content = line.replace('### ', '')
-          const parts = content.split(/(\p{Emoji}+)/gu)
-          
-          return (
-            <h3 key={index} style={{
+        // Handle headers
+        if (trimmedLine.startsWith('### ')) {
+          const content = cleanText(trimmedLine.replace(/^### /, ''))
+          elements.push(
+            <h3 key={`h3-${index}`} style={{
               fontSize: '26px',
               fontWeight: 'bold',
               marginBottom: '10px',
+              marginTop: index > 0 ? '20px' : '0',
               lineHeight: 1.4,
-              display: 'flex',
-              flexWrap: 'wrap'
+              color: '#c026d3'
             }}>
-              {parts.map((part, i) => {
-                if (/\p{Emoji}/u.test(part)) {
-                  return (
-                    <span key={i} style={{ 
-                      color: 'inherit'
-                    }}>
-                      {part}
-                    </span>
-                  )
-                }
-                return (
-                  <span key={i} style={{
-                    background: 'linear-gradient(135deg, #9333ea, #a855f7, #c026d3, #a855f7, #9333ea)',
-                    backgroundSize: '200% 200%',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text'
-                  }}>
-                    {part}
-                  </span>
-                )
-              })}
+              {content}
             </h3>
           )
-        }
-        
-        // Handle list items
-        if (line.startsWith('- ')) {
-          return (
-            <p key={index} style={{
+        } else if (trimmedLine.startsWith('## ')) {
+          const content = cleanText(trimmedLine.replace(/^## /, ''))
+          elements.push(
+            <h2 key={`h2-${index}`} style={{
+              fontSize: '28px',
+              fontWeight: 'bold',
+              marginBottom: '12px',
+              marginTop: index > 0 ? '24px' : '0',
+              lineHeight: 1.4,
+              color: '#c026d3'
+            }}>
+              {content}
+            </h2>
+          )
+        } else if (trimmedLine.startsWith('# ')) {
+          const content = cleanText(trimmedLine.replace(/^# /, ''))
+          elements.push(
+            <h1 key={`h1-${index}`} style={{
+              fontSize: '32px',
+              fontWeight: 'bold',
+              marginBottom: '16px',
+              marginTop: index > 0 ? '28px' : '0',
+              lineHeight: 1.4,
+              color: '#c026d3'
+            }}>
+              {content}
+            </h1>
+          )
+        } else if (trimmedLine.startsWith('- ')) {
+          const content = cleanText(trimmedLine.replace(/^- /, ''))
+          elements.push(
+            <p key={`li-${index}`} style={{
               color: '#e4e4e7',
               fontSize: '22px',
               lineHeight: 1.6,
               marginBottom: '8px',
               marginLeft: '20px'
             }}>
-              • {line.replace('- ', '')}
+              • {content}
+            </p>
+          )
+        } else {
+          // Regular paragraph content - strip inline formatting
+          const content = cleanText(trimmedLine)
+          elements.push(
+            <p key={`p-${index}`} style={{
+              color: '#e4e4e7',
+              fontSize: '22px',
+              lineHeight: 1.6,
+              marginBottom: '16px'
+            }}>
+              {content}
             </p>
           )
         }
-        
-        // Regular paragraphs
-        return (
-          <p key={index} style={{
-            color: '#e4e4e7',
-            fontSize: '22px',
-            lineHeight: 1.6,
-            marginBottom: '16px'
-          }}>
-            {line}
-          </p>
-        )
       })
+      
+      return elements
     }
     
     const personalityName = getPersonalityName(assistantType)
-    const contentElements = convertTextToElements(text)
+    const contentElements = parseMarkdownToElements(markdownText)
     
     return new ImageResponse(
       <div
@@ -228,7 +178,7 @@ export async function GET(request: NextRequest) {
           width: '100%',
           maxWidth: '880px',
           position: 'relative',
-          zIndex: Number(2)
+          zIndex: 2
         }}>
           {/* Vinyl Logo */}
           <img 
@@ -296,7 +246,7 @@ export async function GET(request: NextRequest) {
           display: 'flex',
           flexDirection: 'column',
           position: 'relative',
-          zIndex: Number(2),
+          zIndex: 2,
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)'
         }}>
           {contentElements}
@@ -310,7 +260,7 @@ export async function GET(request: NextRequest) {
           width: '100%',
           maxWidth: '880px',
           position: 'relative',
-          zIndex: Number(2)
+          zIndex: 2
         }}>
           <div style={{
             display: 'flex',
@@ -352,7 +302,7 @@ export async function GET(request: NextRequest) {
       </div>,
       {
         width: 1080,
-        height: 1650, // Increased by 10% from 1500px
+        height: 1815, // Increased by 10% from 1650px
       }
     )
   } catch (error) {
