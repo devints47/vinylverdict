@@ -23,7 +23,7 @@ interface ArtistItemProps {
 // Memoize the ArtistItem component to prevent unnecessary re-renders
 const ArtistItem = memo(function ArtistItem({ artist, index }: ArtistItemProps) {
   const [isMobile, setIsMobile] = useState(false)
-  const [imageUrl, setImageUrl] = useState<string>("")
+  const [imageUrl, setImageUrl] = useState<string>(artist.images[0]?.url || "/diverse-artists-studio.png")
 
   // Check if we're on mobile
   useEffect(() => {
@@ -53,8 +53,11 @@ const ArtistItem = memo(function ArtistItem({ artist, index }: ArtistItemProps) 
   // Set image URL directly from the artist data
   useEffect(() => {
     // Use the first image from the artist or fallback to a placeholder
-    setImageUrl(artist.images[0]?.url || "/diverse-artists-studio.png")
-  }, [artist.images])
+    const newImageUrl = artist.images[0]?.url || "/diverse-artists-studio.png"
+    if (newImageUrl && newImageUrl !== imageUrl) {
+      setImageUrl(newImageUrl)
+    }
+  }, [artist.images, imageUrl])
 
   // Format follower count with commas
   const formatFollowers = (count: number): string => {
@@ -77,7 +80,7 @@ const ArtistItem = memo(function ArtistItem({ artist, index }: ArtistItemProps) 
           className="block w-full h-full"
         >
           <img
-            src={imageUrl}
+            src={imageUrl || "/diverse-artists-studio.png"}
             alt={artist.name}
             className={`w-full h-full object-cover ${isMobile ? "rounded-[2px]" : "rounded-[4px]"}`}
             width={isMobile ? 56 : 64}
