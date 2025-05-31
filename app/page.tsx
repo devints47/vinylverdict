@@ -13,7 +13,7 @@ import { useAuth } from "@/contexts/auth-context"
 import { useVinyl } from "@/contexts/vinyl-context"
 import { useRouter } from "next/navigation"
 import { useEffect, useState, useRef } from "react"
-import { AnimatedDescription } from "@/components/animated-description"
+import { SimpleDescription } from "@/components/simple-description"
 import { VinylVerdictLogo } from "@/components/vinyl-verdict-logo"
 
 export default function LandingPage() {
@@ -21,8 +21,6 @@ export default function LandingPage() {
   const { selectedVinyl } = useVinyl()
   const router = useRouter()
   const [currentDescription, setCurrentDescription] = useState("")
-  const vinylRef = useRef<HTMLDivElement>(null)
-  const [vinylWidth, setVinylWidth] = useState(0)
 
   // We no longer automatically redirect authenticated users to the dashboard
   // This allows them to view the landing page while logged in
@@ -39,51 +37,6 @@ export default function LandingPage() {
       setCurrentDescription(selectedVinyl.description)
     }
   }, [selectedVinyl])
-
-  // Measure vinyl width
-  useEffect(() => {
-    const updateVinylWidth = () => {
-      if (vinylRef.current) {
-        // Get the width of the vinyl container
-        const width = vinylRef.current.offsetWidth
-        setVinylWidth(width)
-      }
-    }
-
-    // Initial measurement
-    updateVinylWidth()
-
-    // Set up resize observer to update measurements when window resizes
-    const resizeObserver = new ResizeObserver(updateVinylWidth)
-    if (vinylRef.current) {
-      resizeObserver.observe(vinylRef.current)
-    }
-
-    return () => {
-      resizeObserver.disconnect()
-    }
-  }, [])
-
-  // Handle scrolling to section based on hash in URL
-  useEffect(() => {
-    // Check if there's a hash in the URL
-    if (typeof window !== "undefined") {
-      const hash = window.location.hash
-      if (hash) {
-        // Remove the # character
-        const id = hash.substring(1)
-        // Find the element with the id
-        const element = document.getElementById(id)
-        // If the element exists, scroll to it
-        if (element) {
-          // Add a small delay to ensure the page is fully loaded
-          setTimeout(() => {
-            element.scrollIntoView({ behavior: "smooth" })
-          }, 100)
-        }
-      }
-    }
-  }, [])
 
   return (
     <>
@@ -123,21 +76,14 @@ export default function LandingPage() {
 
                 <div className="relative flex flex-col items-center">
                   {/* Vinyl Collection with ref */}
-                  <div ref={vinylRef}>
+                  <div>
                     <VinylCollection />
                   </div>
 
-                  {/* Animated Description Box with fixed height container */}
-                  <div
-                    style={{
-                      width: vinylWidth > 0 ? `${vinylWidth * 2.0}px` : "100%",
-                      maxWidth: "100%", // Ensure it doesn't overflow on small screens
-                    }}
-                    className="mt-4 mb-6"
-                  >
-                    <AnimatedDescription
+                  {/* Simple Description Box */}
+                  <div className="mt-4 mb-6">
+                    <SimpleDescription
                       description={currentDescription}
-                      labelColor="purple"
                     />
                   </div>
                 </div>
