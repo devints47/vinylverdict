@@ -20,9 +20,23 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     
     // Get parameters from URL
-    const markdownText = searchParams.get("text") || "Your music taste is... interesting."
+    const rawMarkdownText = searchParams.get("text") || "Your music taste is... interesting."
     const assistantType = searchParams.get("type") || "snob"
     const username = searchParams.get("username") || "Your Music"
+    
+    // Strip HTML content (especially the disclaimer) from the markdown text
+    const stripHtmlFromMarkdown = (text: string): string => {
+      return text
+        // Remove HTML tags and their content
+        .replace(/<[^>]*>/g, '')
+        // Remove any remaining HTML entities
+        .replace(/&[a-zA-Z0-9#]+;/g, '')
+        // Clean up extra whitespace
+        .replace(/\n\s*\n\s*\n/g, '\n\n')
+        .trim()
+    }
+    
+    const markdownText = stripHtmlFromMarkdown(rawMarkdownText)
     
     // Get the app URL for image assets
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"

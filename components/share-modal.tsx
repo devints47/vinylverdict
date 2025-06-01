@@ -35,6 +35,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
   const [showCopiedFeedback, setShowCopiedFeedback] = useState(false)
   const [showCopiedText, setShowCopiedText] = useState(false)
   const [notifications, setNotifications] = useState<{[key: string]: boolean}>({})
+  const [isClient, setIsClient] = useState(false)
   const loadingIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
   // Fixed dimensions matching the loading preview - adjusted for mobile
@@ -46,6 +47,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
 
   // Detect Web Share API support on client side only to avoid hydration errors
   useEffect(() => {
+    setIsClient(true)
     // Check if the browser supports the Web Share API with file sharing
     const hasWebShareAPI = 'share' in navigator && 'canShare' in navigator
     setSupportsNativeShare(hasWebShareAPI)
@@ -527,7 +529,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
         {/* Footer buttons */}
         <div className="space-y-2 sm:space-y-3">
           {/* Share button */}
-          {supportsNativeShare && (
+          {isClient && supportsNativeShare && (
           <Button
             onClick={handleNativeShare}
               disabled={isLoading}
