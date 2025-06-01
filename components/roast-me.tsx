@@ -759,14 +759,14 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
       {/* Clear button - centered and styled like main button */}
       {showShareButton && (
         <div className="mt-6 w-full flex justify-center">
-          <Button
-            onClick={clearRoast}
-            className="btn-gradient holographic-shimmer text-white font-bold py-4 px-8 text-base sm:text-lg rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl max-w-md"
-            size="lg"
-          >
-            <Trash2 className="h-5 w-5" />
+            <Button
+              onClick={clearRoast}
+              className="btn-gradient holographic-shimmer text-white font-bold py-4 px-8 text-base sm:text-lg rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl max-w-md"
+              size="lg"
+            >
+              <Trash2 className="h-5 w-5" />
             <span>{getClearButtonText()}</span>
-          </Button>
+            </Button>
         </div>
       )}
 

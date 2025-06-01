@@ -216,7 +216,7 @@ function RecentlyPlayedContent({
               <div className="flex justify-center mt-6">
                 <button
                   onClick={loadMoreRecent}
-                  className="bg-zinc-800 hover:bg-zinc-700 text-white px-6 py-2 rounded-full text-xs sm:text-sm transition-colors"
+                  className="btn-gradient holographic-shimmer text-white font-bold px-6 py-2 rounded-full text-xs sm:text-sm transition-all duration-300 hover:scale-105 shadow-lg"
                 >
                   Load More
                 </button>
@@ -315,7 +315,7 @@ function TopTracksContent({
               <div className="flex justify-center mt-6">
                 <button
                   onClick={loadMoreTracks}
-                  className="bg-zinc-800 hover:bg-zinc-700 text-white px-6 py-2 rounded-full text-xs sm:text-sm transition-colors"
+                  className="btn-gradient holographic-shimmer text-white font-bold px-6 py-2 rounded-full text-xs sm:text-sm transition-all duration-300 hover:scale-105 shadow-lg"
                 >
                   Load More
                 </button>
@@ -406,7 +406,7 @@ function TopArtistsContent({
               <div className="flex justify-center mt-6">
                 <button
                   onClick={loadMoreArtists}
-                  className="bg-zinc-800 hover:bg-zinc-700 text-white px-6 py-2 rounded-full text-xs sm:text-sm transition-colors"
+                  className="btn-gradient holographic-shimmer text-white font-bold px-6 py-2 rounded-full text-xs sm:text-sm transition-all duration-300 hover:scale-105 shadow-lg"
                 >
                   Load More
                 </button>

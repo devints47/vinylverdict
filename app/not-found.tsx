@@ -9,7 +9,7 @@ export default function NotFound() {
         <p className="text-zinc-400 mb-8">The page you're looking for doesn't exist or has been moved.</p>
         <Link
           href="/"
-          className="bg-spotify-green hover:bg-spotify-green/90 text-white font-bold py-3 px-8 rounded-full text-lg transition-all duration-300 hover:scale-105 inline-block"
+          className="btn-gradient holographic-shimmer text-white font-bold py-3 px-8 rounded-full text-lg transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2 shadow-lg inline-flex"
         >
           Go Home
         </Link>

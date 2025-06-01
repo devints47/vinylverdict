@@ -128,7 +128,7 @@ export default async function SharedVerdictPage({ params }: PageProps) {
             <p className="text-lg mb-4">Want to get your own personalized music taste verdict?</p>
             <a
               href="/"
-              className="inline-flex items-center justify-center bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-6 rounded-lg transition-colors"
+              className="btn-gradient holographic-shimmer text-white font-bold py-3 px-6 rounded-full text-base transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2 shadow-lg inline-flex"
             >
               <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
