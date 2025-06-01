@@ -65,6 +65,21 @@ export async function GET(request: NextRequest) {
       }
     }
     
+    // Get the appropriate action text based on assistant type (without leading/trailing spaces)
+    const getActionText = (type: string): string => {
+      switch (type) {
+        case "worshipper":
+          return "validation of"
+        case "historian":
+          return "analysis of"
+        case "therapist":
+          return "analysis of"
+        case "snob":
+        default:
+          return "analysis of"
+      }
+    }
+    
     // Convert markdown to structured content, keeping headers and paragraphs but stripping inline formatting
     const parseMarkdownToElements = (markdown: string) => {
       const lines = markdown.split('\n').filter(line => line.trim())
@@ -321,7 +336,12 @@ export async function GET(request: NextRequest) {
                 margin: 0,
                 lineHeight: 1.4,
                 textShadow: '0 2px 10px rgba(0, 0, 0, 0.8)',
-                textAlign: 'center'
+                textAlign: 'center',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexWrap: 'wrap',
+                gap: '8px'
               }}>
                 <span style={{ 
                   color: '#c026d3', 
@@ -330,7 +350,11 @@ export async function GET(request: NextRequest) {
                 }}>
                   {personalityName + "'s"}
                 </span>
-                {' analysis of '}
+                <span style={{
+                  color: '#e2e8f0'
+                }}>
+                  {getActionText(assistantType)}
+                </span>
                 <span style={{ 
                   color: '#c026d3', 
                   fontWeight: 'bold',

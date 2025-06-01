@@ -42,10 +42,30 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
 
   // Fixed dimensions for consistent modal sizing
   const MODAL_DIMENSIONS = {
-    width: 340, // Width of content area
-    height: 453, // Height of content area based on 3:4 aspect ratio
-    padding: 24, // Padding around content area
-    get totalHeight() { return this.height + this.padding * 2 } // Total height including padding
+    // Mobile dimensions (default)
+    mobileWidth: 340,
+    mobileHeight: 453,
+    // Desktop dimensions (21% larger total - 10% + another 10%)
+    desktopWidth: 374, // 374 * 1.1 = 411.4
+    desktopHeight: 548, // 498 * 1.1 = 547.8
+    padding: 24,
+    
+    // Dynamic getters based on screen size
+    get width() {
+      if (typeof window !== 'undefined' && window.innerWidth > 768) {
+        return this.desktopWidth
+      }
+      return this.mobileWidth
+    },
+    
+    get height() {
+      if (typeof window !== 'undefined' && window.innerWidth > 768) {
+        return this.desktopHeight
+      }
+      return this.mobileHeight
+    },
+    
+    get totalHeight() { return this.height + this.padding * 2 }
   }
 
   // Fixed dimensions matching the loading preview - adjusted for mobile
@@ -276,6 +296,8 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       case "snob":
       default:
         return "Share Your Roast"
+      case "therapist":
+        return "Share Your Psychoanalysis"
     }
   }
 
@@ -438,7 +460,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent 
-        className="w-[95vw] max-w-[450px] h-auto bg-zinc-900 border-zinc-800 p-3 sm:p-4 md:p-6 [&_button.absolute.right-4.top-4]:hidden"
+        className="w-[95vw] max-w-[450px] md:max-w-[550px] h-auto bg-zinc-900 border-zinc-800 p-3 sm:p-4 md:p-6 [&_button.absolute.right-4.top-4]:hidden"
         style={{
           minHeight: `${MODAL_DIMENSIONS.totalHeight + 150}px` // Add extra height for header, footer, and buttons
         }}
@@ -471,7 +493,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
         {/* Header */}
         <div className="flex items-center justify-center gap-2 text-white mb-3 sm:mb-4">
           <Share2 className="h-4 w-4 mt-2 sm:h-5 sm:w-5 text-purple-500" />
-          <span className="text-sm sm:text-base mt-2">{getShareTitle()}</span>
+          <span className="text-lg mt-2">{getShareTitle()}</span>
         </div>
 
         {/* Main content area */}

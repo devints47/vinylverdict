@@ -252,6 +252,32 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
     return false
   }
 
+  // Function to scroll to the top of the page with retry logic for dynamic content
+  const scrollToTopWithRetry = useCallback(() => {
+    let attempts = 0
+    const maxAttempts = 5
+    const scrollDelay = 50 // ms between attempts
+
+    const attemptScroll = () => {
+      // Always scroll to absolute top of page
+      window.scrollTo({ top: 0, behavior: "smooth" })
+      
+      // Check if we need to retry
+      setTimeout(() => {
+        attempts++
+        const currentScrollY = window.scrollY || window.pageYOffset
+        
+        // If we're not at the top and haven't exceeded max attempts, try again
+        if (currentScrollY > 10 && attempts < maxAttempts) {
+          attemptScroll()
+        }
+      }, scrollDelay)
+    }
+
+    // Start the first scroll attempt after a small delay to let DOM update
+    setTimeout(attemptScroll, 100)
+  }, [])
+
   // Function to scroll to the top of the page
   const scrollToTop = () => {
     // First try to scroll to the primary button
@@ -642,8 +668,8 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
     setIsLoading(false)
     setIsFallback(false)
     
-    // Scroll to top
-    scrollToTop()
+    // Use the new scroll function that accounts for dynamic content removal
+    scrollToTopWithRetry()
     
     // Clear from session storage
     if (typeof window !== "undefined") {
@@ -663,7 +689,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
         console.error("Error clearing response from storage:", err)
       }
     }
-  }, [assistantType])
+  }, [assistantType, scrollToTopWithRetry])
 
   return (
     <div ref={containerRef} className="mb-8 flex flex-col items-center w-full" style={roastSectionStyle}>
@@ -728,7 +754,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
           </CardContent>
 
           <CardFooter className="flex flex-col gap-4">
-            {/* Disclaimer and Share button - only shown when typewriter is complete */}
+            {/* Disclaimer and Share/Clear buttons - only shown when typewriter is complete */}
             {showShareButton && (
               <div 
                 className="w-full animate-[fadeInUp_600ms_ease-out_forwards] opacity-0"
@@ -740,13 +766,23 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
                   {getFooterText()}
                 </p>
 
-                {/* Share button - now with purple theming and smooth animation */}
-                <div className="flex justify-center w-full mt-4 transition-all duration-300">
+                {/* Buttons container - Clear and Share buttons side by side */}
+                <div className="flex justify-center w-full mt-4 gap-3">
+                  {/* Clear button */}
+                  <Button
+                    onClick={clearRoast}
+                    className="btn-gradient holographic-shimmer text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 transform flex-1 max-w-[200px]"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    {getClearButtonText()}
+                  </Button>
+
+                  {/* Share button */}
                   <Button
                     onClick={() => setShowShareModal(true)}
-                    className="btn-gradient holographic-shimmer text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 transform"
+                    className="btn-gradient holographic-shimmer text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 transform flex-1 max-w-[200px]"
                   >
-                    <Share2 className="h-4 w-4 mr-1" />
+                    <Share2 className="h-4 w-4" />
                     {getShareButtonText()}
                   </Button>
                 </div>
@@ -754,20 +790,6 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
             )}
           </CardFooter>
         </Card>
-      )}
-
-      {/* Clear button - centered and styled like main button */}
-      {showShareButton && (
-        <div className="mt-6 w-full flex justify-center">
-            <Button
-              onClick={clearRoast}
-              className="btn-gradient holographic-shimmer text-white font-bold py-4 px-8 text-base sm:text-lg rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl max-w-md"
-              size="lg"
-            >
-              <Trash2 className="h-5 w-5" />
-            <span>{getClearButtonText()}</span>
-            </Button>
-        </div>
       )}
 
       {/* Main Share Modal */}
