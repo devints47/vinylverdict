@@ -37,9 +37,9 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
   const [notifications, setNotifications] = useState<{[key: string]: boolean}>({})
   const loadingIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
-  // Fixed dimensions matching the loading preview - increased by 10%
+  // Fixed dimensions matching the loading preview - adjusted for mobile
   const PREVIEW_DIMENSIONS = {
-    width: 385, // Increased from 350 to match image resolution better
+    width: 340, // Reduced from 385 to fit better in smaller modal
     aspectRatio: 3/4, // aspect-[3/4] from loading preview
     get height() { return (this.width / this.aspectRatio) * 1.1 } // 10% increase
   }
@@ -414,9 +414,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent 
-        className="w-[95vw] max-w-[550px] lg:max-w-[600px] max-h-[95vh] bg-zinc-900 border-zinc-800 p-0 overflow-hidden [&_button.absolute.right-4.top-4]:hidden mx-auto"
-      >
+      <DialogContent className="w-[95vw] max-w-[450px] h-auto max-h-[90vh] bg-zinc-900 border-zinc-800 p-3 sm:p-4 md:p-6 [&_button.absolute.right-4.top-4]:hidden">
         <DialogTitle className="sr-only">
           {getShareTitle()}
         </DialogTitle>
@@ -425,71 +423,67 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
           Share your music taste verdict as an image. You can email, copy to clipboard, or download the image.
         </DialogDescription>
         
-        <div className="flex flex-col min-h-0">
-          {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 z-10 bg-zinc-900/80 backdrop-blur-sm border-b border-zinc-800 flex-shrink-0">
-            <div className="flex items-center justify-center gap-2 text-white flex-1">
-            <Share2 className="h-5 w-5 text-purple-500" />
-            {getShareTitle()}
-            </div>
-          </div>
-
-          {/* Absolute X button in top right */}
-          <button
-            onClick={onClose}
-            className="w-[49px] h-[49px] m-0 rounded-lg bg-purple-600/20 hover:bg-purple-600/40 border border-purple-500/30 hover:border-purple-400 flex items-center justify-center transition-all duration-200 hover:scale-105 group absolute right-0 top-0 z-20"
-            aria-label="Close share modal"
+        {/* Custom purple X button - positioned like the default but styled purple */}
+        <button
+          onClick={onClose}
+          className="absolute right-3 top-3 sm:right-4 sm:top-4 w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-purple-600/20 hover:bg-purple-600/40 border border-purple-500/30 hover:border-purple-400 flex items-center justify-center transition-all duration-200 hover:scale-105 group z-10"
+          aria-label="Close share modal"
+        >
+          <svg
+            className="w-4 h-4 sm:w-5 sm:h-5 text-white group-hover:text-white transition-colors"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
           >
-            <svg
-              className="w-5 h-5 text-purple-400 group-hover:text-purple-300 transition-colors"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+        
+        {/* Header */}
+        <div className="flex items-center justify-center gap-2 text-white mb-3 sm:mb-4">
+          <Share2 className="h-4 w-4 mt-2 sm:h-5 sm:w-5 text-purple-500" />
+          <span className="text-sm sm:text-base mt-2">{getShareTitle()}</span>
+        </div>
 
-          {/* Main content area */}
-          <div className="flex items-center justify-center p-4 flex-shrink-0">
+        {/* Main content area */}
+        <div className="flex items-center justify-center mb-3 sm:mb-4">
+          <div className="w-full max-w-full">
             <div 
-              className="w-full relative"
+              className="w-full mx-auto"
               style={{
-                maxWidth: `${PREVIEW_DIMENSIONS.width}px`,
-                aspectRatio: '3/4',
-                minHeight: `${PREVIEW_DIMENSIONS.height}px`,
-                maxHeight: `${PREVIEW_DIMENSIONS.height}px`
+                maxWidth: 'min(100%, 350px)',
+                aspectRatio: '3/4'
               }}
             >
               {isLoading ? (
-                // Loading state with fancy vinyl spinner - same background as modal
-                <div className="absolute inset-0 bg-zinc-900 rounded-lg flex flex-col items-center justify-center p-6 text-center">
+                // Loading state with fancy vinyl spinner
+                <div className="w-full h-full bg-zinc-900 rounded-lg flex flex-col items-center justify-center p-4 sm:p-6 text-center">
                   {/* Fancy Vinyl Spinner */}
-                  <div className="relative mb-6">
-                    <div className="w-24 h-24">
+                  <div className="relative mb-4 sm:mb-6">
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24">
                       <VinylRecord size={96} />
                     </div>
                   </div>
                   
-                  <p className="text-purple-300 font-medium text-lg mb-2">{loadingMessages[loadingMessageIndex]}</p>
-                  <p className="text-zinc-400 text-sm">Creating your vinyl verdict...</p>
+                  <p className="text-purple-300 font-medium text-sm sm:text-base md:text-lg mb-1 sm:mb-2">{loadingMessages[loadingMessageIndex]}</p>
+                  <p className="text-zinc-400 text-xs sm:text-sm">Creating your vinyl verdict...</p>
                 </div>
               ) : (
                 // Final image state
-                <div className="absolute inset-0">
+                <div className="w-full h-full relative">
                   <div className="relative group w-full h-full overflow-hidden rounded-lg bg-transparent cursor-pointer">
                     <img
                       src={imageUrl || "/music-snob-vinyl.png"}
                       alt="Share preview of your music taste verdict"
-                      className="w-full h-full rounded-lg object-contain hover:opacity-90 transition-all duration-200 group-hover:scale-[1.02] block bg-transparent animate-in fade-in-0 duration-300"
+                      className="w-full h-full rounded-lg object-cover hover:opacity-90 transition-all duration-200 group-hover:scale-[1.02] block bg-transparent animate-in fade-in-0 duration-300"
                       style={{ backgroundColor: 'transparent' }}
                       onClick={handleImageClick}
                     />
                     
-                    {/* Hover overlay with dynamic text - pointer-events-none so it doesn't block clicks */}
+                    {/* Hover overlay with dynamic text */}
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-200 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 pointer-events-none">
-                      <div className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 backdrop-blur-sm transition-all duration-200 ${
+                      <div className={`px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium flex items-center gap-2 backdrop-blur-sm transition-all duration-200 ${
                         showCopiedText 
                           ? 'bg-green-600/90 text-white' 
                           : 'bg-black/80 text-white'
@@ -501,7 +495,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
                           </>
                         ) : (
                           <>
-                            <Copy className="h-4 w-4" />
+                            <Copy className="h-3 w-3 sm:h-4 sm:w-4" />
                             Click to copy
                           </>
                         )}
@@ -511,7 +505,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
                     {/* Copied feedback */}
                     {showCopiedFeedback && (
                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <div className="bg-green-600 text-white px-4 py-2 rounded-full text-sm font-medium animate-in fade-in-0 zoom-in-95 duration-200">
+                        <div className="bg-green-600 text-white px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium animate-in fade-in-0 zoom-in-95 duration-200">
                           ✓ Copied!
                         </div>
                       </div>
@@ -519,7 +513,7 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
 
                     {/* Image click notification */}
                     {notifications.imageClick && (
-                      <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-3 py-1 rounded-full text-xs font-medium animate-in fade-in-0 slide-in-from-bottom-2 duration-200 whitespace-nowrap">
+                      <div className="absolute -top-8 sm:-top-10 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-2 sm:px-3 py-1 rounded-full text-xs font-medium animate-in fade-in-0 slide-in-from-bottom-2 duration-200 whitespace-nowrap">
                         ✓ Copied to clipboard!
                       </div>
                     )}
@@ -528,95 +522,96 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
               )}
             </div>
           </div>
+        </div>
 
-          {/* Footer buttons */}
-          <div className="bg-zinc-900/80 backdrop-blur-sm border-t border-zinc-800 flex flex-col items-center justify-center px-4 py-2 pb-3 space-y-1.5 flex-shrink-0">
-            {/* Share button above the row */}
-            {supportsNativeShare && (
-            <Button
-              onClick={handleNativeShare}
+        {/* Footer buttons */}
+        <div className="space-y-2 sm:space-y-3">
+          {/* Share button */}
+          {supportsNativeShare && (
+          <Button
+            onClick={handleNativeShare}
+              disabled={isLoading}
+              className="w-full px-3 sm:px-4 py-2 sm:py-3 h-10 sm:h-12 text-sm sm:text-base text-white font-medium relative overflow-hidden bg-purple-gradient hover:scale-105 transition-all duration-300 border-0 shadow-lg"
+              aria-label="Share your verdict using device share menu"
+          >
+            <div className="absolute inset-0 holographic-shimmer"></div>
+            <div className="relative z-10 flex items-center justify-center">
+              <Share className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+              Share Your Verdict
+            </div>
+          </Button>
+        )}
+
+          {/* Three buttons in a row */}
+          <div className="flex gap-1.5 sm:gap-2 w-full">
+            <div className="relative flex-1">
+              <Button
+                onClick={handleSendEmail}
+                disabled={isLoading || isSendingEmail}
+                variant="outline"
+                className="w-full text-white border-zinc-700 hover:bg-zinc-800 text-xs sm:text-sm py-2 h-9 sm:h-10"
+                aria-label="Send verdict via email"
+              >
+                {isSendingEmail ? (
+                  <>
+                    <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-b-2 border-white mr-1"></div>
+                    <span className="hidden sm:inline">Sending...</span>
+                    <span className="sm:hidden">...</span>
+                  </>
+                ) : (
+                  <>
+                    <Mail className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
+                    Email
+                  </>
+                )}
+              </Button>
+              
+              {/* Email notification */}
+              {notifications.email && (
+                <div className="absolute -top-8 sm:-top-10 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-2 sm:px-3 py-1 rounded-full text-xs font-medium animate-in fade-in-0 slide-in-from-bottom-2 duration-200 whitespace-nowrap">
+                  ✓ Email sent!
+                </div>
+              )}
+            </div>
+
+            <div className="relative flex-1">
+              <Button
+                onClick={handleCopyToClipboard}
                 disabled={isLoading}
-                className="px-6 py-3 h-12 text-white font-medium relative overflow-hidden bg-purple-gradient hover:scale-105 transition-all duration-300 border-0 shadow-lg"
-                aria-label="Share your verdict using device share menu"
-            >
-              <div className="absolute inset-0 holographic-shimmer"></div>
-              <div className="relative z-10 flex items-center justify-center">
-                <Share className="mr-2 h-4 w-4" />
-                Share Your Verdict
-              </div>
-            </Button>
-          )}
+                variant="outline"
+                className="w-full text-white border-zinc-700 hover:bg-zinc-800 text-xs sm:text-sm py-2 h-9 sm:h-10"
+                aria-label="Copy verdict image to clipboard"
+              >
+                <Copy className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
+                Copy
+              </Button>
+              
+              {/* Copy notification */}
+              {notifications.copy && (
+                <div className="absolute -top-8 sm:-top-10 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-2 sm:px-3 py-1 rounded-full text-xs font-medium animate-in fade-in-0 slide-in-from-bottom-2 duration-200 whitespace-nowrap">
+                  ✓ Copied to clipboard!
+                </div>
+              )}
+            </div>
 
-            {/* Three buttons in a row */}
-            <div className="flex gap-2 w-full max-w-[400px]">
-              <div className="relative flex-1">
-                <Button
-                  onClick={handleSendEmail}
-                  disabled={isLoading || isSendingEmail}
-                  variant="outline"
-                  className="w-full text-white border-zinc-700 hover:bg-zinc-800 text-sm"
-                  aria-label="Send verdict via email"
-                >
-                  {isSendingEmail ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-1"></div>
-                      Sending...
-                    </>
-                  ) : (
-                    <>
-                      <Mail className="mr-1 h-4 w-4" />
-                      Email
-                    </>
-                  )}
-                </Button>
-                
-                {/* Email notification */}
-                {notifications.email && (
-                  <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-3 py-1 rounded-full text-xs font-medium animate-in fade-in-0 slide-in-from-bottom-2 duration-200 whitespace-nowrap">
-                    ✓ Email sent!
-                  </div>
-                )}
-              </div>
-
-              <div className="relative flex-1">
-                <Button
-                  onClick={handleCopyToClipboard}
-                  disabled={isLoading}
-                  variant="outline"
-                  className="w-full text-white border-zinc-700 hover:bg-zinc-800 text-sm"
-                  aria-label="Copy verdict image to clipboard"
-                >
-                  <Copy className="mr-1 h-4 w-4" />
-                  Copy
-                </Button>
-                
-                {/* Copy notification */}
-                {notifications.copy && (
-                  <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-3 py-1 rounded-full text-xs font-medium animate-in fade-in-0 slide-in-from-bottom-2 duration-200 whitespace-nowrap">
-                    ✓ Copied to clipboard!
-                  </div>
-                )}
-              </div>
-
-              <div className="relative flex-1">
-                <Button
-                  onClick={handleDownloadImage}
-                  disabled={isLoading}
-                  variant="outline"
-                  className="w-full text-white border-zinc-700 hover:bg-zinc-800 text-sm"
-                  aria-label="Download verdict image"
-                >
-                  <Download className="mr-1 h-4 w-4" />
-                  Download
-                </Button>
-                
-                {/* Download notification */}
-                {notifications.download && (
-                  <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-3 py-1 rounded-full text-xs font-medium animate-in fade-in-0 slide-in-from-bottom-2 duration-200 whitespace-nowrap">
-                    ✓ Downloaded!
-                  </div>
-                )}
-              </div>
+            <div className="relative flex-1">
+              <Button
+                onClick={handleDownloadImage}
+                disabled={isLoading}
+                variant="outline"
+                className="w-full text-white border-zinc-700 hover:bg-zinc-800 text-xs sm:text-sm py-2 h-9 sm:h-10"
+                aria-label="Download verdict image"
+              >
+                <Download className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
+                Download
+              </Button>
+              
+              {/* Download notification */}
+              {notifications.download && (
+                <div className="absolute -top-8 sm:-top-10 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-2 sm:px-3 py-1 rounded-full text-xs font-medium animate-in fade-in-0 slide-in-from-bottom-2 duration-200 whitespace-nowrap">
+                  ✓ Downloaded!
+                </div>
+              )}
             </div>
           </div>
         </div>
