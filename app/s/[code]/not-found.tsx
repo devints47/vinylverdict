@@ -9,7 +9,7 @@ export default function NotFound() {
         <p className="text-zinc-400 mb-8">This shared verdict doesn't exist or has been removed.</p>
         <Link
           href="/"
-          className="btn-gradient holographic-shimmer text-white font-bold py-3 px-6 rounded-full text-base transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2 shadow-lg inline-flex"
+          className="btn-gradient holographic-shimmer text-white font-bold py-3 px-6 rounded-full text-base transition-all duration-300 hover:scale-105 inline-flex items-center justify-center gap-2 shadow-lg"
         >
           Get Your Own Verdict
         </Link>

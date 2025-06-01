@@ -15,7 +15,7 @@ export default function Loading() {
           <p className="text-zinc-400">Want your own personalized music taste analysis?</p>
           <a
             href="/"
-            className="btn-gradient holographic-shimmer text-white font-bold px-6 py-3 rounded-full text-base transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2 shadow-lg inline-flex mt-4"
+            className="btn-gradient holographic-shimmer text-white font-bold px-6 py-3 rounded-full text-base transition-all duration-300 hover:scale-105 inline-flex items-center justify-center gap-2 shadow-lg mt-4"
           >
             Get Your Verdict at VinylVerdict.fm
           </a>

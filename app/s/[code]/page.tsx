@@ -6,7 +6,7 @@ interface PageProps {
   params: Promise<{ code: string }>
 }
 
-// Helper function to decode the URL and reconstruct the blob URL
+// Helper function to decode the URL and get the image URL
 function decodeShareCode(code: string): { imageUrl: string } | null {
   try {
     // Convert URL-safe base64 back to standard base64
@@ -17,32 +17,9 @@ function decodeShareCode(code: string): { imageUrl: string } | null {
     else if (base64Data.length % 4 === 3) base64Data += "="
 
     const decodedData = Buffer.from(base64Data, "base64").toString("utf-8")
-    const parts = decodedData.split("|")
-
-    // Check if it's the new format (blobId|filename) or old format (timestamp|blobId|filename or timestamp|fullUrl)
-    if (parts.length === 2) {
-      // Check if it's new format (blobId|filename) or old format (timestamp|fullUrl)
-      const [first, second] = parts
-
-      // If first part is all digits, it's likely a timestamp (old format)
-      if (/^\d+$/.test(first)) {
-        // Old format: timestamp|fullUrl
-        const imageUrl = second
-        return { imageUrl }
-      } else {
-        // New format: blobId|filename
-        const [blobId, filename] = parts
-        const imageUrl = `https://${blobId}.public.blob.vercel-storage.com/${filename}`
-        return { imageUrl }
-      }
-    } else if (parts.length === 3) {
-      // Old format: timestamp|blobId|filename
-      const [timestamp, blobId, filename] = parts
-      const imageUrl = `https://${blobId}.public.blob.vercel-storage.com/${filename}`
-      return { imageUrl }
-    } else {
-      return null
-    }
+    
+    // Current format: just the direct image URL
+    return { imageUrl: decodedData }
   } catch (error) {
     return null
   }
@@ -128,7 +105,7 @@ export default async function SharedVerdictPage({ params }: PageProps) {
             <p className="text-lg mb-4">Want to get your own personalized music taste verdict?</p>
             <a
               href="/"
-              className="btn-gradient holographic-shimmer text-white font-bold py-3 px-6 rounded-full text-base transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2 shadow-lg inline-flex"
+              className="btn-gradient holographic-shimmer text-white font-bold py-3 px-6 rounded-full text-base transition-all duration-300 hover:scale-105 inline-flex items-center justify-center gap-2 shadow-lg"
             >
               <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />

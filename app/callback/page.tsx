@@ -1,11 +1,11 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { exchangeCodeForTokens } from "@/lib/auth-utils"
 import { VinylRecord } from "@/components/vinyl-record"
 
-export default function CallbackPage() {
+function CallbackContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [error, setError] = useState<string | null>(null)
@@ -78,7 +78,7 @@ export default function CallbackPage() {
 
         try {
           // Exchange the code for tokens, passing the fallback verifier if available
-          const success = await exchangeCodeForTokens(code, fallbackVerifier)
+          const success = await exchangeCodeForTokens(code, fallbackVerifier || undefined)
 
           if (!success) {
             addLog("Token exchange failed")
@@ -139,12 +139,34 @@ export default function CallbackPage() {
     <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4">
       <div className="flex flex-col items-center">
         <div className="w-32 h-32 mb-8">
-          <VinylRecord size={128} color="#9333ea" labelColor="#9333ea" showShadow={true} rpm={33.33} />
+          <VinylRecord size={128} rpm={33.33} />
         </div>
         <h1 className="text-2xl font-bold text-white mb-4">Authenticating with Spotify</h1>
         <p className="text-zinc-300 mb-4 text-center">Connecting you with our resident Music Snob</p>
         <p className="text-zinc-500 text-sm">{status}</p>
       </div>
     </div>
+  )
+}
+
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4">
+      <div className="flex flex-col items-center">
+        <div className="w-32 h-32 mb-8">
+          <VinylRecord size={128} rpm={33.33} />
+        </div>
+        <h1 className="text-2xl font-bold text-white mb-4">Loading...</h1>
+        <p className="text-zinc-300 mb-4 text-center">Preparing authentication</p>
+      </div>
+    </div>
+  )
+}
+
+export default function CallbackPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <CallbackContent />
+    </Suspense>
   )
 }
