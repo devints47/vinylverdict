@@ -24,6 +24,15 @@ export async function GET(request: NextRequest) {
     const assistantType = searchParams.get("type") || "snob"
     const username = searchParams.get("username") || "Your Music"
     
+    // Instagram Story dimensions (9:16 ratio)
+    const INSTAGRAM_STORY_WIDTH = 1080
+    const INSTAGRAM_STORY_MAX_HEIGHT = 1920
+    
+    // Base heights for fixed elements (header + footer)
+    const HEADER_HEIGHT = 320 // Approximate height of the header section
+    const FOOTER_HEIGHT = 150 // Approximate height of the footer section
+    const PADDING_HEIGHT = 80  // Top and bottom padding (40px each)
+    
     // Strip HTML content (especially the disclaimer) from the markdown text
     const stripHtmlFromMarkdown = (text: string): string => {
       return text
@@ -153,7 +162,88 @@ export async function GET(request: NextRequest) {
     const personalityName = getPersonalityName(assistantType)
     const contentElements = parseMarkdownToElements(markdownText)
     
-    return new ImageResponse(
+    // Estimate content height based on the text length and formatting
+    const estimateContentHeight = (text: string): number => {
+      const baseHeight = 120 // Base content container padding (44px * 2 + some buffer)
+      const charsPerLine = 55 // Approximate chars per line for the given width (adjusted down for better estimation)
+      const lineHeight = 36 // Approximate height per line (22px font size * 1.6 line height)
+      
+      // Process each line to account for headers and formatting
+      const lines = text.split('\n').filter(line => line.trim())
+      let totalHeight = 0
+      
+      lines.forEach((line, index) => {
+        const trimmedLine = line.trim()
+        
+        // Headers take more vertical space
+        if (trimmedLine.startsWith('# ')) {
+          totalHeight += 70 // h1 height + margins
+        } else if (trimmedLine.startsWith('## ')) {
+          totalHeight += 55 // h2 height + margins
+        } else if (trimmedLine.startsWith('### ')) {
+          totalHeight += 48 // h3 height + margins
+        } else if (trimmedLine.startsWith('- ')) {
+          // List items
+          const textLength = trimmedLine.length - 2 // Subtract the "- " prefix
+          const estimatedLines = Math.max(1, Math.ceil(textLength / charsPerLine))
+          totalHeight += estimatedLines * lineHeight + 12 // 12px margin bottom
+        } else {
+          // Regular paragraphs
+          const textLength = trimmedLine.length
+          const estimatedLines = Math.max(1, Math.ceil(textLength / charsPerLine))
+          totalHeight += estimatedLines * lineHeight + 20 // 20px margin bottom
+        }
+        
+        // Add extra spacing for paragraph breaks (only between paragraphs)
+        if (index > 0 && index < lines.length - 1) {
+          totalHeight += 8; // Additional spacing between paragraphs
+        }
+      })
+      
+      return baseHeight + totalHeight
+    }
+    
+    // Calculate estimated content height
+    const estimatedContentHeight = estimateContentHeight(markdownText)
+    
+    // Add a buffer to prevent content being cut off
+    const contentHeightWithBuffer = estimatedContentHeight + 40
+    
+    // Calculate total image height (header + content + footer)
+    const totalHeight = Math.min(
+      HEADER_HEIGHT + contentHeightWithBuffer + FOOTER_HEIGHT + PADDING_HEIGHT,
+      INSTAGRAM_STORY_MAX_HEIGHT
+    )
+    
+    // Ensure minimum height for very short content
+    const finalHeight = Math.max(totalHeight, 1200)
+    
+    // Log dimensions for debugging
+    console.log(`Generating image with dimensions: ${INSTAGRAM_STORY_WIDTH}x${finalHeight}px`)
+    console.log(`Content text length: ${markdownText.length} characters, ${markdownText.split('\n').filter(line => line.trim()).length} lines`)
+    console.log(`Estimated content height: ${estimatedContentHeight}px (with buffer: ${contentHeightWithBuffer}px)`)
+    
+    // Fix zIndex warnings by ensuring all zIndex values are numbers
+    const fixStyles = (jsx: any): any => {
+      if (jsx && jsx.props && jsx.props.style && jsx.props.style.zIndex) {
+        // Ensure zIndex is a number
+        jsx.props.style.zIndex = Number(jsx.props.style.zIndex);
+      }
+      
+      // Process children recursively
+      if (jsx && jsx.props && jsx.props.children) {
+        if (Array.isArray(jsx.props.children)) {
+          jsx.props.children.forEach((child: any) => fixStyles(child));
+        } else {
+          fixStyles(jsx.props.children);
+        }
+      }
+      
+      return jsx;
+    }
+    
+    // Create the JSX content
+    const content = (
       <div
         style={{
           height: '100%',
@@ -183,142 +273,154 @@ export async function GET(request: NextRequest) {
           display: 'flex'
         }} />
         
-        {/* Header */}
+        {/* Content wrapper for vertical centering */}
         <div style={{
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          marginBottom: '20px',
           width: '100%',
           maxWidth: '880px',
+          gap: '20px',
           position: 'relative',
           zIndex: 2
         }}>
-          {/* Vinyl Logo */}
-          <img 
-            src={`${appUrl}/music-snob-vinyl.png`}
-            alt="VinylVerdict Logo"
-            width="200"
-            height="200"
-            style={{
-              marginBottom: '15px',
-              filter: 'drop-shadow(0 0 20px rgba(147, 51, 234, 0.6))'
-            }}
-          />
-          
-          {/* Subtitle */}
+          {/* Header */}
           <div style={{
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            width: '100%'
+            marginBottom: '0',
+            width: '100%',
+            maxWidth: '880px',
+            position: 'relative',
+            zIndex: 2
           }}>
-            <h2 style={{
-              fontSize: '32px',
-              fontWeight: '600',
-              color: '#e2e8f0',
-              margin: 0,
-              lineHeight: 1.4,
-              textShadow: '0 2px 10px rgba(0, 0, 0, 0.8)',
-              textAlign: 'center'
-            }}>
-              <span style={{ 
-                color: '#c026d3', 
-                fontWeight: 'bold',
-                textShadow: '0 0 20px rgba(192, 38, 211, 0.5)' 
-              }}>
-                {personalityName}
-              </span>
-              <span style={{ 
-                color: '#c026d3', 
-                fontWeight: 'bold',
-                textShadow: '0 0 20px rgba(192, 38, 211, 0.5)' 
-              }}>
-                's
-              </span>
-              {' analysis of '}
-              <span style={{ 
-                color: '#c026d3', 
-                fontWeight: 'bold',
-                textShadow: '0 0 20px rgba(192, 38, 211, 0.5)' 
-              }}>
-                {username}
-              </span>
-            </h2>
-          </div>
-        </div>
-        
-        {/* Content Area */}
-        <div style={{
-          backgroundColor: 'rgba(24, 24, 27, 0.85)',
-          borderRadius: '16px',
-          padding: '44px',
-          border: '1px solid rgba(147, 51, 234, 0.4)',
-          width: '100%',
-          maxWidth: '880px',
-          marginBottom: '20px',
-          display: 'flex',
-          flexDirection: 'column',
-          position: 'relative',
-          zIndex: 2,
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)'
-        }}>
-          {contentElements}
-        </div>
-        
-        {/* Footer */}
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          width: '100%',
-          maxWidth: '880px',
-          position: 'relative',
-          zIndex: 2
-        }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '16px',
-            marginBottom: '16px'
-          }}>
+            {/* Vinyl Logo */}
             <img 
               src={`${appUrl}/music-snob-vinyl.png`}
               alt="VinylVerdict Logo"
-              width="80"
-              height="80"
+              width="200"
+              height="200"
               style={{
-                filter: 'drop-shadow(0 0 15px rgba(147, 51, 234, 0.6))'
+                marginBottom: '15px',
+                filter: 'drop-shadow(0 0 20px rgba(147, 51, 234, 0.6))'
               }}
             />
-            <h1 style={{
-              fontSize: '42px',
-              fontWeight: 'bold',
-              color: '#c026d3',
-              margin: 0,
-              lineHeight: 1,
-              textShadow: '0 0 20px rgba(192, 38, 211, 0.5)'
+            
+            {/* Subtitle */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              width: '100%'
             }}>
-              VinylVerdict.FM
-            </h1>
+              <h2 style={{
+                fontSize: '32px',
+                fontWeight: '600',
+                color: '#e2e8f0',
+                margin: 0,
+                lineHeight: 1.4,
+                textShadow: '0 2px 10px rgba(0, 0, 0, 0.8)',
+                textAlign: 'center'
+              }}>
+                <span style={{ 
+                  color: '#c026d3', 
+                  fontWeight: 'bold',
+                  textShadow: '0 0 20px rgba(192, 38, 211, 0.5)' 
+                }}>
+                  {personalityName + "'s"}
+                </span>
+                {' analysis of '}
+                <span style={{ 
+                  color: '#c026d3', 
+                  fontWeight: 'bold',
+                  textShadow: '0 0 20px rgba(192, 38, 211, 0.5)' 
+                }}>
+                  {username}
+                </span>
+              </h2>
+            </div>
           </div>
-          <p style={{
-            fontSize: '18px',
-            color: '#94a3b8',
-            margin: 0,
-            textAlign: 'center',
-            fontWeight: 400,
-            textShadow: '0 2px 10px rgba(0, 0, 0, 0.8)'
+          
+          {/* Content Area */}
+          <div style={{
+            backgroundColor: 'rgba(24, 24, 27, 0.85)',
+            borderRadius: '16px',
+            padding: '44px',
+            border: '1px solid rgba(147, 51, 234, 0.4)',
+            width: '100%',
+            maxWidth: '880px',
+            margin: '0',
+            flex: '0 0 auto',
+            display: 'flex',
+            flexDirection: 'column',
+            position: 'relative',
+            zIndex: 2,
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)',
+            overflow: 'hidden'
           }}>
-            Get your own personalized verdict at VinylVerdict.FM
-          </p>
+            {contentElements}
+          </div>
+          
+          {/* Footer */}
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            width: '100%',
+            maxWidth: '880px',
+            position: 'relative',
+            zIndex: 2,
+            marginTop: '0'
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '16px',
+              marginBottom: '16px'
+            }}>
+              <img 
+                src={`${appUrl}/music-snob-vinyl.png`}
+                alt="VinylVerdict Logo"
+                width="80"
+                height="80"
+                style={{
+                  filter: 'drop-shadow(0 0 15px rgba(147, 51, 234, 0.6))'
+                }}
+              />
+              <h1 style={{
+                fontSize: '42px',
+                fontWeight: 'bold',
+                color: '#c026d3',
+                margin: 0,
+                lineHeight: 1,
+                textShadow: '0 0 20px rgba(192, 38, 211, 0.5)'
+              }}>
+                VinylVerdict.FM
+              </h1>
+            </div>
+            <p style={{
+              fontSize: '18px',
+              color: '#94a3b8',
+              margin: 0,
+              textAlign: 'center',
+              fontWeight: 400,
+              textShadow: '0 2px 10px rgba(0, 0, 0, 0.8)'
+            }}>
+              Get your own personalized verdict at VinylVerdict.FM
+            </p>
+          </div>
         </div>
-      </div>,
-      {
-        width: 1080,
-        height: 1815, // Increased by 10% from 1650px
-      }
-    )
+      </div>
+    );
+    
+    // Fix any zIndex issues before rendering
+    fixStyles(content);
+    
+    return new ImageResponse(content, {
+      width: INSTAGRAM_STORY_WIDTH,
+      height: finalHeight,
+    })
   } catch (error) {
     console.error('Error generating share image:', error)
     

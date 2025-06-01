@@ -38,11 +38,19 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
   const [isClient, setIsClient] = useState(false)
   const loadingIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
+  // Fixed dimensions for consistent modal sizing
+  const MODAL_DIMENSIONS = {
+    width: 340, // Width of content area
+    height: 453, // Height of content area based on 3:4 aspect ratio
+    padding: 24, // Padding around content area
+    get totalHeight() { return this.height + this.padding * 2 } // Total height including padding
+  }
+
   // Fixed dimensions matching the loading preview - adjusted for mobile
   const PREVIEW_DIMENSIONS = {
     width: 340, // Reduced from 385 to fit better in smaller modal
     aspectRatio: 3/4, // aspect-[3/4] from loading preview
-    get height() { return (this.width / this.aspectRatio) * 1.1 } // 10% increase
+    get height() { return (this.width / this.aspectRatio) } // Calculate height from aspect ratio
   }
 
   // Detect Web Share API support on client side only to avoid hydration errors
@@ -416,7 +424,12 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[95vw] max-w-[450px] h-auto max-h-[90vh] bg-zinc-900 border-zinc-800 p-3 sm:p-4 md:p-6 [&_button.absolute.right-4.top-4]:hidden">
+      <DialogContent 
+        className="w-[95vw] max-w-[450px] h-auto bg-zinc-900 border-zinc-800 p-3 sm:p-4 md:p-6 [&_button.absolute.right-4.top-4]:hidden"
+        style={{
+          minHeight: `${MODAL_DIMENSIONS.totalHeight + 150}px` // Add extra height for header, footer, and buttons
+        }}
+      >
         <DialogTitle className="sr-only">
           {getShareTitle()}
         </DialogTitle>
@@ -452,15 +465,17 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
         <div className="flex items-center justify-center mb-3 sm:mb-4">
           <div className="w-full max-w-full">
             <div 
-              className="w-full mx-auto"
+              className="w-full mx-auto relative rounded-lg overflow-hidden"
               style={{
-                maxWidth: 'min(100%, 350px)',
-                aspectRatio: '3/4'
+                maxWidth: `${MODAL_DIMENSIONS.width}px`,
+                height: `${MODAL_DIMENSIONS.height}px`,
+                minHeight: `${MODAL_DIMENSIONS.height}px`,
+                backgroundColor: 'rgb(24, 24, 27)' // bg-zinc-900 equivalent
               }}
             >
               {isLoading ? (
                 // Loading state with fancy vinyl spinner
-                <div className="w-full h-full bg-zinc-900 rounded-lg flex flex-col items-center justify-center p-4 sm:p-6 text-center">
+                <div className="absolute inset-0 bg-zinc-900 rounded-lg flex flex-col items-center justify-center p-4 sm:p-6 text-center">
                   {/* Fancy Vinyl Spinner */}
                   <div className="relative mb-4 sm:mb-6">
                     <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24">
@@ -473,12 +488,12 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
                 </div>
               ) : (
                 // Final image state
-                <div className="w-full h-full relative">
+                <div className="absolute inset-0">
                   <div className="relative group w-full h-full overflow-hidden rounded-lg bg-transparent cursor-pointer">
                     <img
                       src={imageUrl || "/music-snob-vinyl.png"}
                       alt="Share preview of your music taste verdict"
-                      className="w-full h-full rounded-lg object-cover hover:opacity-90 transition-all duration-200 group-hover:scale-[1.02] block bg-transparent animate-in fade-in-0 duration-300"
+                      className="w-full h-full rounded-lg object-contain hover:opacity-90 transition-all duration-200 group-hover:scale-[1.02] block bg-transparent animate-in fade-in-0 duration-300"
                       style={{ backgroundColor: 'transparent' }}
                       onClick={handleImageClick}
                     />

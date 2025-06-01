@@ -77,38 +77,12 @@ export function CursorTypewriter({
   }, [])
 
   // Handle page visibility changes to maintain consistent timing when tab switching
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && animationFrameRef.current) {
-        // Reset the timer when the page becomes visible again to prevent speed issues
-        lastUpdateTimeRef.current = performance.now()
-      }
-    }
-
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
+  const handleVisibilityChange = useCallback(() => {
+    if (document.visibilityState === 'visible' && animationFrameRef.current) {
+      // Reset the timer when the page becomes visible again to prevent speed issues
+      lastUpdateTimeRef.current = performance.now()
     }
   }, [])
-
-  // Pre-calculate final content height to prevent layout shifts
-  const finalContentRef = useRef<HTMLDivElement>(null)
-  useEffect(() => {
-    if (markdown && !containerHeight) {
-      // Create a hidden element to measure final content height
-      const measureElement = document.createElement('div')
-      measureElement.style.position = 'absolute'
-      measureElement.style.visibility = 'hidden'
-      measureElement.style.width = '100%'
-      measureElement.style.pointerEvents = 'none'
-      measureElement.innerHTML = `<div class="prose prose-invert max-w-none text-zinc-300">${markdown}</div>`
-      
-      document.body.appendChild(measureElement)
-      const height = measureElement.offsetHeight
-      setContainerHeight(height)
-      document.body.removeChild(measureElement)
-    }
-  }, [markdown, containerHeight])
 
   // Function to measure current content height
   const measureCurrentHeight = useCallback(() => {
@@ -130,6 +104,45 @@ export function CursorTypewriter({
       })
     }
   }, [isMobile, heightMeasureInterval])
+
+  // Handle page visibility for remeasuring height
+  const handleVisibilityChangeWithHeight = useCallback(() => {
+    handleVisibilityChange()
+    
+    // Force remeasure height when returning to the tab
+    if (document.visibilityState === 'visible' && contentRef.current && isMountedRef.current) {
+      // Small delay to ensure content has rendered
+      setTimeout(() => {
+        measureCurrentHeight()
+      }, 50)
+    }
+  }, [handleVisibilityChange, measureCurrentHeight])
+
+  useEffect(() => {
+    document.addEventListener('visibilitychange', handleVisibilityChangeWithHeight)
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChangeWithHeight)
+    }
+  }, [handleVisibilityChangeWithHeight])
+
+  // Pre-calculate final content height to prevent layout shifts
+  const finalContentRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (markdown && !containerHeight) {
+      // Create a hidden element to measure final content height
+      const measureElement = document.createElement('div')
+      measureElement.style.position = 'absolute'
+      measureElement.style.visibility = 'hidden'
+      measureElement.style.width = '100%'
+      measureElement.style.pointerEvents = 'none'
+      measureElement.innerHTML = `<div class="prose prose-invert max-w-none text-zinc-300">${markdown}</div>`
+      
+      document.body.appendChild(measureElement)
+      const height = measureElement.offsetHeight
+      setContainerHeight(height)
+      document.body.removeChild(measureElement)
+    }
+  }, [markdown, containerHeight])
 
   // Update height when content changes
   useEffect(() => {
@@ -319,8 +332,14 @@ export function CursorTypewriter({
     
     if (onProgress) onProgress(newPosition)
     
+    // Force measure height periodically during typing to ensure container expands properly
+    if (newPosition % 15 === 0 || newPosition === 1) {
+      // Use setTimeout to avoid blocking the animation frame
+      setTimeout(() => measureCurrentHeight(), 5)
+    }
+    
     animationFrameRef.current = requestAnimationFrame(() => animateTypewriter(newPosition))
-  }, [markdown, stableSpeed, onComplete, onProgress, cursorChar])
+  }, [markdown, stableSpeed, onComplete, onProgress, cursorChar, measureCurrentHeight])
 
   // Handle the typewriter effect
   useEffect(() => {
@@ -363,16 +382,16 @@ export function CursorTypewriter({
     <div
       className={`${className} text-sm sm:text-base md:text-lg transition-all duration-300 ease-out ${isComplete ? "opacity-100" : "opacity-95"}`}
       style={{ 
-        height: currentHeight > 0 ? `${currentHeight}px` : 'auto',
-        minHeight: currentHeight > 0 ? `${currentHeight}px` : '20px',
+        height: currentHeight > 0 ? `${currentHeight + 24}px` : 'auto',
+        minHeight: currentHeight > 0 ? `${currentHeight + 24}px` : '20px',
         overflow: 'hidden',
-        contain: 'layout style', // Improve rendering performance
-        contentVisibility: 'auto', // Optimize rendering for off-screen content
-        // Mobile-specific optimizations
+        contain: 'layout style',
+        contentVisibility: 'auto',
+        paddingBottom: '24px',
         ...(isMobile && {
-          willChange: 'height', // Hint to browser for optimization
-          transform: 'translateZ(0)', // Force hardware acceleration
-          backfaceVisibility: 'hidden', // Reduce rendering overhead
+          willChange: 'height',
+          transform: 'translateZ(0)',
+          backfaceVisibility: 'hidden',
         })
       }}
     >
@@ -409,7 +428,6 @@ export function CursorTypewriter({
         ref={contentRef}
         className="prose prose-invert max-w-none text-zinc-300 prose-strong:text-white prose-em:text-zinc-400 prose-li:marker:text-purple-gradient"
         style={{
-          // Mobile-specific optimizations
           ...(isMobile && {
             contain: 'layout style',
             transform: 'translateZ(0)',
