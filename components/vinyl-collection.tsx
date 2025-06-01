@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import React, { useState, useEffect, memo, useCallback } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { VinylRecord } from "./vinyl-record"
 import { useVinyl } from "@/contexts/vinyl-context"
@@ -28,44 +28,46 @@ const convertToContextFormat = (design: VinylDesign) => ({
   assistantType: design.assistantType || design.id,
 })
 
-export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: VinylDesign) => void }) {
+const VinylCollection = memo(function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: VinylDesign) => void }) {
   const [activeIndex, setActiveIndex] = useState(0)
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [flipDirection, setFlipDirection] = useState<FlipDirection>("none")
   const { selectedVinyl, setSelectedVinyl } = useVinyl()
 
   // Touch/swipe state
-  const [touchStart, setTouchStart] = useState<number | null>(null)
-  const [touchEnd, setTouchEnd] = useState<number | null>(null)
+  const [touchStartX, setTouchStartX] = useState(0)
+  const [touchStartY, setTouchStartY] = useState(0)
 
   // Minimum distance for a swipe (in pixels)
   const minSwipeDistance = 50
 
-  // Touch event handlers for swipe detection
-  const onTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(null) // Reset touch end
-    setTouchStart(e.targetTouches[0].clientX)
-  }
+  // Memoize event handlers to prevent unnecessary re-renders
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    setTouchStartX(e.touches[0].clientX)
+    setTouchStartY(e.touches[0].clientY)
+  }, [])
 
-  const onTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX)
-  }
+  const onTouchMove = useCallback((e: React.TouchEvent) => {
+    e.preventDefault() // Prevent scroll during horizontal swipe
+  }, [])
 
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return
-    
-    const distance = touchStart - touchEnd
-    const isLeftSwipe = distance > minSwipeDistance
-    const isRightSwipe = distance < -minSwipeDistance
+  const onTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (!e.changedTouches[0]) return
 
-    if (isLeftSwipe) {
-      // Swipe left = move to next vinyl (right direction)
-      nextVinyl()
-    } else if (isRightSwipe) {
-      // Swipe right = move to previous vinyl (left direction)
-      prevVinyl()
+    const touchEndX = e.changedTouches[0].clientX
+    const touchEndY = e.changedTouches[0].clientY
+    const deltaX = touchStartX - touchEndX
+    const deltaY = touchStartY - touchEndY
+
+    // Only trigger if horizontal movement is greater than vertical (horizontal swipe)
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+      if (deltaX > 0) {
+        nextVinyl() // Swipe left = next
+      } else {
+        prevVinyl() // Swipe right = previous
+      }
     }
-  }
+  }, [touchStartX, touchStartY])
 
   // Define our vinyl designs
   const vinylDesigns: VinylDesign[] = [
@@ -145,7 +147,7 @@ export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: Vi
   }, []) // Empty dependency array ensures this only runs once on mount
 
   // Navigation functions
-  const nextVinyl = () => {
+  const nextVinyl = useCallback(() => {
     if (isTransitioning) return
     setIsTransitioning(true)
     setFlipDirection("right")
@@ -166,9 +168,9 @@ export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: Vi
       setIsTransitioning(false)
       setFlipDirection("none")
     }, 500)
-  }
+  }, [isTransitioning, activeIndex, onSelectVinyl, setSelectedVinyl])
 
-  const prevVinyl = () => {
+  const prevVinyl = useCallback(() => {
     if (isTransitioning) return
     setIsTransitioning(true)
     setFlipDirection("left")
@@ -189,9 +191,9 @@ export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: Vi
       setIsTransitioning(false)
       setFlipDirection("none")
     }, 500)
-  }
+  }, [isTransitioning, activeIndex, onSelectVinyl, setSelectedVinyl])
 
-  const selectVinyl = (index: number) => {
+  const selectVinyl = useCallback((index: number) => {
     if (isTransitioning || index === activeIndex) return
     setIsTransitioning(true)
 
@@ -214,7 +216,7 @@ export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: Vi
       setIsTransitioning(false)
       setFlipDirection("none")
     }, 500)
-  }
+  }, [isTransitioning, activeIndex, onSelectVinyl, setSelectedVinyl])
 
   return (
     <div className="flex flex-col items-center" style={{ contain: 'layout' }}>
@@ -252,7 +254,7 @@ export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: Vi
           >
             <VinylRecord
               design={vinylDesigns[activeIndex]}
-              key={vinylDesigns[activeIndex].id}
+              key={`vinyl-record-${vinylDesigns[activeIndex].id}`}
               flipDirection={flipDirection}
               isTransitioning={isTransitioning}
               onClick={nextVinyl}
@@ -313,4 +315,6 @@ export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: Vi
       </div>
     </div>
   )
-}
+})
+
+export { VinylCollection }

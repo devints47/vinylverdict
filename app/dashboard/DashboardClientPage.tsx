@@ -821,7 +821,7 @@ export default function DashboardClientPage() {
               {/* Fixed vinyl container to prevent layout shifts */}
               <div className="flex justify-center">
                 <div className="w-[300px]" style={{ contain: 'layout' }}>
-                  <VinylCollection />
+                  <VinylCollection key="dashboard-vinyl-stable" />
                 </div>
               </div>
             </div>

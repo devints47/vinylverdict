@@ -48,22 +48,31 @@ export function TimeRangeSelector({ selectedRange, onChange }: TimeRangeSelector
 
   return (
     <div className="flex gap-2 w-full">
-      {ranges.map((range) => (
-        <Button
-          key={range.value}
-          variant={selectedRange === range.value ? "default" : "outline"}
-          size="sm"
-          onClick={() => onChange(range.value)}
-          className={`
-            ${selectedRange === range.value ? "btn-gradient holographic-shimmer" : ""} 
-            whitespace-nowrap
-            flex-1
-            ${isMobile ? 'px-3 py-1.5 text-xs' : 'px-4 py-2 text-sm'}
-          `}
-        >
-          {isMobile ? range.mobileLabel : range.label}
-        </Button>
-      ))}
+      {ranges.map((range) => {
+        const isSelected = selectedRange === range.value
+        
+        return (
+          <Button
+            key={range.value}
+            variant="outline"
+            size="sm"
+            onClick={() => onChange(range.value)}
+            className={`
+              whitespace-nowrap
+              flex-1
+              border border-white/20
+              ${isMobile ? 'px-3 py-1.5 text-xs' : 'px-4 py-2 text-sm'}
+              ${isSelected 
+                ? 'bg-purple-600 text-white border-purple-500 hover:bg-purple-600' 
+                : 'bg-transparent text-white hover:bg-white/10 hover:border-white/30'
+              }
+              transition-colors duration-200
+            `}
+          >
+            {isMobile ? range.mobileLabel : range.label}
+          </Button>
+        )
+      })}
     </div>
   )
 }
