@@ -167,6 +167,21 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
     }
   }, [assistantType, activeTab])
 
+  // Get the text for the clear button based on assistant type
+  const getClearButtonText = useCallback(() => {
+    switch (assistantType) {
+      case "worshipper":
+        return "Clear Validation"
+      case "historian":
+        return "Clear Analysis"
+      case "therapist":
+        return "Clear Psychoanalysis"
+      case "snob":
+      default:
+        return "Clear Roast"
+    }
+  }, [assistantType])
+
   // Get the text for the "Share My Roast" button based on assistant type
   const getShareButtonText = useCallback(() => {
     switch (assistantType) {
@@ -741,56 +756,17 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
         </Card>
       )}
 
-      {/* Secondary roast button below the roast card */}
+      {/* Clear button - centered and styled like main button */}
       {showShareButton && (
-        <div className="mt-6 w-full">
-          {/* Mobile layout - stacked */}
-          <div className="flex flex-col items-center gap-3 sm:hidden">
-            <Button
-              onClick={() => handleRoastMe(true)}
-              className="btn-gradient holographic-shimmer text-white font-bold py-4 px-8 text-base sm:text-lg rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl w-full max-w-md"
-              size="lg"
-            >
-              <span className="text-xl">{getEmoji()}</span>
-              <span>{getButtonText()}</span>
-              <span className="text-xl">{getEmoji()}</span>
-            </Button>
-            
-            {/* Clear button below on mobile */}
-            <Button
-              onClick={clearRoast}
-              variant="ghost"
-              size="sm"
-              className="text-zinc-400 hover:text-white hover:bg-zinc-800 p-3 rounded-full transition-colors"
-              title="Clear roast"
-            >
-              <Trash2 className="h-5 w-5" />
-            </Button>
-          </div>
-
-          {/* Desktop layout - side by side */}
-          <div className="hidden sm:flex justify-center items-center gap-4 w-full">
-            <Button
-              onClick={() => handleRoastMe(true)}
-              className="btn-gradient holographic-shimmer text-white font-bold py-4 px-8 text-base sm:text-lg rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl max-w-md"
-              size="lg"
-            >
-              <span className="text-xl">{getEmoji()}</span>
-              <span>{getButtonText()}</span>
-              <span className="text-xl">{getEmoji()}</span>
-            </Button>
-            
-            {/* Clear button - only shown when roast is completed */}
-            <Button
-              onClick={clearRoast}
-              variant="ghost"
-              size="sm"
-              className="text-zinc-400 hover:text-white hover:bg-zinc-800 p-3 rounded-full transition-colors"
-              title="Clear roast"
-            >
-              <Trash2 className="h-5 w-5" />
-            </Button>
-          </div>
+        <div className="mt-6 w-full flex justify-center">
+          <Button
+            onClick={clearRoast}
+            className="btn-gradient holographic-shimmer text-white font-bold py-4 px-8 text-base sm:text-lg rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl max-w-md"
+            size="lg"
+          >
+            <Trash2 className="h-5 w-5" />
+            <span>{getClearButtonText()}</span>
+          </Button>
         </div>
       )}
 

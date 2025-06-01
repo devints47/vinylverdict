@@ -31,7 +31,7 @@ export function TimeRangeSelector({ selectedRange, onChange }: TimeRangeSelector
   const ranges = [
     {
       value: "short_term" as TimeRange,
-      label: "Last 4 Weeks",
+      label: "Last Month",
       mobileLabel: "1 Month",
     },
     {
@@ -47,14 +47,19 @@ export function TimeRangeSelector({ selectedRange, onChange }: TimeRangeSelector
   ]
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex gap-2 w-full">
       {ranges.map((range) => (
         <Button
           key={range.value}
           variant={selectedRange === range.value ? "default" : "outline"}
           size="sm"
           onClick={() => onChange(range.value)}
-          className={selectedRange === range.value ? "btn-gradient holographic-shimmer" : ""}
+          className={`
+            ${selectedRange === range.value ? "btn-gradient holographic-shimmer" : ""} 
+            whitespace-nowrap
+            flex-1
+            ${isMobile ? 'px-3 py-1.5 text-xs' : 'px-4 py-2 text-sm'}
+          `}
         >
           {isMobile ? range.mobileLabel : range.label}
         </Button>

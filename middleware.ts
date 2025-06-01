@@ -14,7 +14,7 @@ export function middleware(request: NextRequest) {
   response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
 
   // Handle authentication-protected routes
-  const protectedRoutes = ['/dashboard', '/login', '/callback', '/share']
+  const protectedRoutes = ['/dashboard', '/login', '/callback']
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route))
 
   if (isProtectedRoute) {

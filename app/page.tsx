@@ -56,11 +56,11 @@ export default function LandingPage() {
                     <span className="text-purple-gradient">VinylVerdict.FM</span>
                   </h1>
                   <h2 className="text-2xl mb-4 md:text-3xl lg:text-4xl font-bold leading-tight">
-                    Your Music Taste Personified
+                    Your Music Taste — Personified
                   </h2>
                   <p className="text-xl text-zinc-400 mb-8 max-w-lg">
-                    Connect your Spotify account and choose from multiple unique AI personalities to analyze your
-                    listening habits with distinct perspectives, from brutal honesty to historical insights.
+                    Connect your Spotify account and choose from one of our resident music analysts to provide personalized
+                    insight into your listening habits with distinct perspectives, from brutal honesty to historical retrospection.
                   </p>
 
                   {/* Button container - completely restructured for proper mobile centering */}
@@ -116,11 +116,11 @@ export default function LandingPage() {
                     <div className="bg-bright-purple/10 w-12 h-12 rounded-full flex items-center justify-center mb-4">
                       <Zap className="h-6 w-6 text-bright-purple" />
                     </div>
-                    <h3 className="text-xl font-bold mb-2 text-white">Multiple AI Personalities</h3>
+                    <h3 className="text-xl font-bold mb-2 text-white">Multiple Perspectives</h3>
                   </div>
                   <div className="px-6 pb-6">
                     <p className="text-zinc-400 text-base">
-                      From critical Music Snob to mystical Historian, each AI personality offers a unique take on your
+                      From critical Music Snob to mystical Historian, each personality offers a unique take on your
                       music taste with personalized insights.
                     </p>
                   </div>

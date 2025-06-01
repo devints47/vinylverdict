@@ -156,7 +156,7 @@ function RecentlyPlayedContent({
           "linear-gradient(135deg, var(--purple-gradient-start), var(--purple-gradient-mid), var(--purple-gradient-end)) 1",
       }}
     >
-      <CardHeader className="relative">
+      <CardHeader className="relative min-h-[172px] sm:min-h-0">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
           <div className="flex items-center gap-6">
             <div className="p-2 flex-shrink-0">
@@ -258,7 +258,7 @@ function TopTracksContent({
           "linear-gradient(135deg, var(--purple-gradient-start), var(--purple-gradient-mid), var(--purple-gradient-end)) 1",
       }}
     >
-      <CardHeader className="relative">
+      <CardHeader className="relative min-h-[172px] sm:min-h-0">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
           <div className="flex items-center gap-6">
             <div className="p-2 flex-shrink-0">
@@ -355,7 +355,7 @@ function TopArtistsContent({
           "linear-gradient(135deg, var(--purple-gradient-start), var(--purple-gradient-mid), var(--purple-gradient-end)) 1",
       }}
     >
-      <CardHeader className="relative">
+      <CardHeader className="relative min-h-[172px] sm:min-h-0">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
           <div className="flex items-center gap-6">
             <div className="p-2 flex-shrink-0">
@@ -375,7 +375,7 @@ function TopArtistsContent({
               <CardDescription className="min-h-[1.5rem]">
                 Artists you've listened to the most{" "}
                 {timeRange === "short_term"
-                  ? "over the last 4 weeks"
+                  ? "over the month"
                   : timeRange === "medium_term"
                     ? "over the last 6 months"
                     : "of all time"}

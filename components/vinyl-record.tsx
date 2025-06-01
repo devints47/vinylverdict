@@ -7,7 +7,7 @@ export interface VinylDesign {
   id: string
   name: string
   labelColor: string
-  faceType: "snob" | "happy" | "cool" | "surprised"
+  faceType: "snob" | "happy" | "cool" | "surprised" | "therapist"
   labelText: string
 }
 
@@ -156,6 +156,9 @@ const VinylRecord = memo(function VinylRecord({
         case "blue":
           gradientColorsRef.current = ["#3b82f6", "#2563eb", "#93c5fd", "#60a5fa", "#1d4ed8", "#3b82f6"]
           break
+        case "orange":
+          gradientColorsRef.current = ["#f97316", "#ea580c", "#fed7aa", "#fb923c", "#c2410c", "#f97316"]
+          break
         case "purple":
         default:
           gradientColorsRef.current = ["#A855F7", "#9333EA", "#C084FC", "#8B5CF6", "#D946EF", "#A855F7"]
@@ -263,6 +266,56 @@ const VinylRecord = memo(function VinylRecord({
           // Surprised mouth
           ctx.beginPath()
           ctx.arc(centerX, centerY + labelRadius * 0.3, labelRadius * 0.2, 0, Math.PI * 2)
+          ctx.stroke()
+          break
+
+        case "therapist":
+          // Therapist face with round glasses and thoughtful expression
+          // Round glasses - left lens
+          ctx.beginPath()
+          ctx.arc(centerX - eyeOffsetX, eyeY, eyeWidth * 0.9, 0, Math.PI * 2)
+          ctx.stroke()
+
+          // Round glasses - right lens
+          ctx.beginPath()
+          ctx.arc(centerX + eyeOffsetX, eyeY, eyeWidth * 0.9, 0, Math.PI * 2)
+          ctx.stroke()
+
+          // Bridge
+          ctx.beginPath()
+          ctx.moveTo(centerX - eyeOffsetX + eyeWidth * 0.9, eyeY)
+          ctx.lineTo(centerX + eyeOffsetX - eyeWidth * 0.9, eyeY)
+          ctx.stroke()
+
+          // Thoughtful eyebrows - slightly raised and curved
+          ctx.beginPath()
+          ctx.moveTo(centerX - eyeOffsetX - eyeWidth * 1.2, eyeY - eyeHeight * 1.8)
+          ctx.quadraticCurveTo(
+            centerX - eyeOffsetX,
+            eyeY - eyeHeight * 2.2,
+            centerX - eyeOffsetX + eyeWidth * 1.2,
+            eyeY - eyeHeight * 1.8,
+          )
+          ctx.stroke()
+
+          ctx.beginPath()
+          ctx.moveTo(centerX + eyeOffsetX - eyeWidth * 1.2, eyeY - eyeHeight * 1.8)
+          ctx.quadraticCurveTo(
+            centerX + eyeOffsetX,
+            eyeY - eyeHeight * 2.2,
+            centerX + eyeOffsetX + eyeWidth * 1.2,
+            eyeY - eyeHeight * 1.8,
+          )
+          ctx.stroke()
+
+          // Gentle, understanding smile
+          ctx.beginPath()
+          ctx.arc(centerX, centerY + labelRadius * 0.2, labelRadius * 0.35, 0.15 * Math.PI, 0.85 * Math.PI, false)
+          ctx.stroke()
+
+          // Small beard/goatee for wisdom
+          ctx.beginPath()
+          ctx.ellipse(centerX, centerY + labelRadius * 0.6, labelRadius * 0.15, labelRadius * 0.25, 0, 0, Math.PI * 2)
           ctx.stroke()
           break
 

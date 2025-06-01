@@ -36,7 +36,9 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
   const [showCopiedText, setShowCopiedText] = useState(false)
   const [notifications, setNotifications] = useState<{[key: string]: boolean}>({})
   const [isClient, setIsClient] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   const loadingIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const [imageLoading, setImageLoading] = useState(true)
 
   // Fixed dimensions for consistent modal sizing
   const MODAL_DIMENSIONS = {
@@ -56,6 +58,14 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
   // Detect Web Share API support on client side only to avoid hydration errors
   useEffect(() => {
     setIsClient(true)
+    
+    // Detect mobile devices
+    const checkIsMobile = () => {
+      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+             window.innerWidth <= 768
+    }
+    setIsMobile(checkIsMobile())
+    
     // Check if the browser supports the Web Share API with file sharing
     const hasWebShareAPI = 'share' in navigator && 'canShare' in navigator
     setSupportsNativeShare(hasWebShareAPI)
@@ -101,6 +111,9 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       // Generate image using server-side API
       const generateServerSideImage = async () => {
         try {
+          // Reset image loading state
+          setImageLoading(true)
+          
           // Get username from profile
           const username = userProfile?.display_name || userProfile?.id || "Your Music"
 
@@ -478,8 +491,8 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
                 <div className="absolute inset-0 bg-zinc-900 rounded-lg flex flex-col items-center justify-center p-4 sm:p-6 text-center">
                   {/* Fancy Vinyl Spinner */}
                   <div className="relative mb-4 sm:mb-6">
-                    <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24">
-                      <VinylRecord size={96} />
+                    <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-44 md:h-44">
+                      <VinylRecord />
                     </div>
                   </div>
                   
@@ -489,50 +502,79 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
               ) : (
                 // Final image state
                 <div className="absolute inset-0">
-                  <div className="relative group w-full h-full overflow-hidden rounded-lg bg-transparent cursor-pointer">
-                    <img
-                      src={imageUrl || "/music-snob-vinyl.png"}
-                      alt="Share preview of your music taste verdict"
-                      className="w-full h-full rounded-lg object-contain hover:opacity-90 transition-all duration-200 group-hover:scale-[1.02] block bg-transparent animate-in fade-in-0 duration-300"
-                      style={{ backgroundColor: 'transparent' }}
-                      onClick={handleImageClick}
-                    />
-                    
-                    {/* Hover overlay with dynamic text */}
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-200 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 pointer-events-none">
-                      <div className={`px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium flex items-center gap-2 backdrop-blur-sm transition-all duration-200 ${
-                        showCopiedText 
-                          ? 'bg-green-600/90 text-white' 
-                          : 'bg-black/80 text-white'
-                      }`}>
-                        {showCopiedText ? (
-                          <>
-                            <span>✓</span>
-                            Copied!
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="h-3 w-3 sm:h-4 sm:w-4" />
-                            Click to copy
-                          </>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Copied feedback */}
-                    {showCopiedFeedback && (
-                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <div className="bg-green-600 text-white px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium animate-in fade-in-0 zoom-in-95 duration-200">
-                          ✓ Copied!
+                  <div className="relative w-full h-full">
+                    {/* Loading overlay - shown until image is fully loaded with same styling as first loading state */}
+                    {imageLoading && (
+                      <div className="absolute inset-0 bg-zinc-900 rounded-lg flex flex-col items-center justify-center p-4 sm:p-6 text-center z-10">
+                        {/* Fancy Vinyl Spinner - same size as first loading state */}
+                        <div className="relative mb-4 sm:mb-6">
+                          <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-44 md:h-44">
+                            <VinylRecord />
+                          </div>
                         </div>
+                        
+                        <p className="text-purple-300 font-medium text-sm sm:text-base md:text-lg mb-1 sm:mb-2">Almost ready to drop...</p>
+                        <p className="text-zinc-400 text-xs sm:text-sm">Creating your vinyl verdict...</p>
                       </div>
                     )}
-
-                    {/* Image click notification */}
-                    {notifications.imageClick && (
-                      <div className="absolute -top-8 sm:-top-10 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-2 sm:px-3 py-1 rounded-full text-xs font-medium animate-in fade-in-0 slide-in-from-bottom-2 duration-200 whitespace-nowrap">
-                        ✓ Copied to clipboard!
-                      </div>
+                    
+                    {/* Image content - hidden until loaded to prevent flickering */}
+                    {imageUrl && (
+                      // Only apply mobile-specific logic after client hydration
+                      !isClient ? (
+                        // Server-side and pre-hydration: render desktop version to match initial render
+                        <div
+                          className={`relative cursor-pointer group w-full h-full transition-opacity duration-300 ${imageLoading ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+                          onClick={() => copyImageToClipboard(imageUrl)}
+                        >
+                          <img
+                            src={imageUrl}
+                            alt="Generated verdict image"
+                            className="w-full h-full object-contain rounded-lg transition-opacity group-hover:opacity-90"
+                            style={{ aspectRatio: imageUrl ? 'auto' : '3/4', maxHeight: '60vh' }}
+                            onLoad={() => setImageLoading(false)}
+                          />
+                          
+                          {/* Hover overlay with copy instruction */}
+                          <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-lg flex items-center justify-center">
+                            <div className="text-white text-center">
+                              <Copy className="h-8 w-8 mx-auto mb-2" />
+                              <p className="text-sm font-medium">Click to copy</p>
+                            </div>
+                          </div>
+                        </div>
+                      ) : isMobile ? (
+                        // Mobile: Show normal image without click/hover effects
+                        <img
+                          src={imageUrl}
+                          alt="Generated verdict image"
+                          className={`w-full h-full object-contain rounded-lg transition-opacity duration-300 ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
+                          style={{ aspectRatio: 'auto', maxHeight: '60vh' }}
+                          onLoad={() => setImageLoading(false)}
+                        />
+                      ) : (
+                        // Desktop: Maintain existing click-to-copy behavior
+                        <div
+                          className={`relative cursor-pointer group w-full h-full transition-opacity duration-300 ${imageLoading ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+                          onClick={() => copyImageToClipboard(imageUrl)}
+                        >
+                          <img
+                            src={imageUrl}
+                            alt="Generated verdict image"
+                            className="w-full h-full object-contain rounded-lg transition-opacity group-hover:opacity-90"
+                            style={{ aspectRatio: imageUrl ? 'auto' : '3/4', maxHeight: '60vh' }}
+                            onLoad={() => setImageLoading(false)}
+                          />
+                          
+                          {/* Hover overlay with copy instruction */}
+                          <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-lg flex items-center justify-center">
+                            <div className="text-white text-center">
+                              <Copy className="h-8 w-8 mx-auto mb-2" />
+                              <p className="text-sm font-medium">Click to copy</p>
+                            </div>
+                          </div>
+                        </div>
+                      )
                     )}
                   </div>
                 </div>
@@ -591,7 +633,8 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
               )}
             </div>
 
-            <div className="relative flex-1">
+            {/* Copy button - hidden on mobile after hydration */}
+            <div className={`relative flex-1 ${isClient && isMobile ? 'hidden' : ''}`}>
               <Button
                 onClick={handleCopyToClipboard}
                 disabled={isLoading}
@@ -617,10 +660,10 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
                 disabled={isLoading}
                 variant="outline"
                 className="w-full text-white border-zinc-700 hover:bg-zinc-800 text-xs sm:text-sm py-2 h-9 sm:h-10"
-                aria-label="Download verdict image"
+                aria-label="Save verdict image"
               >
                 <Download className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
-                Download
+                Save
               </Button>
               
               {/* Download notification */}

@@ -10,7 +10,7 @@ export interface VinylDesign {
   id: string
   name: string
   labelColor: string
-  faceType: "snob" | "happy" | "cool" | "surprised"
+  faceType: "snob" | "happy" | "cool" | "surprised" | "therapist"
   labelText: string
   description: string
   assistantType?: string // Add assistant type to identify which assistant to use
@@ -82,8 +82,8 @@ export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: Vi
     {
       id: "armchair-therapist",
       name: "Armchair Therapist",
-      labelColor: "orange",
-      faceType: "surprised",
+      labelColor: "teal",
+      faceType: "happy",
       labelText: "THERAPY • PSYCHOANALYSIS • DEEP INSIGHTS • SESSION •",
       description:
         "A straight-shooting psychological analyst who connects your music choices to your deepest emotional patterns and relationship dynamics. They'll tell you exactly what your playlist reveals about your psyche, personal growth, and love life.",
@@ -92,8 +92,8 @@ export function VinylCollection({ onSelectVinyl }: { onSelectVinyl?: (design: Vi
     {
       id: "taste-validator",
       name: "Taste Validator",
-      labelColor: "teal",
-      faceType: "happy",
+      labelColor: "pink",
+      faceType: "therapist",
       labelText: "VALIDATION • APPRECIATION • AFFIRMATION • PRAISE •",
       description:
         "The ultimate music enthusiast who sees the beauty in every genre and artist. Taste Validator celebrates your musical journey with genuine excitement and positivity, finding the artistic merit in even your most questionable choices.",
