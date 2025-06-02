@@ -195,8 +195,8 @@ export default function PrivacyPolicyPage() {
                 </p>
 
                 <h2 className="text-2xl font-bold mt-8 mb-4 text-purple-gradient">Contact Us</h2>
-                <p>If you have any questions about this privacy policy or our data practices, please contact us at:</p>
-                <p className="pl-4 border-l-4 border-bright-purple/30 my-4">Email: privacy@vinylverdict.fm</p>
+                <p>If you have any questions about this Privacy Policy, please contact us at:</p>
+                <p className="pl-4 border-l-4 border-bright-purple/30 my-4">Email: admin@vinylverdict.fm</p>
               </div>
             </div>
 
