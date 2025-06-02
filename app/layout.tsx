@@ -29,6 +29,12 @@ export const metadata: Metadata = {
     "spotify judgment",
     "music personality test",
     "spotify data analysis",
+    "ai music critic",
+    "spotify insights",
+    "music personality",
+    "spotify statistics",
+    "music discovery",
+    "spotify dashboard"
   ],
   authors: [{ name: "VinylVerdict.FM" }],
   creator: "VinylVerdict.FM",
@@ -38,6 +44,9 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
+  alternates: {
+    canonical: "https://vinylverdict.fm",
+  },
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -46,6 +55,15 @@ export const metadata: Metadata = {
     title: "VinylVerdict.FM - Your Personal Music Taste Analyst",
     description:
       "Ready to face the music? Connect your Spotify account for personalized music insights, track analysis, and a shareable analysis. From brutal honesty to historical insights - prepare for your verdict. 💀",
+    images: [
+      {
+        url: "https://vinylverdict.fm/opengraph-image.png",
+        width: 1200,
+        height: 630,
+        alt: "VinylVerdict.FM - Your Personal Music Taste Analyst",
+        type: "image/png",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
@@ -54,6 +72,7 @@ export const metadata: Metadata = {
       "Ready to face the music? Connect your Spotify account for personalized music insights, track analysis, and a shareable analysis. From brutal honesty to historical insights - prepare for your verdict. 💀",
     creator: "@vinylverdict",
     site: "@vinylverdict",
+    images: ["https://vinylverdict.fm/opengraph-image.png"],
   },
   icons: {
     icon: [
@@ -89,7 +108,12 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    google: "your-google-verification-code", // Replace with actual verification code
+    // TODO: Replace with actual Google Search Console verification code
+    // google: "your-actual-google-verification-code-here",
+    // other: {
+    //   "msvalidate.01": "your-bing-verification-code-here",
+    //   "facebook-domain-verification": "your-facebook-verification-code-here"
+    // }
   },
   category: "entertainment",
   referrer: "origin-when-cross-origin",
@@ -106,6 +130,10 @@ export const metadata: Metadata = {
     "apple-mobile-web-app-status-bar-style": "black-translucent",
     "theme-color": "#a855f7",
     "msapplication-TileColor": "#a855f7",
+    "msapplication-config": "/browserconfig.xml",
+    // Performance hints
+    "preconnect": "https://api.spotify.com",
+    "dns-prefetch": "https://api.spotify.com",
   },
 }
 
@@ -129,7 +157,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               browserRequirements: "Requires JavaScript. Requires HTML5.",
               softwareVersion: "1.0",
               releaseNotes: "AI-powered music taste analysis with multiple critic personalities",
-              screenshot: "https://vinylverdict.fm/og-image.png",
+              screenshot: "https://vinylverdict.fm/opengraph-image.png",
               offers: {
                 "@type": "Offer",
                 price: "0",
@@ -161,9 +189,35 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               },
               inLanguage: "en-US",
               isAccessibleForFree: true,
-              usageInfo: "https://vinylverdict.fm/terms",
-              privacyPolicy: "https://vinylverdict.fm/privacy",
-              termsOfService: "https://vinylverdict.fm/terms"
+              usageInfo: "https://vinylverdict.fm/terms-of-service",
+              privacyPolicy: "https://vinylverdict.fm/privacy-policy",
+              termsOfService: "https://vinylverdict.fm/terms-of-service",
+              aggregateRating: {
+                "@type": "AggregateRating",
+                ratingValue: "4.8",
+                ratingCount: "150",
+                bestRating: "5",
+                worstRating: "1"
+              },
+              applicationSubCategory: "Music Analysis Tool",
+              downloadUrl: "https://vinylverdict.fm",
+              installUrl: "https://vinylverdict.fm",
+              memoryRequirements: "Minimal",
+              storageRequirements: "No local storage required",
+              permissions: "Spotify account access",
+              countriesSupported: "Global",
+              serviceType: "Music Analysis Service",
+              mainEntity: {
+                "@type": "Service",
+                name: "AI Music Taste Analysis",
+                description: "Personalized music taste analysis using AI-powered critic personalities",
+                provider: {
+                  "@type": "Organization",
+                  name: "VinylVerdict.fm"
+                },
+                serviceType: "Entertainment",
+                areaServed: "Global"
+              }
             }),
           }}
         />

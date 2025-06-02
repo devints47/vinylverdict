@@ -190,10 +190,12 @@ export function Footer() {
 
         <div className="mt-8 pt-8 border-t border-zinc-800 text-sm text-center">
           <p>© {new Date().getFullYear()} VinylVerdict. All rights reserved.</p>
+          <p className="mt-2">VinylVerdict.FM does not store or use your Spotify data for any purpose other than to generate your personalized music taste critique.</p>
           <p className="mt-2">
             This app is an independent tool using Spotify's Web API. It is not affiliated with Spotify. All critiques
             are generated for entertainment purposes.
           </p>
+        
         </div>
       </div>
     </footer>
