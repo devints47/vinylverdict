@@ -59,12 +59,12 @@ function UserProfileCard({
         {/* Left Column - User Info */}
         <div className="col-span-3 pr-2 flex flex-col justify-between h-full">
           {/* User Info - Top section */}
-          <div className="flex items-center mb-1">
+          <div className="flex items-center mb-1 mt-4">
             <div className="w-10 h-10 rounded-full overflow-hidden mr-3 flex-shrink-0">
               <img
                 src={profile.images?.[0]?.url}
                 alt="Profile"
-                className="w-full h-full object-cover"
+                className="w-10 h-10 object-cover"
                 width={40}
                 height={40}
                 loading="lazy"
@@ -115,7 +115,7 @@ function UserProfileCard({
               <img
                 src="/spotify_logo_small.svg"
                 alt="Spotify"
-                className="h-[48px] w-auto mb-2"
+                className="h-[48px] w-[48px] mb-2"
                 width={48}
                 height={48}
                 loading="eager"
@@ -945,7 +945,7 @@ export default function DashboardClientPage() {
           </div>
 
           {/* Right Column - Profile Card and Privacy Card (25% on desktop) - Hidden on mobile as it's moved to the top */}
-          <div className="w-full md:w-[25%] md:self-start hidden md:block px-[2.5%]">
+          <div className="w-full md:w-[30%] md:self-start hidden md:block">
             {profileCard}
             <div className="mt-4">
               <DataPrivacyCard />
