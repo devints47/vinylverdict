@@ -12,7 +12,6 @@ interface ShareModalProps {
   onClose: () => void
   text: string
   assistantType: string
-  onShare: (platform: string) => void
 }
 
 const loadingMessages = [
@@ -25,15 +24,13 @@ const loadingMessages = [
   "Almost ready to drop...",
 ]
 
-export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: ShareModalProps) {
+export function ShareModal({ isOpen, onClose, text, assistantType }: ShareModalProps) {
   const [imageUrl, setImageUrl] = useState<string>("")
   const [isLoading, setIsLoading] = useState(false)
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0)
   const [userProfile, setUserProfile] = useState<any>(null)
   const [isSendingEmail, setIsSendingEmail] = useState(false)
   const [supportsNativeShare, setSupportsNativeShare] = useState(false)
-  const [showCopiedFeedback, setShowCopiedFeedback] = useState(false)
-  const [showCopiedText, setShowCopiedText] = useState(false)
   const [notifications, setNotifications] = useState<{[key: string]: boolean}>({})
   const [isClient, setIsClient] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
@@ -66,13 +63,6 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     },
     
     get totalHeight() { return this.height + this.padding * 2 }
-  }
-
-  // Fixed dimensions matching the loading preview - adjusted for mobile
-  const PREVIEW_DIMENSIONS = {
-    width: 340, // Reduced from 385 to fit better in smaller modal
-    aspectRatio: 3/4, // aspect-[3/4] from loading preview
-    get height() { return (this.width / this.aspectRatio) } // Calculate height from aspect ratio
   }
 
   // Detect Web Share API support on client side only to avoid hydration errors
@@ -114,8 +104,6 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
       setImageUrl("")
       setIsLoading(true)
       setIsSendingEmail(false)
-      setShowCopiedFeedback(false)
-      setShowCopiedText(false)
       setNotifications({})
 
       // Start cycling through loading messages
@@ -183,14 +171,6 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     }
   }, [isOpen, text, assistantType, userProfile])
 
-  // Helper function to show temporary notifications
-  const showNotification = (key: string, duration: number = 3000) => {
-    setNotifications(prev => ({ ...prev, [key]: true }))
-    setTimeout(() => {
-      setNotifications(prev => ({ ...prev, [key]: false }))
-    }, duration)
-  }
-
   // Helper function to show instant notifications (no delay)
   const showInstantNotification = (key: string, duration: number = 3000) => {
     // Use requestAnimationFrame to ensure immediate update
@@ -200,20 +180,6 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
         setNotifications(prev => ({ ...prev, [key]: false }))
       }, duration)
     })
-  }
-
-  const getPersonalityName = (type: string): string => {
-    switch (type) {
-      case "worshipper":
-        return "The Taste Validator"
-      case "historian":
-        return "The Music Historian"
-      case "therapist":
-        return "The Armchair Therapist"
-      case "snob":
-      default:
-        return "The Music Snob"
-    }
   }
 
   const copyImageToClipboard = async (imageUrl: string): Promise<void> => {
@@ -324,24 +290,16 @@ export function ShareModal({ isOpen, onClose, text, assistantType, onShare }: Sh
     if (!imageUrl) return
 
     // Show feedback immediately when clicked (before clipboard operation)
-    setShowCopiedFeedback(true)
-    setShowCopiedText(true)
     showInstantNotification('imageClick', 1500)
 
     try {
       // Copy to clipboard (async operation happens after feedback is shown)
       await copyImageToClipboard(imageUrl)
       
-      // Reset both feedbacks after their respective durations
-      setTimeout(() => setShowCopiedFeedback(false), 1500)
-      setTimeout(() => setShowCopiedText(false), 2000)
-      
     } catch (error) {
       console.error('Copy failed:', error)
       // Hide the notification if copy failed
       setNotifications(prev => ({ ...prev, imageClick: false }))
-      setShowCopiedText(false)
-      setShowCopiedFeedback(false)
       toast({
         title: "Copy failed",
         description: "Could not copy image to clipboard. Please try the copy button instead.",

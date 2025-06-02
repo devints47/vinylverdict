@@ -636,21 +636,6 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
   // Determine if the primary button should be disabled
   const isPrimaryButtonDisabled = Boolean(currentResponse.content && !currentResponse.isComplete)
 
-  // Function to handle sharing
-  const handleShare = async (platform: string) => {
-    try {
-      // Open the share modal
-      setShowShareModal(true)
-    } catch (error) {
-      console.error("Error sharing:", error)
-      toast({
-        title: "Error sharing",
-        description: "There was an error sharing your verdict. Please try again.",
-        variant: "destructive",
-      })
-    }
-  }
-
   // Function to clear the roast content and reset state
   const clearRoast = useCallback(() => {
     // Cancel any active request for this assistant type
@@ -798,7 +783,6 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
         onClose={() => setShowShareModal(false)}
         text={currentResponse.content}
         assistantType={assistantType}
-        onShare={handleShare}
       />
     </div>
   )
