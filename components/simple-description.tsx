@@ -48,29 +48,34 @@ export function SimpleDescription({ description, className = "", variant = "defa
             to { opacity: 1; }
           }
         `}</style>
-        <div 
-          className="bg-zinc-900/50 rounded-xl border border-zinc-800 overflow-hidden md:h-[132px] flex items-center justify-center"
-          style={{ contain: 'layout style' }}
-        >
-          {selectedVinyl ? (
-            <div className="p-3 md:p-3 h-full flex flex-col justify-center w-full">
-              {/* Mobile view - Collapsible content */}
-              <div className="md:hidden">
-                <button
-                  onClick={toggleExpand}
-                  className="flex items-center justify-between w-full text-sm text-zinc-400 hover:text-white transition-colors py-2"
-                  aria-expanded={isExpanded}
-                >
-                  <span className="flex items-center">
-                    <Info className="h-4 w-4 mr-1" />
+        
+        {selectedVinyl ? (
+          <>
+            {/* Mobile view - Standalone Dropdown (same level as data privacy) */}
+            <div className="block md:hidden w-full">
+              <button
+                onClick={toggleExpand}
+                className="w-full bg-zinc-900/80 border border-zinc-800 rounded-xl p-4 flex items-center justify-between hover:bg-zinc-800/80 transition-colors duration-200"
+                aria-expanded={isExpanded}
+              >
+                <div className="flex items-center gap-3">
+                  <Info className="h-4 w-4 text-bright-purple flex-shrink-0" />
+                  <span className="text-sm text-zinc-300 text-left">
                     {isExpanded ? "Hide details" : `Learn more about ${selectedVinyl.name}`}
                   </span>
-                  {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                </button>
+                </div>
+                <ChevronDown 
+                  className={`h-4 w-4 text-zinc-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+                />
+              </button>
 
-                <div
-                  className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? "max-h-96 pb-2" : "max-h-0"}`}
-                >
+              {/* Dropdown Content */}
+              <div
+                className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                  isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                }`}
+              >
+                <div className="bg-zinc-900/60 border-l border-r border-b border-zinc-800 rounded-b-xl p-4 mt-1">
                   <div 
                     key={selectedVinyl?.assistantType || 'default'}
                     className="opacity-0 animate-[fadeIn_300ms_ease-in-out_forwards]"
@@ -78,46 +83,56 @@ export function SimpleDescription({ description, className = "", variant = "defa
                       animation: 'fadeIn 300ms ease-in-out forwards'
                     }}
                   >
-                    <p className="text-zinc-300 text-center">
+                    <p className="text-sm text-zinc-300 leading-relaxed">
+                      <span className="font-bold text-bright-purple">{selectedVinyl.name}:</span>{" "}
                       {displayDescription}
                     </p>
                   </div>
                 </div>
               </div>
+            </div>
 
-              {/* Desktop view - Always visible content */}
-              <div className="hidden md:block overflow-hidden py-1">
-                <div 
-                  key={selectedVinyl?.assistantType || 'default'}
-                  className="min-h-[80px] flex items-center justify-center opacity-0 animate-[fadeIn_300ms_ease-in-out_forwards]"
-                  style={{ 
-                    contain: 'layout style',
-                    textRendering: 'optimizeSpeed',
-                    fontKerning: 'none',
-                    animation: 'fadeIn 300ms ease-in-out forwards'
-                  }}
-                >
-                  <p 
-                    className="text-zinc-300 text-base leading-relaxed text-center px-4 w-full"
+            {/* Desktop view - Card Container */}
+            <div 
+              className="hidden md:block bg-zinc-900/50 rounded-xl border border-zinc-800 overflow-hidden md:h-[132px] flex items-center justify-center"
+              style={{ contain: 'layout style' }}
+            >
+              <div className="p-3 h-full flex flex-col justify-center w-full">
+                <div className="overflow-hidden py-1">
+                  <div 
+                    key={selectedVinyl?.assistantType || 'default'}
+                    className="min-h-[80px] flex items-center justify-center opacity-0 animate-[fadeIn_300ms_ease-in-out_forwards]"
                     style={{ 
-                      wordBreak: 'break-word',
-                      hyphens: 'none',
-                      textAlign: 'center',
-                      whiteSpace: 'normal'
+                      contain: 'layout style',
+                      textRendering: 'optimizeSpeed',
+                      fontKerning: 'none',
+                      animation: 'fadeIn 300ms ease-in-out forwards'
                     }}
                   >
-                    <span className="font-bold text-purple-gradient">{selectedVinyl.name}:</span>{" "}
-                    {displayDescription}
-                  </p>
+                    <p 
+                      className="text-zinc-300 text-base leading-relaxed text-center px-4 w-full"
+                      style={{ 
+                        wordBreak: 'break-word',
+                        hyphens: 'none',
+                        textAlign: 'center',
+                        whiteSpace: 'normal'
+                      }}
+                    >
+                      <span className="font-bold text-purple-gradient">{selectedVinyl.name}:</span>{" "}
+                      {displayDescription}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
-          ) : (
+          </>
+        ) : (
+          <div className="bg-zinc-900/50 rounded-xl border border-zinc-800 overflow-hidden md:h-[132px] flex items-center justify-center">
             <div className="p-6 flex items-center justify-center">
               <p className="text-zinc-400 text-center">Select a personality to see their description</p>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </>
     )
   }

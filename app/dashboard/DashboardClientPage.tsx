@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/auth-context"
 import { useVinyl } from "@/contexts/vinyl-context"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
-import { Loader2, RefreshCw, Users, Clock, ChevronDown, ChevronUp, Info } from "lucide-react"
+import { Loader2, RefreshCw, Users, Clock, ChevronDown, ChevronUp, Info, Shield } from "lucide-react"
 import { MusicTabs } from "@/components/music-tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { TimeRangeSelector } from "@/components/time-range-selector"
@@ -123,6 +123,94 @@ function UserProfileCard({
               />
             </a>
             <span className="text-xs text-zinc-500/80 text-center mt-4">Connected to Spotify</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Data Privacy Disclaimer Card Component
+function DataPrivacyCard() {
+  const [isOpen, setIsOpen] = useState(false)
+
+  return (
+    <div className="w-full">
+      {/* Mobile Dropdown Version */}
+      <div className="block md:hidden">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="w-full bg-zinc-900/80 border border-zinc-800 rounded-xl p-4 flex items-center justify-between hover:bg-zinc-800/80 transition-colors duration-200"
+        >
+          <div className="flex items-center gap-3">
+            <Shield className="h-4 w-4 text-bright-purple flex-shrink-0" />
+            <span className="text-sm text-zinc-300 text-left">Learn more about data privacy</span>
+          </div>
+          <ChevronDown 
+            className={`h-4 w-4 text-zinc-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+          />
+        </button>
+        
+        {/* Dropdown Content */}
+        <div 
+          className={`overflow-hidden transition-all duration-300 ease-in-out ${
+            isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+          }`}
+        >
+          <div className="bg-zinc-900/60 border-l border-r border-b border-zinc-800 rounded-b-xl p-4 mt-1">
+            <p className="text-sm text-zinc-300 leading-relaxed mb-3">
+              VinylVerdict.FM does not store or use your Spotify data for any purpose other than to generate your personalized music taste critique.
+            </p>
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-zinc-400 mb-2">Our application:</p>
+              <ul className="space-y-2">
+                <li className="text-xs text-zinc-400 flex items-start">
+                  <span className="text-bright-purple mr-2 flex-shrink-0">•</span>
+                  <span>Does not store your Spotify credentials</span>
+                </li>
+                <li className="text-xs text-zinc-400 flex items-start">
+                  <span className="text-bright-purple mr-2 flex-shrink-0">•</span>
+                  <span>Does not store or utilize your listening data or history in any way</span>
+                </li>
+                <li className="text-xs text-zinc-400 flex items-start">
+                  <span className="text-bright-purple mr-2 flex-shrink-0">•</span>
+                  <span>Only requests the minimum permissions necessary to provide our service</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop Card Version */}
+      <div className="hidden md:block bg-gradient-to-r from-zinc-900 to-black rounded-xl border border-zinc-800 overflow-hidden shadow-lg">
+        <div className="p-4">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 mt-0.5">
+              <Shield className="h-5 w-5 text-bright-purple" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm text-zinc-300 leading-relaxed mb-3">
+                VinylVerdict.FM does not store or use your Spotify data for any purpose other than to generate your personalized music taste critique.
+              </p>
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-zinc-400 mb-1">Our application:</p>
+                <ul className="space-y-1">
+                  <li className="text-xs text-zinc-400 flex items-start">
+                    <span className="text-bright-purple mr-2 flex-shrink-0">•</span>
+                    <span>Does not store your Spotify credentials</span>
+                  </li>
+                  <li className="text-xs text-zinc-400 flex items-start">
+                    <span className="text-bright-purple mr-2 flex-shrink-0">•</span>
+                    <span>Does not store or utilize your listening data or history in any way</span>
+                  </li>
+                  <li className="text-xs text-zinc-400 flex items-start">
+                    <span className="text-bright-purple mr-2 flex-shrink-0">•</span>
+                    <span>Only requests the minimum permissions necessary to provide our service</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -813,7 +901,12 @@ export default function DashboardClientPage() {
         {/* Top Section with Grid Layout */}
         <div className="flex flex-col md:flex-row gap-6 mb-6 md:mb-4">
           {/* Mobile-first layout: Profile Card first on mobile, then Vinyl Collection */}
-          <div className="w-full md:hidden mb-6">{profileCard}</div>
+          <div className="w-full md:hidden mb-6 px-[2.5%]">
+            {profileCard}
+            <div className="mt-4">
+              <DataPrivacyCard />
+            </div>
+          </div>
 
           {/* Left Column - Vinyl Collection (25% on desktop) */}
           <div className="w-full md:w-[25%]">
@@ -851,8 +944,13 @@ export default function DashboardClientPage() {
             </div>
           </div>
 
-          {/* Right Column - Profile Card (25% on desktop) - Hidden on mobile as it's moved to the top */}
-          <div className="w-full md:w-[25%] md:self-start hidden md:block">{profileCard}</div>
+          {/* Right Column - Profile Card and Privacy Card (25% on desktop) - Hidden on mobile as it's moved to the top */}
+          <div className="w-full md:w-[25%] md:self-start hidden md:block px-[2.5%]">
+            {profileCard}
+            <div className="mt-4">
+              <DataPrivacyCard />
+            </div>
+          </div>
         </div>
 
         {/* Tabs and Content Section - Connected */}
