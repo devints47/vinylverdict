@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     } else if (type === "historian") {
       title = "The Historian's Analysis"
     } else if (type === "therapist") {
-      title = "The Armchair Therapist's Analysis"
+      title = "The Melody Mystic's Divination"
     }
 
     // Get emoji based on assistant type
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
     } else if (type === "historian") {
       emoji = "📚"
     } else if (type === "therapist") {
-      emoji = "🧠"
+      emoji = "🔮"
     }
 
     // Get background gradient based on assistant type

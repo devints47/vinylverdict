@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
         case "historian":
           return "The Music Historian"
         case "therapist":
-          return "The Armchair Therapist"
+          return "The Melody Mystic"
         case "snob":
         default:
           return "The Music Snob"

@@ -72,6 +72,16 @@ const VinylCollection = memo(function VinylCollection({ onSelectVinyl }: { onSel
   // Define our vinyl designs
   const vinylDesigns: VinylDesign[] = [
     {
+      id: "armchair-therapist",
+      name: "Melody Mystic",
+      labelColor: "teal",
+      faceType: "happy",
+      labelText: "COSMIC • MYSTICAL • MUSICAL ORACLE • DESTINY •",
+      description:
+        "A mystical musical oracle who reads the cosmic patterns in your playlist to reveal your musical destiny and spiritual journey. The Melody Mystic channels the universe's energy through your listening habits to unveil the hidden meanings behind your sonic choices.",
+      assistantType: "therapist", // New assistant type for Melody Mystic
+    },
+    {
       id: "music-snob",
       name: "Music Snob",
       labelColor: "purple",
@@ -80,16 +90,6 @@ const VinylCollection = memo(function VinylCollection({ onSelectVinyl }: { onSel
       description:
         "The most discerning and judgmental of our critics. Music Snob has strong opinions about everything from production quality to lyrical depth. Prepare for a thorough dissection of your musical choices with zero mercy.",
       assistantType: "snob", // This is the Music Snob assistant
-    },
-    {
-      id: "armchair-therapist",
-      name: "Armchair Therapist",
-      labelColor: "teal",
-      faceType: "happy",
-      labelText: "THERAPY • PSYCHOANALYSIS • DEEP INSIGHTS • SESSION •",
-      description:
-        "A straight-shooting psychological analyst who connects your music choices to your deepest emotional patterns and relationship dynamics. They'll tell you exactly what your playlist reveals about your psyche, personal growth, and love life.",
-      assistantType: "therapist", // New assistant type for Armchair Therapist
     },
     {
       id: "taste-validator",

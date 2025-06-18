@@ -147,7 +147,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
         actionVerb = "Analyze"
         break
       case "therapist":
-        actionVerb = "Psychoanalyze"
+        actionVerb = "Divine"
         break
       case "snob":
       default:
@@ -175,7 +175,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
       case "historian":
         return "Clear Analysis"
       case "therapist":
-        return "Clear Psychoanalysis"
+        return "Clear Divination"
       case "snob":
       default:
         return "Clear Roast"
@@ -190,7 +190,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
       case "historian":
         return "Share My Knowledge"
       case "therapist":
-        return "Share My Analysis"
+        return "Share My Divination"
       case "snob":
       default:
         return "Share My Roast"
@@ -206,7 +206,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
       case "historian":
         return "The Historian Is Researching..."
       case "therapist":
-        return "The Armchair Therapist Is Analyzing..."
+        return "The Melody Mystic Is Divining..."
       case "snob":
       default:
         return "The Music Snob Is Judging You..."
@@ -455,7 +455,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
       case "historian":
         return "This analysis examines your music in its historical and cultural context. It's meant to be educational and thought-provoking, not judgmental."
       case "therapist":
-        return "This psychological analysis explores the emotional connections between music choices and personal patterns. It's intended for self-reflection and entertainment, not as professional therapy."
+        return "This mystical musical divination explores the cosmic connections between your sonic choices and your spiritual journey. It's intended for enlightenment and entertainment, channeling the universe's musical wisdom."
       case "snob":
       default:
         return "This roast is a satirical critique of your personal listening habits. It's all in good fun and not intended to insult any artists or fans."
@@ -471,7 +471,7 @@ export function RoastMe({ topTracks, topArtists, recentlyPlayed, activeTab, sele
       case "historian":
         return "📚"
       case "therapist":
-        return "🧠"
+        return "🔮"
       case "snob":
       default:
         return "🔥"

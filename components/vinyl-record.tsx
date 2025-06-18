@@ -270,7 +270,7 @@ const VinylRecord = memo(function VinylRecord({
           break
 
         case "therapist":
-          // Therapist face with round glasses and thoughtful expression
+          // Melody Mystic face with round glasses and mystical expression
           // Round glasses - left lens
           ctx.beginPath()
           ctx.arc(centerX - eyeOffsetX, eyeY, eyeWidth * 0.9, 0, Math.PI * 2)

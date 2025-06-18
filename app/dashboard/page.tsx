@@ -4,7 +4,7 @@ import DashboardClientPage from "./DashboardClientPage"
 export const metadata: Metadata = {
   title: "Music Dashboard - Your Spotify Analysis",
   description:
-    "View your personalized Spotify music analysis with AI critics. See your top tracks, artists, and recent listening history with detailed insights from The Music Snob, Historian, Therapist, and Taste Validator.",
+    "View your personalized Spotify music analysis with AI critics. See your top tracks, artists, and recent listening history with detailed insights from The Music Snob, Historian, Melody Mystic, and Taste Validator.",
   keywords: [
     "spotify dashboard",
     "music analysis dashboard", 

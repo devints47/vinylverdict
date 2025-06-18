@@ -6,20 +6,20 @@ import { createContext, useContext, useState, useEffect } from "react"
 // Define the vinyl options with their properties
 export const vinylOptions = [
   {
+    id: "therapist",
+    name: "Melody Mystic",
+    description:
+      "A mystical musical oracle who reads the cosmic patterns in your playlist to reveal your musical destiny and spiritual journey. The Melody Mystic channels the universe's energy through your listening habits to unveil the hidden meanings behind your sonic choices.",
+    color: "from-orange-400 to-red-500",
+    assistantType: "therapist",
+  },
+  {
     id: "snob",
     name: "Music Snob",
     description:
       "The most discerning and judgmental of our critics. Music Snob has strong opinions about everything from production quality to lyrical depth. Prepare for a thorough dissection of your musical choices with zero mercy.",
     color: "from-red-500 to-orange-500",
     assistantType: "snob",
-  },
-  {
-    id: "therapist",
-    name: "Armchair Therapist",
-    description:
-      "A straight-shooting psychological analyst who connects your music choices to your deepest emotional patterns and relationship dynamics. The Armchair Therapist doesn't sugarcoat anything – they'll tell you exactly what your playlist reveals about your psyche, personal growth, and love life.",
-    color: "from-orange-400 to-red-500",
-    assistantType: "therapist",
   },
   {
     id: "worshipper",

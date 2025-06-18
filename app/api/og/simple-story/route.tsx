@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
     } else if (type === "historian") {
       title = "Music Historian"
     } else if (type === "therapist") {
-      title = "Armchair Therapist"
+      title = "Melody Mystic"
     }
 
     // Get background color based on assistant type

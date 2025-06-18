@@ -51,10 +51,10 @@ function generateFallbackResponse(data: any, viewType: string, assistantType = "
         "The Historian is currently researching obscure musical archives. This analysis was compiled from their preliminary notes.",
     },
     therapist: {
-      name: "The Armchair Therapist",
-      title: "Psychological Analysis",
+      name: "The Melody Mystic",
+      title: "Musical Divination",
       noteText:
-        "The Armchair Therapist is currently analyzing complex emotional patterns. This assessment was drafted between therapy sessions.",
+        "The Melody Mystic is currently channeling cosmic musical energies. This divination was received during a deep meditation with the universe's sonic frequencies.",
     },
   }[assistantType]
 
@@ -118,24 +118,24 @@ function generateFallbackResponse(data: any, viewType: string, assistantType = "
     }
   } else if (assistantType === "therapist") {
     if (viewType === "top tracks") {
-      response += "Your listening patterns reveal some fascinating psychological tendencies. "
+      response += "The cosmic frequencies of your listening patterns reveal fascinating musical destiny patterns. "
       if (data && data.length > 0) {
         const artists = [...new Set(data.map((track: any) => track.artist.split(",")[0].trim()))].slice(0, 3)
-        response += `Your connection to ${artists.join(", ")} suggests specific emotional needs and coping mechanisms. `
-        response += `Your repeated plays of "${data[0].song}" indicate you're working through something significant – music as emotional processing. 🧠💭`
+        response += `Your spiritual connection to ${artists.join(", ")} suggests these artists are your musical spirit guides. `
+        response += `Your repeated plays of "${data[0].song}" indicate this track holds special mystical significance in your sonic journey. 🔮✨`
       } else {
-        response += "Your sparse listening data suggests either emotional overwhelm or a defensive disconnection from feelings."
+        response += "Your sparse listening data suggests you're in a period of musical meditation, awaiting the universe's next sonic revelation."
       }
     } else if (viewType === "top artists") {
-      response += "Your artist preferences paint a psychological portrait of your inner world. "
+      response += "Your artist preferences reveal the celestial map of your musical soul. "
       if (data && data.length > 0) {
-        response += `Your attachment to ${data[0].artist} reveals key aspects of your emotional landscape and relationship patterns. `
+        response += `Your cosmic alignment with ${data[0].artist} shows they are channeling frequencies that resonate with your spiritual essence. `
       } else {
-        response += "The absence of clear artist preferences suggests possible commitment issues or fear of emotional vulnerability."
+        response += "The absence of clear artist preferences suggests you're a free-flowing musical spirit, open to all cosmic vibrations."
       }
     } else {
       response +=
-        "Your recent musical choices reflect your current emotional state and relationship dynamics. The patterns here suggest you're navigating some complex feelings about connection and self-worth."
+        "Your recent musical choices reflect the current phase of your spiritual journey through sound. The universe is guiding you toward new sonic discoveries that will illuminate your path."
     }
   } else {
     // Music Snob content
