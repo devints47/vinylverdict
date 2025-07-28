@@ -195,6 +195,24 @@ export function Footer() {
             This app is an independent tool using Spotify's Web API. It is not affiliated with Spotify. All critiques
             are generated for entertainment purposes.
           </p>
+          <div className="text-center md:text-right">
+            <p className="text-gray-600 font-mono text-xs">
+              Powered by{" "}
+              <a 
+                href="https://devinops.com" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                itemProp="creator"
+                itemScope
+                itemType="https://schema.org/Organization"
+                className="text-crimson hover:text-crimson/80 transition-colors"
+                title="DevinOps - Professional Web Development, Design & Digital Solutions"
+                aria-label="Visit DevinOps - Professional web development and design services"
+              >
+                <span itemProp="name">&gt;_DevinOps</span>
+              </a>
+            </p>
+          </div>
         
         </div>
       </div>
